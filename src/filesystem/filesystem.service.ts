@@ -61,9 +61,11 @@ export class FileSystemService {
 	}
 
 	public copyFile(source: string, destination: string): Promise<void> {
-		return new Promise((resolve, reject) => vscode.workspace.fs.copy(
-			vscode.Uri.file(source), vscode.Uri.file(destination)
-		).then(
+		const _sourceUri = vscode.Uri.file(source);
+		const _destinationUri = vscode.Uri.file(destination);
+		return new Promise((resolve, reject) => vscode.workspace.fs.copy(_sourceUri, _destinationUri, {
+			overwrite: true
+		}).then(
 			() => {
 				resolve(void(0));
 			},
