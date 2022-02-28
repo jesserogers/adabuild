@@ -1,6 +1,6 @@
 import { Inject, Injectable, OnDestroy } from "@kuroi/syringe";
 import * as vscode from "vscode";
-import { IBuildConfig } from "../config";
+import { ConfigurationService, IBuildConfig } from "../config";
 import { FileSystemService } from "../filesystem";
 import { WindowService } from "../window";
 
@@ -13,10 +13,6 @@ import { WindowService } from "../window";
 })
 export class Monitor implements OnDestroy {
 
-	private _buildConfig!: IBuildConfig;
-
-	private _rootFolderPath!: string;
-
 	private _changedLibraries = new Set<string>();
 
 	private _history = new Map<string, number>();
@@ -25,28 +21,24 @@ export class Monitor implements OnDestroy {
 
 	private _changeListener!: vscode.Disposable;
 
-	get rootFolderPath(): string {
-		if (vscode.workspace.workspaceFolders)
-			this._rootFolderPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-
-		return this._rootFolderPath || "";
-	}
-
 	constructor(
+		@Inject(ConfigurationService) private config: ConfigurationService,
 		@Inject(FileSystemService) private fileSystem: FileSystemService,
 		@Inject(WindowService) private window: WindowService	
 	) {
 
 	}
 
-	public start(config: IBuildConfig): void {
+	public start(): void {
+		if (!this.config.buildConfig)
+			return;
+
 		if (this._watcher)
 			this._watcher.dispose();
-
-		this._buildConfig = config;
-		this._watcher = this.fileSystem.watch(this._buildConfig.projectsRootGlob);
+	
+		this._watcher = this.fileSystem.watch(this.config.buildConfig.projectsRootGlob);
 		this._changeListener = this._watcher.onDidChange(uri => {
-			this._buildConfig.projectDefinitions.forEach(_project => {
+			this.config.buildConfig.projectDefinitions.forEach(_project => {
 				if (_project?.type === "library" && uri.path.includes(`/${_project.name}/`)) {
 					this.window.log(_project.name + " changed");
 					this._changedLibraries.add(_project.name);
@@ -71,22 +63,9 @@ export class Monitor implements OnDestroy {
 	}
 
 	public hasProject(project: string): boolean {
-		return !!(this._buildConfig && this._buildConfig.projectDefinitions.find(_project =>
+		return !!(this.config.buildConfig && this.config.buildConfig.projectDefinitions.find(_project =>
 			_project.name === project
 		));
-	}
-
-	public hasBuilt(project: string): Promise<boolean> {
-		if (!this._history.get(project) || !this.rootFolderPath)
-			return Promise.resolve(false);
-
-		return this.fileSystem.getDirectory(this.rootFolderPath + "\\dist").then(_dist => {
-			for (const [_name, _type] of _dist)
-				if (_type === vscode.FileType.Directory && this.hasProject(_name))
-					return true;
-	
-			return false;
-		});
 	}
 
 	public record(project: string): void {
