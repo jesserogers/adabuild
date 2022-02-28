@@ -70,7 +70,7 @@ export class AdaBuildExtension implements OnInit {
 			vscode.commands.registerCommand(`adabuild.reset`, () => {
 				this.window.inputBox({
 					value: "",
-					placeHolder: "Enter a project to reset. Leave blank to reset all projects."
+					placeHolder: "Enter a comma separated list of projects to reset. Leave blank to reset all projects."
 				}).then(_project => {
 					const _projects: string[] = _project?.split(",").map(x => x.trim()) || [];
 					this.monitor.reset(..._projects);
