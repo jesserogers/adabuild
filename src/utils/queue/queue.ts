@@ -35,6 +35,11 @@ export class Queue<T> {
 		return this._start?.value || null;
 	}
 
+	public clear(): void {
+		this._start = undefined;
+		this._end = undefined;
+	}
+
 	private _enqueue(value: T): boolean {
 		if (this.max && this.count >= this.max) {
 			return false;
