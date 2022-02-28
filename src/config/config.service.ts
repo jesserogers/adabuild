@@ -27,6 +27,9 @@ export class ConfigurationService {
 		if (this.buildConfig)
 			return Promise.resolve(this.buildConfig);
 
+		if (!this.fileSystem.root)
+			return Promise.reject("Aborting startup! Unable to determine workspace project root.");
+
 		const _configFileName: string = APP_NAME + ".config.json";
 		const _configFilePath: string = this.fileSystem.root + "\\" + _configFileName;
 
@@ -51,10 +54,6 @@ export class ConfigurationService {
 		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.dev.json",
 			this.fileSystem.root + "\\tsconfig.json"
-		).then(
-			() => {
-				this.window.log("Copied tsconfig.dev.json over tsconfig.json");
-			}
 		).catch(
 			_error => {
 				this.window.error("Failed to copy tsconfig.dev.json");
@@ -66,10 +65,6 @@ export class ConfigurationService {
 		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.prod.json",
 			this.fileSystem.root + "\\tsconfig.json"
-		).then(
-			() => {
-				this.window.log("Copied tsconfig.prod.json over tsconfig.json");
-			}
 		).catch(
 			_error => {
 				this.window.error("Failed to copy tsconfig.prod.json");
