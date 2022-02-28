@@ -11,15 +11,21 @@ import { APP_NAME } from "../constants";
 })
 export class WindowService {
 
-	public info = vscode.window.showInformationMessage;
-
-	public warn = vscode.window.showWarningMessage;
-
-	public error = vscode.window.showErrorMessage;
-
 	public inputBox = vscode.window.showInputBox;
 
 	private _outputChannel!: vscode.OutputChannel;
+
+	public info(message: string): void {
+		vscode.window.showInformationMessage(`adabuild: ${message}`);
+	}
+
+	public warn(message: string): void {
+		vscode.window.showWarningMessage(`adabuild: ${message}`);
+	}
+
+	public error(message: string): void {
+		vscode.window.showErrorMessage(`adabuild: ${message}`);
+	}
 
 	public log(message: string): void {
 		if (!this._outputChannel) {
