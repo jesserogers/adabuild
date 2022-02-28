@@ -1,6 +1,6 @@
 import { Inject, Injectable, OnDestroy } from "@kuroi/syringe";
 import * as vscode from "vscode";
-import { ConfigurationService, IBuildConfig } from "../config";
+import { ConfigurationService } from "../config";
 import { FileSystemService } from "../filesystem";
 import { WindowService } from "../window";
 
