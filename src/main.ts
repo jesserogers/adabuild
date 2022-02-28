@@ -1,13 +1,17 @@
 import { destroyAllInstances, inject } from "@kuroi/syringe";
 import { TextDecoder } from "util";
-import * as vscode from 'vscode';
-import { BuildService } from './build';
+import { ExtensionContext } from 'vscode';
+import { AdaBuildExtension } from "./app";
 
-export function activate(context: vscode.ExtensionContext) {
-	const adabuild: BuildService = inject(BuildService, {
-		providers: [ TextDecoder ]
-	});
-	context.subscriptions.push(...adabuild.generateCommands());
+export function activate(context: ExtensionContext) {
+	try {
+		const adabuild: AdaBuildExtension = inject(AdaBuildExtension, {
+			providers: [ TextDecoder ]
+		});
+		context.subscriptions.push(...adabuild.generateCommands());
+	} catch (_err) {
+		console.error(_err);
+	}
 }
 
 export function deactivate() {
