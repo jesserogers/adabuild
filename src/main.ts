@@ -1,10 +1,10 @@
 import { destroyAllInstances, inject } from "@kuroi/syringe";
 import { TextDecoder } from "util";
 import * as vscode from 'vscode';
-import { Builder } from './builder';
+import { BuildService } from './build';
 
 export function activate(context: vscode.ExtensionContext) {
-	const adabuild: Builder = inject(Builder, {
+	const adabuild: BuildService = inject(BuildService, {
 		providers: [ TextDecoder ]
 	});
 	context.subscriptions.push(...adabuild.generateCommands());
