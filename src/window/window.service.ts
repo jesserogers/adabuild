@@ -1,5 +1,6 @@
 import { Injectable } from "@kuroi/syringe";
 import * as vscode from "vscode";
+import { APP_NAME } from "../constants";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
@@ -22,9 +23,9 @@ export class WindowService {
 
 	public log(message: string): void {
 		if (!this._outputChannel) {
-			this._outputChannel = vscode.window.createOutputChannel("adabuild");
+			this._outputChannel = vscode.window.createOutputChannel(APP_NAME);
 		}
-		this._outputChannel.appendLine("[adabuild]: " + message);
+		this._outputChannel.appendLine(`[${APP_NAME}]: ${message}`);
 		this._outputChannel.show();
 	}
 
