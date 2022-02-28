@@ -1,83 +1,43 @@
-import { Inject, Injectable, OnInit } from "@kuroi/syringe";
-import * as vscode from "vscode";
+import { Inject, Injectable } from "@kuroi/syringe";
 import { CommandLineService } from "../cmd";
-import { IBuildConfig, IProjectDefinition, validateConfig } from "../config";
+import { ConfigurationService, IProjectDefinition } from "../config";
 import { FileSystemService } from "../filesystem";
 import { Monitor } from "../monitor";
 import { WindowService } from "../window";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
- * @description Controls the execution of build commands based on Monitor's change state
+ * @description Controls the execution of build commands
  * @see Monitor
  */
 @Injectable({
 	scope: "global"
 })
-export class BuildService implements OnInit {
-
-	private _buildConfig!: IBuildConfig;
+export class BuildService {
 
 	private _buildQueue = new Set<string>();
 
-	private _lastBuiltProject: string = "";
+	private _requestedBuild: string = "";
 
 	constructor(
 		@Inject(Monitor) private monitor: Monitor,
 		@Inject(CommandLineService) private cmd: CommandLineService,
 		@Inject(WindowService) private window: WindowService,
-		@Inject(FileSystemService) private fileSystem: FileSystemService
+		@Inject(FileSystemService) private fileSystem: FileSystemService,
+		@Inject(ConfigurationService) private config: ConfigurationService
 	) {
 
 	}
 
-	public onInit(): void {
-		this._loadConfigFile().then(_config => {
-			if (!validateConfig(_config)) {
-				console.error("Invalid config", _config);
-				this.window.error("adabuild: Invalid config file");
-				return;
-			}
-			this.window.log("Extension activated");
-			this.setBuildConfig(_config);
-			this.monitor.start(_config);
-		}).catch(_error => {
-			this.window.error(_error);
+	public build(incremental: boolean = false): void {
+		this._requestProjectName().then(_project => {
+			this._queueBuild(_project, incremental);
+		}).catch(() => {
+			this.window.log("Invalid project name input");
 		});
 	}
 
-	public setBuildConfig(_buildConfig: IBuildConfig): void {
-		this._buildConfig = _buildConfig;
-	}
-
-	public getProject(name: string): IProjectDefinition | undefined {
-		return this._buildConfig?.projectDefinitions?.find(_project =>
-			_project.name === name
-		);
-	}
-
-	public generateCommands(): vscode.Disposable[] {
-		return [
-			// normal build command
-			vscode.commands.registerCommand(`adabuild.build`, () => {
-				this._requestProjectName().then(_project => {
-					this.build(_project);
-				}).catch(() => {
-					this.window.log("Invalid project name input");
-				});
-			}),
-			// incremental build command
-			vscode.commands.registerCommand(`adabuild.incrementalbuild`, () => {
-				this._requestProjectName().then(_project => {
-					this.build(_project, true);
-				}).catch(() => {
-					this.window.log("Invalid project name input");
-				});
-			})
-		];
-	}
-
-	public build(project: string, incremental = false): void {
+	public _queueBuild(project: string, incremental = false): void {
 		this._queueDependencies(project, incremental);
 
 		if (!incremental) {
@@ -93,21 +53,19 @@ export class BuildService implements OnInit {
 	}
 
 	private _requestProjectName(): Promise<string> {
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
 			this.window.inputBox({
-				value: this._lastBuiltProject,
+				value: this._requestedBuild,
 				placeHolder: "Enter project name"
 			}).then(_project => {
-				this._lastBuiltProject = _project || "";
-				if (_project) {
-					return resolve(_project);
-				}
+				this._requestedBuild = _project || "";
+				return resolve(this._requestedBuild);
 			});
 		});
 	}
 
 	private _queueDependencies(project: string, incremental = false): void {
-		const _project: IProjectDefinition | undefined = this.getProject(project);
+		const _project: IProjectDefinition | undefined = this.config.getProject(project);
 
 		if (!_project)
 			return;
@@ -134,18 +92,13 @@ export class BuildService implements OnInit {
 			if (_commandLine)
 				_commandLine += " && ";
 
-			const _projectDefintion: IProjectDefinition | undefined = this.getProject(_project);
+			const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
 			_commandLine += _projectDefintion?.buildCommand || "npm run build:" + _project;
 			this.monitor.record(_project);
 		});
 
-		this.cmd.exec(_commandLine, this.monitor.rootFolderPath);
+		this.cmd.exec(_commandLine, this.fileSystem.root);
 		this._buildQueue.clear();
-	}
-
-	private _loadConfigFile(): Promise<IBuildConfig> {
-		const _configFilePath: string = this.monitor.rootFolderPath + "\\adabuild.config.json";
-		return this.fileSystem.getJsonFile(_configFilePath);
 	}
 
 }
