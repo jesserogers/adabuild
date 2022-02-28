@@ -50,27 +50,16 @@ export class Monitor implements OnDestroy {
 	public reset(project?: string): void {
 		if (project) {
 			this._history.delete(project);
-			return;
+			this.window.log("Successfully reset " + project);
+		} else {
+			this._changedLibraries.clear();
+			this._history.clear();
+			this.window.log("Successfully reset all projects");
 		}
-
-		this._changedLibraries.clear();
-		this._history.clear();
-
-		if (this._changeListener)
-			this._changeListener.dispose();
-		
-		if (this._watcher)
-			this._watcher.dispose();
 	}
 
 	public hasChanged(library: string): boolean {
 		return this._changedLibraries.has(library) || !this._history.has(library);
-	}
-
-	public hasProject(project: string): boolean {
-		return !!(this.config.buildConfig && this.config.buildConfig.projectDefinitions.find(_project =>
-			_project.name === project
-		));
 	}
 
 	public record(project: string): void {
@@ -80,6 +69,12 @@ export class Monitor implements OnDestroy {
 
 	onDestroy(): void {
 		this.reset();
+
+		if (this._changeListener)
+			this._changeListener.dispose();
+		
+		if (this._watcher)
+			this._watcher.dispose();
 	}
 
 }
