@@ -67,6 +67,7 @@ export class ConfigurationService {
 			this.fileSystem.root + "\\tsconfig.json"
 		).catch(
 			_error => {
+				console.error(_error);
 				this.window.error("Failed to copy tsconfig.prod.json");
 			}
 		);
