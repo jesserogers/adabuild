@@ -1,8 +1,7 @@
 # adabuild
-`adabuild` is a custom VS Code extension for the Adaptiva Front End Engineering team to streamline their Angular build processes.
+`adabuild` is a custom VS Code extension for the Adaptiva Front End Engineering team to streamline build processes. This extension provides an embedded application that monitors changes to Angular projects, allowing developers to confidently build only changed code before compiling a full application.
 
 ## Features
-VS Code extension commands to compile Angular projects and any peer dependencies within the local projects directory.
  - `Build`: Automatically compiles project dependencies before compiling the requested project
  - `Build (Incremental)`: Compiles project dependencies but skips those unchanged since their last recorded build
  - `Build All Projects`: Compiles all projects without regard for incrementation. Only compiles each project once.
