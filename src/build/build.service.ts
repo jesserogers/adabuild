@@ -63,6 +63,17 @@ export class BuildService {
 		this.cmd.exec("buildClientJar", _path);
 	}
 
+	public debugApplication(app: string): void {
+		const _project: IProjectDefinition | undefined = this.config.getProject(app);
+		if (_project?.type !== "application") {
+			this.window.error("Cannot debug project type " + _project?.type);
+			return;
+		}
+		this.config.copyTsConfigDev().then(() => {
+			this.cmd.exec(`ng serve ${app}`);
+		});
+	}
+
 	public _enqueueBuild(project: string, incremental = false): void {
 		this._enqueueDependencies(project, incremental);
 
