@@ -48,6 +48,10 @@
 			{
 				"command": "adabuild.buildclientjar",
 				"title": "adabuild: Build Client Jar"
+			},
+			{
+				"command": "adabuild.reset",
+				"title": "adabuild: Reset"
 			}
 		]
 	},

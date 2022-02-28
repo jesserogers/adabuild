@@ -65,6 +65,15 @@ export class AdaBuildExtension implements OnInit {
 			// tsconfig prod command
 			vscode.commands.registerCommand(`adabuild.copytsconfigprod`, () => {
 				this.config.copyTsConfigProd();
+			}),
+			// reset
+			vscode.commands.registerCommand(`adabuild.reset`, () => {
+				this.window.inputBox({
+					value: "",
+					placeHolder: "Enter a project to reset"
+				}).then(_project => {
+					this.monitor.reset(_project);
+				});
 			})
 		];
 	}
