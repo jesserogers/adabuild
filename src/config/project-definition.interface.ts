@@ -3,4 +3,5 @@ export interface IProjectDefinition {
 	name: string;
 	dependencies: string[];
 	buildCommand?: string;
+	debugCommand?: string;
 }
