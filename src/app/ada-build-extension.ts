@@ -40,14 +40,26 @@ export class AdaBuildExtension implements OnInit {
 			vscode.commands.registerCommand(`adabuild.incrementalbuild`, () => {
 				this.builder.build(true);
 			}),
+			// build all Angular projects
+			vscode.commands.registerCommand(`adabuild.buildall`, () => {
+				this.builder.buildAllProjects();
+			}),
+			// build server jar
+			vscode.commands.registerCommand(`adabuild.buildserverjar`, () => {
+				this.builder.buildServerJar();
+			}),
+			// build client jar
+			vscode.commands.registerCommand(`adabuild.buildclientjar`, () => {
+				this.builder.buildClientJar();
+			}),
 			// tsconfig dev command
 			vscode.commands.registerCommand(`adabuild.copytsconfigdev`, () => {
 				this.config.copyTsConfigDev();
 			}),
-			// tsconfig dev command
+			// tsconfig prod command
 			vscode.commands.registerCommand(`adabuild.copytsconfigprod`, () => {
 				this.config.copyTsConfigProd();
-			}),
+			})
 		];
 	}
 
