@@ -32,6 +32,10 @@
 			{
 				"command": "adabuild.copytsconfigprod",
 				"title": "Set TS Config (PROD)"
+			},
+			{
+				"command": "adabuild.debugapplication",
+				"title": "Debug Application"
 			}
 		]
 	},
