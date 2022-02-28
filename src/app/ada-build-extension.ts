@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { BuildService } from "../build";
 import { ConfigurationService } from "../config";
 import { Monitor } from "../monitor";
+import { WindowService } from "../window";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
@@ -14,16 +15,18 @@ import { Monitor } from "../monitor";
 export class AdaBuildExtension implements OnInit {
 
 	constructor(
-		@Inject(Monitor) private monitor?: Monitor,
-		@Inject(BuildService) private builder?: BuildService,
-		@Inject(ConfigurationService) private config?: ConfigurationService
+		@Inject(Monitor) private monitor: Monitor,
+		@Inject(BuildService) private builder: BuildService,
+		@Inject(ConfigurationService) private config: ConfigurationService,
+		@Inject(WindowService) private window: WindowService
 	) {
 
 	}
 
 	onInit(): void {
-		this.config?.loadConfiguration().then(() => {
-			this.monitor?.start();
+		this.config.loadConfiguration().then(() => {
+			this.monitor.start();
+			this.window.log("extension activated");
 		});
 	}
 
@@ -31,19 +34,19 @@ export class AdaBuildExtension implements OnInit {
 		return [
 			// normal build command
 			vscode.commands.registerCommand(`adabuild.build`, () => {
-				this.builder?.build();
+				this.builder.build();
 			}),
 			// incremental build command
 			vscode.commands.registerCommand(`adabuild.incrementalbuild`, () => {
-				this.builder?.build(true);
+				this.builder.build(true);
 			}),
 			// tsconfig dev command
 			vscode.commands.registerCommand(`adabuild.copytsconfigdev`, () => {
-				this.config?.copyTsConfigDev();
+				this.config.copyTsConfigDev();
 			}),
 			// tsconfig dev command
 			vscode.commands.registerCommand(`adabuild.copytsconfigprod`, () => {
-				this.config?.copyTsConfigProd();
+				this.config.copyTsConfigProd();
 			}),
 		];
 	}
