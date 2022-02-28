@@ -146,7 +146,7 @@ export class BuildService {
 
 				const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
 
-				_commandLine += _projectDefintion?.buildCommand || `ng build ${_project} --c production`;
+				_commandLine += _projectDefintion?.buildCommand || `ng build ${_project}`;
 				
 				this.monitor.record(_project);
 			}

@@ -14,4 +14,4 @@
 ## Requirements
 Your project _must_ have a `adabuild.config.json` file in the project root. This file needs to follow the `IBuildConfig` interface as a schema. Make sure to provide a glob pattern to your projects directory (or whatever it's called) and List your `projectDefinitions` _in order_ of dependency.
 
-Each `projectDefinition` has an optional `buildCommand` and `debugCommand` value for which you can supply a custom command line string to execute your build process. If none provided, `adabuild` will default to `ng build {project-name} --c production`.
+Each `projectDefinition` has an optional `buildCommand` and `debugCommand` value for which you can supply a custom command line string to execute your build process. If none provided, `adabuild` will default to `ng build {project-name}`.
