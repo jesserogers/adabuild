@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, OnInit } from "@kuroi/syringe";
+import { Injectable } from "@kuroi/syringe";
 import * as vscode from "vscode";
 import { APP_NAME } from "../constants";
 
@@ -9,26 +9,12 @@ import { APP_NAME } from "../constants";
 @Injectable({
 	scope: "global"
 })
-export class CommandLineService implements OnInit, OnDestroy {
+export class CommandLineService {
 
 	private _terminal!: vscode.Terminal;
 
-	onInit(): void {
-		for (const _terminal of vscode.window.terminals) {
-			if (_terminal.name === APP_NAME) {
-				this._terminal = _terminal;
-				break;
-			}
-		}
-	}
-
-	onDestroy(): void {
-		if (this._terminal)
-			this._terminal.dispose();
-	}
-
 	public exec(command: string, directory?: string): vscode.Terminal {
-		if (!this._terminal) {
+		if (!this._terminal && !this._findPreviousTerminal()) {
 			this._terminal = vscode.window.createTerminal({
 				name: APP_NAME,
 				cwd: directory
@@ -37,6 +23,16 @@ export class CommandLineService implements OnInit, OnDestroy {
 		this._terminal.show();
 		this._terminal.sendText(command);
 		return this._terminal;
+	}
+
+	private _findPreviousTerminal(): boolean {
+		for (const _terminal of vscode.window.terminals) {
+			if (_terminal.name === APP_NAME) {
+				this._terminal = _terminal;
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
