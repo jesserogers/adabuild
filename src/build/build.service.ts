@@ -30,7 +30,9 @@ export class BuildService {
 	}
 
 	public build(incremental: boolean = false): void {
-		this._requestProjectName().then(_project => {
+		this.config.copyTsConfigProd().then(() =>
+			this._requestProjectName()
+		).then(_project => {
 			this._queueBuild(_project, incremental);
 		}).catch(() => {
 			this.window.log("Invalid project name input");
@@ -42,13 +44,14 @@ export class BuildService {
 
 		if (!incremental) {
 			this._enqueue(project);
+			this.window.log(`Running full build for ${project}...`);
 			this._executeBuildQueue();
 		} else if (!this.monitor.hasChanged(project)) {
 			this.window.log(`No delta for ${project}: skipping incremental build`);
 		} else {
 			this._enqueue(project);
-			this._executeBuildQueue();
 			this.window.log(`Running incremental build for ${project}...`);
+			this._executeBuildQueue();
 		}
 	}
 
