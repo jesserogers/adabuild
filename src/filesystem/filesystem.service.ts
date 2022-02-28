@@ -11,6 +11,15 @@ import * as vscode from "vscode";
 })
 export class FileSystemService {
 
+	private _root: string = "";
+
+	get root(): string {
+		if (vscode.workspace.workspaceFolders)
+			this._root = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+		return this._root || "";
+	}
+
 	constructor(@Inject(TextDecoder) private decoder: TextDecoder) {
 
 	}
@@ -49,6 +58,19 @@ export class FileSystemService {
 				_error => reject(_error)
 			);
 		});
+	}
+
+	public copyFile(source: string, destination: string): Promise<void> {
+		return new Promise((resolve, reject) => vscode.workspace.fs.copy(
+			vscode.Uri.file(source), vscode.Uri.file(destination)
+		).then(
+			() => {
+				resolve(void(0));
+			},
+			_error => {
+				reject(_error);
+			}
+		));
 	}
 
 }
