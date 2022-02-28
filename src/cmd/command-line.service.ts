@@ -1,4 +1,4 @@
-import { Injectable, OnInit } from "@kuroi/syringe";
+import { Injectable, OnDestroy, OnInit } from "@kuroi/syringe";
 import * as vscode from "vscode";
 import { APP_NAME } from "../constants";
 
@@ -9,7 +9,7 @@ import { APP_NAME } from "../constants";
 @Injectable({
 	scope: "global"
 })
-export class CommandLineService implements OnInit {
+export class CommandLineService implements OnInit, OnDestroy {
 
 	private _terminal!: vscode.Terminal;
 
@@ -20,6 +20,11 @@ export class CommandLineService implements OnInit {
 				break;
 			}
 		}
+	}
+
+	onDestroy(): void {
+		if (this._terminal)
+			this._terminal.dispose();
 	}
 
 	public exec(command: string, directory?: string): vscode.Terminal {
