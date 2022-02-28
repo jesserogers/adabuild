@@ -63,14 +63,16 @@ export class BuildService {
 		this.cmd.exec("buildClientJar", _path);
 	}
 
-	public debugApplication(app: string): void {
-		const _project: IProjectDefinition | undefined = this.config.getProject(app);
-		if (_project?.type !== "application") {
-			this.window.error("Cannot debug project type " + _project?.type);
-			return;
-		}
-		this.config.copyTsConfigDev().then(() => {
-			this.cmd.exec(`ng serve ${app}`);
+	public debugApplication(): void {
+		this._requestProjectName().then(_app => {
+			const _project: IProjectDefinition | undefined = this.config.getProject(_app);
+			if (_project?.type !== "application") {
+				this.window.error("Cannot debug project type " + _project?.type);
+				return;
+			}
+			this.config.copyTsConfigDev().then(() => {
+				this.cmd.exec(`ng serve ${_app}`);
+			});
 		});
 	}
 
