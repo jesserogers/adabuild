@@ -44,8 +44,8 @@ export class ConfigurationService {
 		);
 	}
 
-	public copyTsConfigDev(): void {
-		this.fileSystem.copyFile(
+	public copyTsConfigDev(): Promise<void> {
+		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.dev.json",
 			this.fileSystem.root + "\\tsconfig.json"
 		).then(
@@ -59,8 +59,8 @@ export class ConfigurationService {
 		);
 	}
 
-	public copyTsConfigProd(): void {
-		this.fileSystem.copyFile(
+	public copyTsConfigProd(): Promise<void> {
+		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.prod.json",
 			this.fileSystem.root + "\\tsconfig.json"
 		).then(
