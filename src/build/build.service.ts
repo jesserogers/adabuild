@@ -31,11 +31,11 @@ export class BuildService {
 	}
 
 	public build(incremental: boolean = false): void {
-		this.config.copyTsConfigProd().then(() =>
-			this._requestProjectName()
-		).then(_project => {
-			this._enqueueBuild(_project, incremental);
-		}).catch(() => {
+		this._requestProjectName().then(_project =>
+			this.config.copyTsConfigProd().then(() => {
+				this._enqueueBuild(_project, incremental);
+			})
+		).catch(() => {
 			this.window.log("Invalid project name input");
 		});
 	}
@@ -104,8 +104,10 @@ export class BuildService {
 
 		if (_project.dependencies && _project.dependencies.length) {
 			for (let i = 0; i < _project.dependencies.length; i++) {
-				if (incremental && !this.monitor.hasChanged(_project.dependencies[i]))
+				if (incremental && !this.monitor.hasChanged(_project.dependencies[i])) {
+					this.window.log(`No delta for ${_project.dependencies[i]}. Skipping incremental build...`);
 					continue;
+				}
 
 				this._enqueue(_project.dependencies[i]);
 			}
@@ -123,7 +125,7 @@ export class BuildService {
 
 				const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
 
-				_commandLine += _projectDefintion?.buildCommand || "npm run build:" + _project;
+				_commandLine += _projectDefintion?.buildCommand || `ng build ${_project} --c production`;
 				
 				this.monitor.record(_project);
 			}
