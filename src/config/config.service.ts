@@ -1,4 +1,5 @@
 import { Inject, Injectable } from "@kuroi/syringe";
+import { APP_NAME } from "../constants";
 import { FileSystemService } from "../filesystem";
 import { WindowService } from "../window";
 import { IBuildConfig } from "./config.interface";
@@ -26,12 +27,14 @@ export class ConfigurationService {
 		if (this.buildConfig)
 			return Promise.resolve(this.buildConfig);
 
-		const _configFilePath: string = this.fileSystem.root + "\\adabuild.config.json";
+		const _configFileName: string = APP_NAME + ".config.json";
+		const _configFilePath: string = this.fileSystem.root + "\\" + _configFileName;
+
 		return this.fileSystem.getJsonFile<IBuildConfig>(_configFilePath).then(_config => {
 			if (!this._validateBuildConfig(_config)) {
 				console.error("Invalid config", _config);
-				this.window.error("adabuild: Invalid config file");
-				throw new Error("adabuild.config.json failed validation");
+				this.window.error("Invalid config file");
+				throw new Error(_configFileName + " failed validation");
 			}
 			this.buildConfig = _config;
 			return _config;
@@ -54,7 +57,7 @@ export class ConfigurationService {
 			}
 		).catch(
 			_error => {
-				this.window.error("adabuild: Failed to copy tsconfig.dev.json");
+				this.window.error("Failed to copy tsconfig.dev.json");
 			}
 		);
 	}
@@ -69,7 +72,7 @@ export class ConfigurationService {
 			}
 		).catch(
 			_error => {
-				this.window.error("adabuild: Failed to copy tsconfig.prod.json");
+				this.window.error("Failed to copy tsconfig.prod.json");
 			}
 		);
 	}
