@@ -1,5 +1,6 @@
 import { Injectable, OnInit } from "@kuroi/syringe";
 import * as vscode from "vscode";
+import { APP_NAME } from "../constants";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
@@ -10,13 +11,11 @@ import * as vscode from "vscode";
 })
 export class CommandLineService implements OnInit {
 
-	private static readonly TERMINAL_NAME: string = "adabuild";
-
 	private _terminal!: vscode.Terminal;
 
 	onInit(): void {
 		for (const _terminal of vscode.window.terminals) {
-			if (_terminal.name === CommandLineService.TERMINAL_NAME) {
+			if (_terminal.name === APP_NAME) {
 				this._terminal = _terminal;
 				break;
 			}
@@ -26,7 +25,7 @@ export class CommandLineService implements OnInit {
 	public exec(command: string, directory?: string): vscode.Terminal {
 		if (!this._terminal) {
 			this._terminal = vscode.window.createTerminal({
-				name: "adabuild",
+				name: APP_NAME,
 				cwd: directory
 			});
 		}
