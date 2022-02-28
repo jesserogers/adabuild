@@ -71,7 +71,7 @@ export class BuildService {
 				return;
 			}
 			this.config.copyTsConfigDev().then(() => {
-				this.cmd.exec(`ng serve ${_app}`);
+				this.cmd.exec(_project?.debugCommand || `ng serve ${_app}`);
 			});
 		});
 	}
