@@ -19,23 +19,35 @@
 		"commands": [
 			{
 				"command": "adabuild.build",
-				"title": "Build Project"
+				"title": "adabuild: Build Project"
 			},
 			{
 				"command": "adabuild.incrementalbuild",
-				"title": "Build Project (Incremental)"
+				"title": "adabuild: Build Project (Incremental)"
+			},
+			{
+				"command": "adabuild.buildall",
+				"title": "adabuild: Build All Projects"
 			},
 			{
 				"command": "adabuild.copytsconfigdev",
-				"title": "Set TS Config (DEV)"
+				"title": "adabuild: Set TS Config (DEV)"
 			},
 			{
 				"command": "adabuild.copytsconfigprod",
-				"title": "Set TS Config (PROD)"
+				"title": "adabuild: Set TS Config (PROD)"
 			},
 			{
 				"command": "adabuild.debugapplication",
-				"title": "Debug Application"
+				"title": "adabuild: Debug Application"
+			},
+			{
+				"command": "adabuild.buildserverjar",
+				"title": "adabuild: Build Server Jar"
+			},
+			{
+				"command": "adabuild.buildclientjar",
+				"title": "adabuild: Build Client Jar"
 			}
 		]
 	},
