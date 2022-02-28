@@ -3,6 +3,7 @@ import { CommandLineService } from "../cmd";
 import { ConfigurationService, IProjectDefinition } from "../config";
 import { FileSystemService } from "../filesystem";
 import { Monitor } from "../monitor";
+import { Queue } from "../utils";
 import { WindowService } from "../window";
 
 /**
@@ -15,7 +16,7 @@ import { WindowService } from "../window";
 })
 export class BuildService {
 
-	private _buildQueue = new Set<string>();
+	private _buildQueue = new Queue<string>();
 
 	private _requestedBuild: string = "";
 
@@ -33,14 +34,37 @@ export class BuildService {
 		this.config.copyTsConfigProd().then(() =>
 			this._requestProjectName()
 		).then(_project => {
-			this._queueBuild(_project, incremental);
+			this._enqueueBuild(_project, incremental);
 		}).catch(() => {
 			this.window.log("Invalid project name input");
 		});
 	}
 
-	public _queueBuild(project: string, incremental = false): void {
-		this._queueDependencies(project, incremental);
+	public buildAllProjects(): void {
+		this._buildQueue.clear();
+		this.config.buildConfig.projectDefinitions.forEach(_project => {
+			this._enqueueBuild(_project.name, true);
+		});
+		this.window.log("Building all projects...");
+		this._executeBuildQueue();
+	}
+
+	public buildServerJar(): void {
+		const _path: string = this.fileSystem.root.replace(
+			"CloudFramework", "buildsystem/tools/buildfiles_evolve"
+		);
+		this.cmd.exec("buildServerJar", _path);
+	}
+
+	public buildClientJar(): void {
+		const _path: string = this.fileSystem.root.replace(
+			"CloudFramework", "buildsystem/tools/buildfiles_evolve"
+		);
+		this.cmd.exec("buildClientJar", _path);
+	}
+
+	public _enqueueBuild(project: string, incremental = false): void {
+		this._enqueueDependencies(project, incremental);
 
 		if (!incremental) {
 			this._enqueue(project);
@@ -67,7 +91,12 @@ export class BuildService {
 		});
 	}
 
-	private _queueDependencies(project: string, incremental = false): void {
+	private _enqueue(project: string): void {
+		this.window.log("Queueing " + project + " for build...");
+		this._buildQueue.enqueue(project);
+	}
+
+	private _enqueueDependencies(project: string, incremental = false): void {
 		const _project: IProjectDefinition | undefined = this.config.getProject(project);
 
 		if (!_project)
@@ -83,25 +112,24 @@ export class BuildService {
 		}
 	}
 
-	private _enqueue(project: string): void {
-		this.window.log("Queueing " + project + " for build...");
-		this._buildQueue.add(project);
-	}
-
 	private _executeBuildQueue(): void {
 		let _commandLine: string = "";
 
-		this._buildQueue.forEach(_project => {
-			if (_commandLine)
-				_commandLine += " && ";
+		while (this._buildQueue.count) {
+			const _project = this._buildQueue.dequeue(); 
+			if (_project) {
+				if (_commandLine)
+					_commandLine += " && ";
 
-			const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
-			_commandLine += _projectDefintion?.buildCommand || "npm run build:" + _project;
-			this.monitor.record(_project);
-		});
+				const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
+
+				_commandLine += _projectDefintion?.buildCommand || "npm run build:" + _project;
+				
+				this.monitor.record(_project);
+			}
+		}
 
 		this.cmd.exec(_commandLine, this.fileSystem.root);
-		this._buildQueue.clear();
 	}
 
 }
