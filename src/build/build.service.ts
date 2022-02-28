@@ -14,7 +14,7 @@ import { WindowService } from "../window";
 @Injectable({
 	scope: "global"
 })
-export class Builder implements OnInit {
+export class BuildService implements OnInit {
 
 	private _buildConfig!: IBuildConfig;
 
