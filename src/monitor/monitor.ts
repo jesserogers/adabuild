@@ -47,7 +47,12 @@ export class Monitor implements OnDestroy {
 		});
 	}
 
-	public reset(): void {
+	public reset(project?: string): void {
+		if (project) {
+			this._history.delete(project);
+			return;
+		}
+
 		this._changedLibraries.clear();
 		this._history.clear();
 
