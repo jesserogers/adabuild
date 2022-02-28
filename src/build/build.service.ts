@@ -31,11 +31,14 @@ export class BuildService {
 	}
 
 	public build(incremental: boolean = false): void {
-		this._requestProjectName().then(_project =>
-			this.config.copyTsConfigProd().then(() => {
+		this._requestProjectName().then(_project => {
+			if (!this.config.getProject(_project))
+				return this.window.error("Invalid project name \" + _project + \"");
+
+			return this.config.copyTsConfigProd().then(() => {
 				this._enqueueBuild(_project, incremental);
-			})
-		).catch(() => {
+			});
+		}).catch(() => {
 			this.window.log("Invalid project name input");
 		});
 	}
@@ -117,12 +120,17 @@ export class BuildService {
 
 		if (_project.dependencies && _project.dependencies.length) {
 			for (let i = 0; i < _project.dependencies.length; i++) {
-				if (incremental && !this.monitor.hasChanged(_project.dependencies[i])) {
-					this.window.log(`No delta for ${_project.dependencies[i]}. Skipping incremental build...`);
+				const _dependency: string = _project.dependencies[i];
+
+				if (!this.config.getProject(_dependency))
+					return this.window.error(`Invalid dependency listed for ${project}: ${_dependency}`);
+				
+				if (incremental && !this.monitor.hasChanged(_dependency)) {
+					this.window.log(`No delta for ${_dependency}. Skipping incremental build...`);
 					continue;
 				}
 
-				this._enqueue(_project.dependencies[i]);
+				this._enqueue(_dependency);
 			}
 		}
 	}
