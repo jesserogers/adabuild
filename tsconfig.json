@@ -10,5 +10,9 @@
 		"rootDir": "src",
 		"strict": true,
 		"experimentalDecorators": true
-	}
+	},
+	"files": [
+		"src/main.ts"
+	]
 }
+		
