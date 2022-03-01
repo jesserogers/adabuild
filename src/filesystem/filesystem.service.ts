@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@kuroi/syringe";
-import { TextDecoder } from "util";
+import { TextDecoder, TextEncoder } from "util";
 import * as vscode from "vscode";
 
 /**
@@ -20,7 +20,10 @@ export class FileSystemService {
 		return this._root || "";
 	}
 
-	constructor(@Inject(TextDecoder) private decoder: TextDecoder) {
+	constructor(
+		@Inject(TextDecoder) private decoder: TextDecoder,
+		@Inject(TextEncoder) private encoder: TextEncoder
+	) {
 
 	}
 
@@ -73,6 +76,31 @@ export class FileSystemService {
 				reject(_error);
 			}
 		));
+	}
+
+	public writeFile(path: string, content: string | Object): Promise<void> {
+		if (!path)
+			return Promise.reject("Invalid path: " + path);
+
+		if (!content)
+			return Promise.reject("No content supplied");
+
+		if (typeof content !== "string")
+			content = JSON.stringify(content);
+
+		return new Promise((resolve, reject) => {
+			vscode.workspace.fs.writeFile(
+				vscode.Uri.file(path),
+				this.encoder.encode(content as string)
+			).then(
+				() => {
+					resolve(void 0);
+				},
+				_err => {
+					reject(_err);
+				}
+			);
+		});
 	}
 
 }
