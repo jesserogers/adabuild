@@ -85,7 +85,7 @@ export class BuildService {
 			this._enqueue(project);
 			this.window.log(`Running full build for ${project}...`);
 			this._executeBuildQueue();
-		} else if (!this.monitor.hasChanged(project)) {
+		} else if (!this.monitor.state.hasChanged(project)) {
 			this.window.log(`No delta for ${project}: skipping incremental build.`);
 		} else {
 			this._enqueue(project);
@@ -130,13 +130,13 @@ export class BuildService {
 					return this.window.error(`Invalid dependency listed for ${project}: ${_dependency}.`);
 
 				if (incremental) {
-					if (!this.monitor.hasChanged(_dependency)) {
+					if (!this.monitor.state.hasChanged(_dependency)) {
 						this.window.log(`No delta for ${_dependency}. Skipping incremental build...`);
 						continue;
 					} else {
 						// one of the dependencies changed so the dependent
 						// project must also recompile
-						this.monitor.registerChange(project);
+						this.monitor.state.change(project);
 					}
 				}
 
@@ -159,7 +159,7 @@ export class BuildService {
 
 			_commandLine += _projectDefintion?.buildCommand || `ng build ${_project}`;
 
-			this.monitor.record(_project);
+			this.monitor.state.record(_project);
 		});
 
 		this.cmd.exec(_commandLine, this.fileSystem.root);
