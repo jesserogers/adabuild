@@ -64,6 +64,10 @@ export class Monitor implements OnDestroy {
 		return this._changedLibraries.has(library) || !this._history.has(library);
 	}
 
+	public registerChange(project: string): void {
+		this._changedLibraries.add(project);
+	}
+
 	public record(project: string): void {
 		const _previous: number | undefined = this._history.get(project);
 		this._history.set(project, (_previous || 0) + 1);
