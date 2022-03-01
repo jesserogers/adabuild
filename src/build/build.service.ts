@@ -86,7 +86,7 @@ export class BuildService {
 			this.window.log(`Running full build for ${project}...`);
 			this._executeBuildQueue();
 		} else if (!this.monitor.hasChanged(project)) {
-			this.window.log(`No delta for ${project}: skipping incremental build`);
+			this.window.log(`No delta for ${project}: skipping incremental build.`);
 		} else {
 			this._enqueue(project);
 			this.window.log(`Running incremental build for ${project}...`);
@@ -127,7 +127,7 @@ export class BuildService {
 				const _dependency: string = _project.dependencies[i];
 
 				if (!this.config.getProject(_dependency))
-					return this.window.error(`Invalid dependency listed for ${project}: ${_dependency}`);
+					return this.window.error(`Invalid dependency listed for ${project}: ${_dependency}.`);
 
 				if (incremental) {
 					if (!this.monitor.hasChanged(_dependency)) {
@@ -163,7 +163,9 @@ export class BuildService {
 		});
 
 		this.cmd.exec(_commandLine, this.fileSystem.root);
+
 		this._buildQueue.clear();
+		this.monitor.saveState();
 	}
 
 }
