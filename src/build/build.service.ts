@@ -3,7 +3,6 @@ import { CommandLineService } from "../cmd";
 import { ConfigurationService, IProjectDefinition } from "../config";
 import { FileSystemService } from "../filesystem";
 import { Monitor } from "../monitor";
-import { Queue } from "../utils";
 import { WindowService } from "../window";
 
 /**
@@ -16,7 +15,7 @@ import { WindowService } from "../window";
 })
 export class BuildService {
 
-	private _buildQueue = new Queue<string>();
+	private _buildQueue = new Set<string>();
 
 	private _requestedBuild: string = "";
 
@@ -96,20 +95,25 @@ export class BuildService {
 	}
 
 	private _requestProjectName(): Promise<string> {
-		return new Promise(resolve => {
+		return new Promise((resolve, _reject) => {
 			this.window.inputBox({
 				value: this._requestedBuild,
 				placeHolder: "Enter project name"
-			}).then(_project => {
-				this._requestedBuild = _project || "";
-				return resolve(this._requestedBuild);
-			});
+			}).then(
+				_project => {
+					this._requestedBuild = _project || "";
+					return resolve(this._requestedBuild);
+				},
+				_error => {
+					this.window.error("Unexpected error requesting project name: " + _error);
+				}
+			);
 		});
 	}
 
 	private _enqueue(project: string): void {
 		this.window.log("Queueing " + project + " for build...");
-		this._buildQueue.enqueue(project);
+		this._buildQueue.add(project);
 	}
 
 	private _enqueueDependencies(project: string, incremental = false): void {
@@ -124,10 +128,16 @@ export class BuildService {
 
 				if (!this.config.getProject(_dependency))
 					return this.window.error(`Invalid dependency listed for ${project}: ${_dependency}`);
-				
-				if (incremental && !this.monitor.hasChanged(_dependency)) {
-					this.window.log(`No delta for ${_dependency}. Skipping incremental build...`);
-					continue;
+
+				if (incremental) {
+					if (!this.monitor.hasChanged(_dependency)) {
+						this.window.log(`No delta for ${_dependency}. Skipping incremental build...`);
+						continue;
+					} else {
+						// one of the dependencies changed so the dependent
+						// project must also recompile
+						this.monitor.registerChange(project);
+					}
 				}
 
 				this._enqueue(_dependency);
@@ -138,21 +148,19 @@ export class BuildService {
 	private _executeBuildQueue(): void {
 		let _commandLine: string = "";
 
-		while (this._buildQueue.count) {
-			const _project = this._buildQueue.dequeue(); 
-			if (_project) {
-				if (_commandLine)
-					_commandLine += " && ";
+		this._buildQueue.forEach(_project => {
+			if (_commandLine)
+				_commandLine += " && ";
 
-				const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
+			const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
 
-				_commandLine += _projectDefintion?.buildCommand || `ng build ${_project}`;
-				
-				this.monitor.record(_project);
-			}
-		}
+			_commandLine += _projectDefintion?.buildCommand || `ng build ${_project}`;
+
+			this.monitor.record(_project);
+		});
 
 		this.cmd.exec(_commandLine, this.fileSystem.root);
+		this._buildQueue.clear();
 	}
 
 }
