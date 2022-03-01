@@ -51,7 +51,7 @@
 			},
 			{
 				"command": "adabuild.reset",
-				"title": "adabuild: Reset"
+				"title": "adabuild: Reset Changes"
 			}
 		]
 	},
