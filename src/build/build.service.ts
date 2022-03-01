@@ -146,6 +146,9 @@ export class BuildService {
 	}
 
 	private _executeBuildQueue(): void {
+		if (!this._buildQueue.size)
+			return this.window.info("Build queue is empty -- all projects are up to date.");
+
 		let _commandLine: string = "";
 
 		this._buildQueue.forEach(_project => {
