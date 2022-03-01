@@ -51,6 +51,7 @@ export class Monitor implements OnDestroy {
 	public reset(...projects: string[]): void {
 		if (projects.length) {
 			projects.forEach(project => {
+				this._changed.delete(project);
 				this._history.delete(project);
 				this.window.log("Successfully reset " + project);
 			});
