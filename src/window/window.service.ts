@@ -30,9 +30,9 @@ export class WindowService {
 	public log(message: string): void {
 		if (!this._outputChannel) {
 			this._outputChannel = vscode.window.createOutputChannel(APP_NAME);
+			this._outputChannel.show();
 		}
 		this._outputChannel.appendLine(`[${APP_NAME}]: ${message}`);
-		this._outputChannel.show();
 	}
 
 
