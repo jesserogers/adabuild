@@ -50,18 +50,20 @@ export class ConfigurationService {
 		);
 	}
 
-	public copyTsConfigDev(): Promise<void> {
+	public copyTsConfigDev(): Promise<boolean> {
 		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.dev.json",
 			this.fileSystem.root + "\\tsconfig.json"
 		).catch(
 			_error => {
+				console.error(_error);
 				this.window.error("Failed to copy tsconfig.dev.json");
+				return false;
 			}
 		);
 	}
 
-	public copyTsConfigProd(): Promise<void> {
+	public copyTsConfigProd(): Promise<boolean> {
 		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.prod.json",
 			this.fileSystem.root + "\\tsconfig.json"
@@ -69,6 +71,7 @@ export class ConfigurationService {
 			_error => {
 				console.error(_error);
 				this.window.error("Failed to copy tsconfig.prod.json");
+				return false;
 			}
 		);
 	}
