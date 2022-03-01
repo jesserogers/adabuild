@@ -51,20 +51,6 @@ export class BuildService {
 		this._executeBuildQueue();
 	}
 
-	public buildServerJar(): void {
-		const _path: string = this.fileSystem.root.replace(
-			"CloudFramework", "buildsystem/tools/buildfiles_evolve"
-		);
-		this.cmd.exec("buildServerJar", _path);
-	}
-
-	public buildClientJar(): void {
-		const _path: string = this.fileSystem.root.replace(
-			"CloudFramework", "buildsystem/tools/buildfiles_evolve"
-		);
-		this.cmd.exec("buildClientJar", _path);
-	}
-
 	public debugApplication(): void {
 		this._requestProjectName().then(_app => {
 			const _project: IProjectDefinition | undefined = this.config.getProject(_app);

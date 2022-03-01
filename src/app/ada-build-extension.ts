@@ -50,14 +50,6 @@ export class AdaBuildExtension implements OnInit {
 			vscode.commands.registerCommand(`adabuild.debugapplication`, () => {
 				this.builder.debugApplication();
 			}),
-			// build server jar
-			vscode.commands.registerCommand(`adabuild.buildserverjar`, () => {
-				this.builder.buildServerJar();
-			}),
-			// build client jar
-			vscode.commands.registerCommand(`adabuild.buildclientjar`, () => {
-				this.builder.buildClientJar();
-			}),
 			// tsconfig dev command
 			vscode.commands.registerCommand(`adabuild.copytsconfigdev`, () => {
 				this.config.copyTsConfigDev();

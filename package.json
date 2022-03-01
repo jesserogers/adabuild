@@ -43,14 +43,6 @@
 				"title": "adabuild: Debug Application"
 			},
 			{
-				"command": "adabuild.buildserverjar",
-				"title": "adabuild: Build Server Jar"
-			},
-			{
-				"command": "adabuild.buildclientjar",
-				"title": "adabuild: Build Client Jar"
-			},
-			{
 				"command": "adabuild.reset",
 				"title": "adabuild: Reset Changes"
 			}
