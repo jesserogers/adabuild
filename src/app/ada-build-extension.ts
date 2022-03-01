@@ -72,7 +72,10 @@ export class AdaBuildExtension implements OnInit {
 					value: "",
 					placeHolder: "Enter a comma separated list of projects to reset. Leave blank to reset all projects."
 				}).then(_project => {
-					const _projects: string[] = _project?.split(",").map(x => x.trim()) || [];
+					const _projects: string[] = _project?.split(",")
+						.map(x => x.trim())
+						.filter(x => !!x) || [];
+
 					this.monitor.reset(..._projects);
 				});
 			})
