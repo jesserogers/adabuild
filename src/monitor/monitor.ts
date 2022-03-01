@@ -27,7 +27,7 @@ export class Monitor implements OnDestroy {
 		@Inject(WindowService) private window: WindowService,
 		@Inject(MonitorState) public state: MonitorState
 	) {
-		this._saveStateOnDebounce = debounce(this.state.save.bind(this), 1000);
+		this._saveStateOnDebounce = debounce(() => this.saveState(), 1000);
 	}
 
 	public start(): void {
@@ -61,7 +61,7 @@ export class Monitor implements OnDestroy {
 		this._watcher = this.fileSystem.watch(this.config.buildConfig.projectsRootGlob);
 		this._changeListener = this._watcher.onDidChange(uri => {
 			this.config.buildConfig.projectDefinitions.forEach(_project => {
-				if (_project?.type === "library" && uri.path.includes(`/${_project.name}/`)) {
+				if (uri.path.includes(`/${_project.name}/`)) {
 					this.window.log(_project.name + " changed");
 					this.state.change(_project.name);
 
