@@ -28,10 +28,13 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 	public build(incremental: boolean = false): void {
 		this._requestProjectName().then(_project => {
+			if (!_project)
+				return;
+
 			if (!this.config.getProject(_project))
 				return this.logging.error("Invalid project name \"" + _project + "\"");
 
-			return this.config.copyTsConfigProd().then(() => {
+			this.config.copyTsConfigProd().then(() => {
 				this._enqueueBuild(_project, incremental);
 			});
 		}).catch(() => {
