@@ -15,7 +15,7 @@
 	"activationEvents": [
 		"onStartupFinished"
 	],
-	"main": "./out/main.js",
+	"main": "./out/vscode/main.js",
 	"contributes": {
 		"commands": [
 			{
@@ -49,8 +49,11 @@
 		]
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
+		"precompile:common": "shx rm -rf out/common",
+		"compile:common": "tsc -p src/common",
+		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:common",
+		"compile:vscode": "tsc -p src/vscode",
+		"vscode:prepublish": "npm run compile:vscode",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
