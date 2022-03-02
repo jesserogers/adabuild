@@ -1,0 +1,8 @@
+{
+	"name": "adabuild-cli",
+	"version": "0.0.1-rc1",
+	"author": "Jesse Rogers <jesse.rogers@adaptiva.com>",
+	"dependencies": {
+		"@kuroi/syringe": "^2.0.0"
+	}
+}
