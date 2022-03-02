@@ -21,7 +21,9 @@ export abstract class BaseMonitorState implements OnInit {
 	
 	protected static readonly FILE_NAME: string = ".adabuildstate";
 
-	abstract get statePath(): string;
+	get statePath(): string {
+		return this.fileSystem.root + "\\" + BaseMonitorState.FILE_NAME;
+	}
 
 	constructor(
 		protected fileSystem: BaseFileSystemService,
