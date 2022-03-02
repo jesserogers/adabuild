@@ -13,11 +13,15 @@ export interface BaseMonitorService {
 
 export abstract class BaseMonitorService implements OnDestroy {
 
-	protected _watcher!: IWatcher<any>;
-
 	protected _changeListener!: IDisposable;
 
-	protected _saveStateOnDebounce: () => void;
+	protected _createListener!: IDisposable;
+
+	protected _deleteListener!: IDisposable;
+
+	protected _saveStateOnDebounce: (project: string) => void;
+
+	protected _watcher!: IWatcher<any>;
 
 	constructor(
 		protected fileSystem: BaseFileSystemService,
@@ -25,7 +29,7 @@ export abstract class BaseMonitorService implements OnDestroy {
 		protected config: BaseConfigurationService,
 		public state: BaseMonitorState
 	) {
-		this._saveStateOnDebounce = debounce(() => this.state.save(), 1000);
+		this._saveStateOnDebounce = debounce((project: string) => this._saveState(project), 1000);
 	}
 
 	public start(): void {
@@ -58,6 +62,11 @@ export abstract class BaseMonitorService implements OnDestroy {
 		
 		if (this._watcher)
 			this._watcher.dispose();
+	}
+
+	private _saveState(project: string): void {
+		this.logging.log(project + " changed");
+		this.state.change(project);
 	}
 
 }
