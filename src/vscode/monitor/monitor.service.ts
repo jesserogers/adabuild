@@ -27,15 +27,16 @@ export class MonitorService extends BaseMonitorService implements OnDestroy {
 			this._watcher.dispose();
 	
 		this._watcher = this.fileSystem.watch(this.config.buildConfig.projectsRootGlob);
-		this._changeListener = this._watcher.onDidChange(uri => {
-			this.config.buildConfig.projectDefinitions.forEach(_project => {
-				if (uri.path.includes(`/${_project.name}/`)) {
-					this.logging.log(_project.name + " changed");
-					this.state.change(_project.name);
+		this._changeListener = this._watcher.onDidChange(uri => this._checkChanges(uri));
+		this._createListener = this._watcher.onDidCreate(uri => this._checkChanges(uri));
+		this._deleteListener = this._watcher.onDidDelete(uri => this._checkChanges(uri));
+	}
 
-					this._saveStateOnDebounce();
-				}
-			});
+	private _checkChanges(uri: Uri): void {
+		this.config.buildConfig.projectDefinitions.forEach(_project => {
+			if (uri.path.includes(`/${_project.name}/`)) {
+				this._saveStateOnDebounce(_project.name);
+			}
 		});
 	}
 
