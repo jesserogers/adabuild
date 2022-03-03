@@ -176,7 +176,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 				else
 					continue;
 
-				// execut builds in parallel
+				// execute builds in parallel
 				const _exitCode: number = await this.cmd.execParallel(..._group).catch(_err => {
 					throw new Error(_err);
 				});
@@ -185,7 +185,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 					return Promise.reject(_exitCode);
 
 				_group.length > 1
-					? this.logging.log(_method, `Executing build for ${_projects.join(", ")}.`)
+					? this.logging.log(_method, `Completed build for ${_projects.join(", ")}.`)
 					: this.logging.log(_method, `Completed build for ${_projects[0]}.`);
 				
 				this.monitor.state.record(_projects[i]);
@@ -207,7 +207,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 			const [command, ...args]: CliCommand = this.cmd.parseCommand(
 				_definition.buildCommand || `ng build ${_project} --c production`
 			);
-			_accumulator.push(new CommandLineTask({ command,  args, directory: this.fileSystem.root }));
+			_accumulator.push(new CommandLineTask({ command, args, directory: this.fileSystem.root }));
 			
 			return _accumulator;
 		}, []);
