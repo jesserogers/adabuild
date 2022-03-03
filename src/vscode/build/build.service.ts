@@ -33,7 +33,7 @@ export class BuildService extends BaseBuildService {
 					return resolve(this._requestedBuild);
 				},
 				_error => {
-					this.logging.error("Unexpected error requesting project name: " + _error);
+					this.logging.error("BuildService._requestProjectName", "Unexpected error requesting project name: " + _error);
 				}
 			);
 		});

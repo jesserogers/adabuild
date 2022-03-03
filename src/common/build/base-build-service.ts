@@ -32,13 +32,13 @@ export abstract class BaseBuildService implements BaseBuildService {
 				return;
 
 			if (!this.config.getProject(_project))
-				return this.logging.error("Invalid project name \"" + _project + "\"");
+				return this.logging.error("BaseBuildServer.build", "Invalid project name \"" + _project + "\"");
 
 			this.config.copyTsConfigProd().then(() => {
 				this._enqueueBuild(_project, incremental);
 			});
 		}).catch(() => {
-			this.logging.log("Invalid project name input");
+			this.logging.log("BaseBuildServer.build", "Invalid project name input");
 		});
 	}
 
@@ -47,7 +47,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 		this.config.buildConfig.projectDefinitions.forEach(_project => {
 			this._enqueueBuild(_project.name, true);
 		});
-		this.logging.log("Building all projects...");
+		this.logging.log("BaseBuildServer.buildAllProjects", "Building all projects...");
 		this._executeBuildQueue();
 	}
 
@@ -55,7 +55,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 		this._requestProjectName().then(_app => {
 			const _project: IProjectDefinition | undefined = this.config.getProject(_app);
 			if (_project?.type !== "application") {
-				this.logging.error("Cannot debug project type " + _project?.type);
+				this.logging.error("BaseBuildServer.debugApplication", "Cannot debug project type " + _project?.type);
 				return;
 			}
 			this.config.copyTsConfigDev().then(() => {
@@ -69,13 +69,13 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 		if (!incremental) {
 			this._enqueue(project);
-			this.logging.log(`Running full build for ${project}...`);
+			this.logging.log("BaseBuildServer._enqueueBuild", `Running full build for ${project}...`);
 			this._executeBuildQueue();
 		} else if (!this.monitor.state.hasChanged(project)) {
-			this.logging.log(`No delta for ${project}: skipping incremental build.`);
+			this.logging.log("BaseBuildServer._enqueueBuild", `No delta for ${project}: skipping incremental build.`);
 		} else {
 			this._enqueue(project);
-			this.logging.log(`Running incremental build for ${project}...`);
+			this.logging.log("BaseBuildServer._enqueueBuild", `Running incremental build for ${project}...`);
 			this._executeBuildQueue();
 		}
 	}
@@ -98,11 +98,11 @@ export abstract class BaseBuildService implements BaseBuildService {
 				const _dependency: string = _project.dependencies[i];
 
 				if (!this.config.getProject(_dependency))
-					return this.logging.error(`Invalid dependency listed for ${project}: ${_dependency}.`);
+					return this.logging.error("BaseBuildServer._enqueueDependencies", `Invalid dependency listed for ${project}: ${_dependency}.`);
 
 				if (incremental) {
 					if (!this.monitor.state.hasChanged(_dependency)) {
-						this.logging.log(`No delta for ${_dependency}. Skipping incremental build...`);
+						this.logging.log("BaseBuildServer._enqueueDependencies", `No delta for ${_dependency}. Skipping incremental build...`);
 						continue;
 					} else {
 						// one of the dependencies changed so the dependent
