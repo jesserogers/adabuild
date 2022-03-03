@@ -1,10 +1,14 @@
 export interface BaseLoggingService {
-	info(message: string): void;
-	warn(message: string): void;
-	error(message: string): void;
-	log(message: string): void;
+	info(method: string, ...args: any[]): void;
+	warn(method: string, ...args: any[]): void;
+	error(method: string, ...args: any[]): void;
+	log(method: string, ...args: any[]): void;
 }
 
 export abstract class BaseLoggingService implements BaseLoggingService {
+
+	protected _getTimeStamp(): string {
+		return new Date().toLocaleString();
+	}
 
 }
