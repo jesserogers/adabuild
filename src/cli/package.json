@@ -4,5 +4,8 @@
 	"author": "Jesse Rogers <jesse.rogers@adaptiva.com>",
 	"dependencies": {
 		"@kuroi/syringe": "^2.0.0"
+	},
+	"bin": {
+		"ada": "./cli.js"
 	}
 }
