@@ -1,8 +1,10 @@
-import { BaseCommandLineService } from "../cmd";
+import { BaseCommandLineService, CliCommand, CommandLineTask } from "../cmd";
 import { BaseConfigurationService, IProjectDefinition } from "../config";
 import { BaseFileSystemService } from "../filesystem";
 import { BaseLoggingService } from "../logging";
 import { BaseMonitorService } from "../monitor";
+
+type BuildQueue = string[][];
 
 export interface BaseBuildService {
 	build(incremental: boolean): void;
@@ -12,7 +14,7 @@ export interface BaseBuildService {
 
 export abstract class BaseBuildService implements BaseBuildService {
 
-	protected _buildQueue = new Set<string>();
+	protected _buildQueue: BuildQueue = [];
 
 	protected _requestedBuild: string = "";
 
@@ -26,33 +28,39 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 	}
 
-	public build(incremental: boolean = false): void {
-		this._requestProjectName().then(_project => {
-			this.buildProject(_project, incremental);
-		}).catch(() => {
-			this.logging.log("BaseBuildService.build", "Invalid project name input");
+	public build(incremental: boolean = false): Promise<number> {
+		return this._requestProjectName().then(_project => 
+			this.buildProject(_project, incremental)
+		).catch(_err => {
+			this.logging.log("BaseBuildService.build", _err);
+			return _err;
 		});
 	}
 
-	public buildProject(project: string, incremental: boolean = false): void {
+	public buildProject(project: string, incremental: boolean = false): Promise<number> {
 		if (!project)
-			return;
+			return Promise.resolve(-1);
 
-		if (!this.config.getProject(project))
-			return this.logging.error("BaseBuildService.buildProject", "Invalid project name \"" + project + "\"");
+		if (!this.config.getProject(project)) {
+			this.logging.error("BaseBuildService.buildProject", "Invalid project name \"" + project + "\"")
+			return Promise.reject("Invalid project name: " + project);
+		}
 
-		this.config.copyTsConfigProd().then(() => {
-			this._enqueueBuild(project, incremental);
-		});
+		return this.config.copyTsConfigProd().then(() =>
+			this._enqueueBuild(project, incremental)
+		);
 	}
 
-	public buildAllProjects(): void {
-		this._buildQueue.clear();
+	public buildAllProjects(): Promise<number> {
+		this._buildQueue = [];
 		this.config.buildConfig.projectDefinitions.forEach(_project => {
 			this._enqueueBuild(_project.name, true);
 		});
 		this.logging.log("BaseBuildService.buildAllProjects", "Building all projects...");
-		this._executeBuildQueue();
+		return this._executeBuildQueue().then(_code => {
+			this.monitor.reset();
+			return _code;
+		});
 	}
 
 	public debugApplication(): void {
@@ -72,83 +80,149 @@ export abstract class BaseBuildService implements BaseBuildService {
 		});
 	}
 
-	private _enqueueBuild(project: string, incremental = false): void {
+	private async _enqueueBuild(project: string, incremental = false): Promise<number> {
 		this._enqueueDependencies(project, incremental);
 
-		if (!incremental) {
-			this._enqueue(project);
-			this.logging.log("BaseBuildService._enqueueBuild", `Running full build for ${project}...`);
-			this._executeBuildQueue();
-		} else if (!this.monitor.state.hasChanged(project)) {
+		if (incremental && !this.monitor.state.hasChanged(project)) {
 			this.logging.log("BaseBuildService._enqueueBuild", `No delta for ${project}: skipping incremental build.`);
-		} else {
-			this._enqueue(project);
-			this.logging.log("BaseBuildService._enqueueBuild", `Running incremental build for ${project}...`);
-			this._executeBuildQueue();
+			return Promise.resolve(0);
 		}
+
+		this._enqueue(project);
+		this.logging.log("BaseBuildService._enqueueBuild", `Running ${incremental ? "incremental" : "full"} build for ${project}...`);
+		return this._executeBuildQueue();
 	}
 
 	abstract _requestProjectName(): Promise<string>;
 
-	private _enqueue(project: string): void {
-		this.logging.log("BaseBuildService._enqueue", "Queueing " + project + " for build...");
-		this._buildQueue.add(project);
+	private _enqueue(...projects: string[]): void {
+		this.logging.log("BaseBuildService._enqueue", "Queueing " + projects.join(", ") + " for build...");
+		this._buildQueue.push(projects);
 	}
 
 	private _enqueueDependencies(project: string, incremental = false): void {
 		const _project: IProjectDefinition | undefined = this.config.getProject(project);
+		const _queue: Set<string> = new Set();
+		const _flattenedQueue: Set<string> = new Set();
 
 		if (!_project)
-			return;
+			throw new Error("Invalid project: " + project);
 
 		if (_project.dependencies && _project.dependencies.length) {
-			for (let i = 0; i < _project.dependencies.length; i++) {
-				const _dependency: string = _project.dependencies[i];
+			
+			let _lastDependencyDefinition: IProjectDefinition | undefined;
 
-				if (!this.config.getProject(_dependency))
-					return this.logging.error("BaseBuildService._enqueueDependencies", `Invalid dependency listed for ${project}: ${_dependency}.`);
+			for (let i = 0; i < _project.dependencies.length; i++) {
+
+				const _dependency: string = _project.dependencies[i];
+				// skip if any previous build queues include dependency
+				if (_flattenedQueue.has(_dependency))
+					continue;
+
+				const _dependencyDefinition: IProjectDefinition | undefined = this.config.getProject(_dependency);
+
+				if (!_dependencyDefinition) {
+					this.logging.error("BaseBuildService._enqueueDependencies", `Invalid dependency listed for ${project}: ${_dependency}.`);
+					throw new Error("Invalid dependency: " + _dependency);
+				}
+
+				// check if dependency can be run in parallel
+				if (_queue.size && !this._hasIdenticalDependencies(_dependencyDefinition, _lastDependencyDefinition)) {
+					this._enqueue(...Array.from(_queue).filter(p => !_flattenedQueue.has(p)));
+					_queue.clear();
+				}
 
 				if (incremental) {
+					// no changes, don't build
 					if (!this.monitor.state.hasChanged(_dependency)) {
 						this.logging.log("BaseBuildService._enqueueDependencies", `No delta for ${_dependency}. Skipping incremental build...`);
 						continue;
 					} else {
-						// one of the dependencies changed so the dependent
-						// project must also recompile
+						// dependencies changed; mark depending project as changed to ensure build runs
 						this.monitor.state.change(project);
 					}
 				}
-
-				this._enqueue(_dependency);
+				
+				_lastDependencyDefinition = _dependencyDefinition;
+				_queue.add(_dependency);
+				_flattenedQueue.add(_dependency);
 			}
 		}
 	}
 
-	private _executeBuildQueue(): void {
-		if (!this._buildQueue.size)
-			return this.logging.info("BaseBuildService._executeBuildQueue", "Build queue is empty -- all projects are up to date.");
+	private async _executeBuildQueue(): Promise<number> {
 
-		let _commandLine: string = "";
+		const _method: string = "BaseBuildService._executeBuildQueue";
 
-		this._buildQueue.forEach(_project => {
-			if (_commandLine)
-				_commandLine += " && ";
+		if (!this._buildQueue.length) {
+			this.logging.info(_method, "Build queue is empty -- all projects are up to date.");
+			return Promise.resolve(0);
+		}
 
-			const _projectDefintion: IProjectDefinition | undefined = this.config.getProject(_project);
+		const _buildGroups: CommandLineTask[][] = this._buildQueue.map(_queue =>
+			this._generateTasksForProjects(_queue)
+		);
+		
+		for (let i = 0; i < _buildGroups.length; i++) {
+			
+			const _group: CommandLineTask[] = _buildGroups[i];
+			const _projects: string[] = this._buildQueue[i];
+			
+			try {
+				if (_group.length === 1)
+					this.logging.log(_method, `Executing build for ${_projects[0]}...`);
+				else if (_group.length > 1)
+					this.logging.log(_method, `Executing build for ${_projects.join(", ")}...`);
+				else
+					continue;
 
-			_commandLine += _projectDefintion?.buildCommand || `ng build ${_project}`;
+				// execut builds in parallel
+				const _exitCode: number = await this.cmd.execParallel(..._group).catch(_err => {
+					throw new Error(_err);
+				});
 
-			this.monitor.state.record(_project);
-		});
+				if (_exitCode > 0)
+					return Promise.reject(_exitCode);
 
-		this.cmd.exec({
-			command: _commandLine,
-			directory: this.fileSystem.root,
-			args: []
-		});
+				_group.length > 1
+					? this.logging.log(_method, `Executing build for ${_projects.join(", ")}.`)
+					: this.logging.log(_method, `Completed build for ${_projects[0]}.`);
+				
+				this.monitor.state.record(_projects[i]);
+			} catch (_err) {
+				return Promise.reject(_err);
+			}
+		}
 
-		this._buildQueue.clear();
-		this.monitor.state.save();
+		this._buildQueue = [];
+		return Promise.resolve(0);
+	}
+
+	private _generateTasksForProjects(_projects: string[]): CommandLineTask[] {
+		return _projects.reduce((_accumulator: CommandLineTask[], _project: string) => {
+			const _definition: IProjectDefinition | undefined = this.config.getProject(_project);
+			if (!_definition)
+				throw new Error("Invalid project: " + _project);
+				
+			const [command, ...args]: CliCommand = this.cmd.parseCommand(
+				_definition.buildCommand || `ng build ${_project} --c production`
+			);
+			_accumulator.push(new CommandLineTask({ command,  args, directory: this.fileSystem.root }));
+			
+			return _accumulator;
+		}, []);
+	}
+
+	private _hasIdenticalDependencies(_next?: IProjectDefinition, _previous?: IProjectDefinition): boolean {
+		if (!_next || !_previous)
+			return false;
+
+		// if next project has *no* dependencies, consider it to be identical
+		if (!_next.dependencies.length)
+			return true;
+		
+		return _next.dependencies.length === _previous.dependencies.length &&
+			_next.dependencies.every(_dependency => _previous.dependencies.includes(_dependency));
 	}
 
 }
