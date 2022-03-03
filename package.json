@@ -2,7 +2,7 @@
 	"name": "adabuild",
 	"displayName": "adabuild",
 	"description": "Custom extension for Adaptiva front-end Angular Build System",
-	"version": "0.0.1-rc1",
+	"version": "0.0.2-rc1",
 	"author": "Jesse Rogers <jesse.rogers@adaptiva.com>",
 	"icon": "images/adaptiva.png",
 	"publisher": "Adaptiva",
@@ -49,6 +49,11 @@
 		]
 	},
 	"scripts": {
+		"precompile:cli": "shx rm -rf out/cli && npm run compile:common",
+		"compile:cli": "tsc -p src/cli",
+		"postcompile:cli": "shx cp src/cli/package.json out/cli",
+		"exe:cli": "chmod +x ./out/cli/cli.js",
+		"start:cli": "npm run compile:cli && npm run exe:cli && node ./out/cli/cli.js run",
 		"precompile:common": "shx rm -rf out/common",
 		"compile:common": "tsc -p src/common",
 		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:common",
@@ -57,7 +62,8 @@
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"test:cli": "node ./out/cli/main.js"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.2.0",
@@ -67,6 +73,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.12.1",
 		"@typescript-eslint/parser": "^5.12.1",
 		"@vscode/test-electron": "^2.1.2",
+		"chokidar": "^3.5.3",
 		"eslint": "^8.9.0",
 		"glob": "^7.2.0",
 		"mocha": "^9.2.1",
