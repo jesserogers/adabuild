@@ -28,17 +28,21 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 	public build(incremental: boolean = false): void {
 		this._requestProjectName().then(_project => {
-			if (!_project)
-				return;
-
-			if (!this.config.getProject(_project))
-				return this.logging.error("Invalid project name \"" + _project + "\"");
-
-			this.config.copyTsConfigProd().then(() => {
-				this._enqueueBuild(_project, incremental);
-			});
+			this.buildProject(_project, incremental);
 		}).catch(() => {
-			this.logging.log("Invalid project name input");
+			this.logging.log("BaseBuildService.build", "Invalid project name input");
+		});
+	}
+
+	public buildProject(project: string, incremental: boolean = false): void {
+		if (!project)
+			return;
+
+		if (!this.config.getProject(project))
+			return this.logging.error("BaseBuildService.buildProject", "Invalid project name \"" + project + "\"");
+
+		this.config.copyTsConfigProd().then(() => {
+			this._enqueueBuild(project, incremental);
 		});
 	}
 
@@ -47,7 +51,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 		this.config.buildConfig.projectDefinitions.forEach(_project => {
 			this._enqueueBuild(_project.name, true);
 		});
-		this.logging.log("Building all projects...");
+		this.logging.log("BaseBuildService.buildAllProjects", "Building all projects...");
 		this._executeBuildQueue();
 	}
 
@@ -55,11 +59,15 @@ export abstract class BaseBuildService implements BaseBuildService {
 		this._requestProjectName().then(_app => {
 			const _project: IProjectDefinition | undefined = this.config.getProject(_app);
 			if (_project?.type !== "application") {
-				this.logging.error("Cannot debug project type " + _project?.type);
+				this.logging.error("BaseBuildService.debugApplication", "Cannot debug project type " + _project?.type);
 				return;
 			}
 			this.config.copyTsConfigDev().then(() => {
-				this.cmd.exec(_project?.debugCommand || `ng serve ${_app}`, this.fileSystem.root);
+				this.cmd.exec({
+					command: _project?.debugCommand || `ng serve ${_app}`,
+					directory: this.fileSystem.root,
+					args: []
+				});
 			});
 		});
 	}
@@ -69,13 +77,13 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 		if (!incremental) {
 			this._enqueue(project);
-			this.logging.log(`Running full build for ${project}...`);
+			this.logging.log("BaseBuildService._enqueueBuild", `Running full build for ${project}...`);
 			this._executeBuildQueue();
 		} else if (!this.monitor.state.hasChanged(project)) {
-			this.logging.log(`No delta for ${project}: skipping incremental build.`);
+			this.logging.log("BaseBuildService._enqueueBuild", `No delta for ${project}: skipping incremental build.`);
 		} else {
 			this._enqueue(project);
-			this.logging.log(`Running incremental build for ${project}...`);
+			this.logging.log("BaseBuildService._enqueueBuild", `Running incremental build for ${project}...`);
 			this._executeBuildQueue();
 		}
 	}
@@ -83,7 +91,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 	abstract _requestProjectName(): Promise<string>;
 
 	private _enqueue(project: string): void {
-		this.logging.log("Queueing " + project + " for build...");
+		this.logging.log("BaseBuildService._enqueue", "Queueing " + project + " for build...");
 		this._buildQueue.add(project);
 	}
 
@@ -98,11 +106,11 @@ export abstract class BaseBuildService implements BaseBuildService {
 				const _dependency: string = _project.dependencies[i];
 
 				if (!this.config.getProject(_dependency))
-					return this.logging.error(`Invalid dependency listed for ${project}: ${_dependency}.`);
+					return this.logging.error("BaseBuildService._enqueueDependencies", `Invalid dependency listed for ${project}: ${_dependency}.`);
 
 				if (incremental) {
 					if (!this.monitor.state.hasChanged(_dependency)) {
-						this.logging.log(`No delta for ${_dependency}. Skipping incremental build...`);
+						this.logging.log("BaseBuildService._enqueueDependencies", `No delta for ${_dependency}. Skipping incremental build...`);
 						continue;
 					} else {
 						// one of the dependencies changed so the dependent
@@ -118,7 +126,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 	private _executeBuildQueue(): void {
 		if (!this._buildQueue.size)
-			return this.logging.info("Build queue is empty -- all projects are up to date.");
+			return this.logging.info("BaseBuildService._executeBuildQueue", "Build queue is empty -- all projects are up to date.");
 
 		let _commandLine: string = "";
 
@@ -133,7 +141,11 @@ export abstract class BaseBuildService implements BaseBuildService {
 			this.monitor.state.record(_project);
 		});
 
-		this.cmd.exec(_commandLine, this.fileSystem.root);
+		this.cmd.exec({
+			command: _commandLine,
+			directory: this.fileSystem.root,
+			args: []
+		});
 
 		this._buildQueue.clear();
 		this.monitor.state.save();

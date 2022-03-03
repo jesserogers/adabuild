@@ -6,11 +6,6 @@ import { BaseLoggingService } from "../logging";
 import { debounce, IDisposable } from "../utils";
 import { BaseMonitorState } from "./base-monitor-state";
 
-export interface BaseMonitorService {
-	start(): void;
-	reset(...projects: string[]): void;
-}
-
 export abstract class BaseMonitorService implements OnDestroy {
 
 	protected _changeListener!: IDisposable;
@@ -59,6 +54,12 @@ export abstract class BaseMonitorService implements OnDestroy {
 
 		if (this._changeListener)
 			this._changeListener.dispose();
+
+		if (this._createListener)
+			this._createListener.dispose();
+
+		if (this._deleteListener)
+			this._deleteListener.dispose();
 		
 		if (this._watcher)
 			this._watcher.dispose();

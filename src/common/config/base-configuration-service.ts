@@ -33,7 +33,7 @@ export abstract class BaseConfigurationService implements BaseConfigurationServi
 		const _configFileName: string = APP_NAME + ".config.json";
 		const _configFilePath: string = this.fileSystem.root + "\\" + _configFileName;
 
-		return this.fileSystem.getJsonFile<IBuildConfig>(_configFilePath).then(_config => {
+		return this.fileSystem.readFile<IBuildConfig>(_configFilePath).then(_config => {
 			if (!this._validateBuildConfig(_config)) {
 				console.error("Invalid config", _config);
 				this.window.error("Invalid config file");

@@ -80,7 +80,7 @@ export abstract class BaseMonitorState implements OnInit {
 	}
 
 	private _fetchPreviousState(): void {
-		this.fileSystem.getJsonFile<IMonitorStoredState>(this.statePath).then(_state => {
+		this.fileSystem.readFile<IMonitorStoredState>(this.statePath).then(_state => {
 			if (!_state)
 				return;
 
