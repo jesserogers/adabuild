@@ -22,6 +22,7 @@ export class Queue<T> {
 			this._start = this._start.next;
 			this.count--;
 		}
+		this.count = 0;
 		return _value || null;
 	}
 
@@ -35,6 +36,12 @@ export class Queue<T> {
 			this._end = _entry;
 		}
 		this.count++;
+	}
+
+	public clear(): void {
+		this._start = undefined;
+		this._end = undefined;
+		this.count = 0;
 	}
 
 }

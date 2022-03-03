@@ -39,6 +39,7 @@ export abstract class BaseMonitorState implements OnInit {
 	public record(project: string): void {
 		this.history[project] = (this.history[project] || 0) + 1;
 		this.changed.delete(project);
+		this.save();
 	}
 
 	public clear(project?: string): void {
