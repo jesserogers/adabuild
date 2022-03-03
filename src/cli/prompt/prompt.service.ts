@@ -32,29 +32,19 @@ export class CliPromptService {
 	}
 
 	private _prompt(): void {
-		this._readline.question("adabuild > ", async answer => {
+		this._readline.question("adabuild > ", answer => {
 			const _command: CliCommand = this.cmd.parseCommand(answer);
-			await this._delegateCommand(_command);
-			this._prompt();
+			this._delegateCommand(_command).then(_code => {
+				this.logging.log("CliPromptService._prompt", "Exited with code " + _code);
+				this._prompt();
+			});
 		});
 	}
 
-	private _delegateCommand(command: CliCommand): Promise<void> {
+	private _delegateCommand(command: CliCommand): Promise<number> {
 		const [_cmd, ..._args] = command;
 	
 		switch (_cmd) {
-
-			// test command
-			case "parallel": {
-				return this.cmd.execParallel(
-					new CommandLineTask({ command: "echo", args: ["ur mom"], output: true }),
-					new CommandLineTask({ command: "echo", args: ["ur mom 2"], output: true })
-				).then(code => {
-					this.logging.log("CliPromptService._delegateCommand#parallel", "Exited with code " + code);
-				}).catch(err => {
-					this.logging.error(err);
-				});
-			}
 
 			case "build": {
 				const [_project, ..._projectArgs] = _args;
@@ -64,11 +54,9 @@ export class CliPromptService {
 				const _incremental: boolean = _argMap.incremental !== "false";
 
 				if (_buildAll)
-					this.build.buildAllProjects();
+					return this.build.buildAllProjects();
 				else
-					this.build.buildProject(_project, _incremental);
-
-				break;
+					return this.build.buildProject(_project, _incremental);
 			}
 
 			case "reset": {
@@ -83,7 +71,7 @@ export class CliPromptService {
 
 		}
 
-		return Promise.resolve();
+		return Promise.resolve(0);
 	}
 
 	private _parseArgs(args: string[]): IArgumentMap {
