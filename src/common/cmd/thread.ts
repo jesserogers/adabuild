@@ -1,4 +1,4 @@
-import { ChildProcess, exec } from "child_process";
+import { exec } from "child_process";
 import * as process from "process";
 import { CommandLineTask } from "./command-line-task.interface";
 
@@ -10,17 +10,14 @@ process.on("message", (task: CommandLineTask) => {
 
 	const _script: string = task.command + " " + task.args.join(" ");
 
-	const _command: ChildProcess = exec(_script, {
-		cwd: task.directory,
-		windowsHide: true
+	const _options = { cwd: task.directory, windowsHide: true };
+
+	exec(_script, _options, (_error, _stdout, _stderr) => {
+		if (_stdout && task.output)
+			_messageHandler("stdout", task.taskId, _stdout);
+		if (_stderr)
+			_messageHandler("error", task.taskId, _stderr);
+	}).on("close", _code => {
+		_messageHandler("exit", task.taskId, _code);
 	});
-
-	if (task.output)
-		_command.stdout?.on("data", chunk => _messageHandler("stdout", task.taskId, chunk));
-
-	_command.stdout?.on("exit", code => _messageHandler("exit", task.taskId, code));
-
-	_command.stdout?.on("close", () => _messageHandler("close", task.taskId));
-
-	_command.stdout?.on("error", error => _messageHandler("error", task.taskId, error));
 });
