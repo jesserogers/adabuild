@@ -34,8 +34,7 @@ export class CliPromptService {
 	private _prompt(): void {
 		this._readline.question("adabuild > ", answer => {
 			const _command: CliCommand = this.cmd.parseCommand(answer);
-			this._delegateCommand(_command).then(_code => {
-				this.logging.log("CliPromptService._prompt", "Exited with code " + _code);
+			this._delegateCommand(_command).then(() => {
 				this._prompt();
 			});
 		});
@@ -54,9 +53,9 @@ export class CliPromptService {
 				const _incremental: boolean = _argMap.incremental !== "false";
 
 				if (_buildAll)
-					return this.build.buildAllProjects();
+					return this.build.buildAllProjects().catch(() => 1);
 				else
-					return this.build.buildProject(_project, _incremental);
+					return this.build.buildProject(_project, _incremental).catch(() => 1);
 			}
 
 			case "reset": {
