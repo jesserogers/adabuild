@@ -47,7 +47,7 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 							? this.decoder.decode(new Uint8Array(_out.value.data))
 							: `${_out.value}`;
 							
-						this.logging.log(`Process (${_out.taskId}):`, _value);
+						this.logging.log(`[${_out.taskId}]:`, _value);
 					},
 					_close => {
 						this.logging.log(`Closing process (${_close.taskId})...`);
@@ -90,7 +90,10 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 			for (let i = 0; i < _tasks.length; i++) {
 				try {
 					// wait for task to finish
-					const _exitCode = await this._runTask(_process, _tasks[i], _onStdout, _onClose).catch(() => 1);
+					const _exitCode = await this._runTask(_process, _tasks[i], _onStdout, _onClose).catch(_error => {
+						this.logging.error("BaseCommandLineService._runParallelTasks", _error);
+						return 1;
+					});
 					
 					if (_exitCode > 0) {
 						this._destroyProcess(_process);
@@ -146,7 +149,9 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 				}
 			});
 
-			_process.send(_task);
+			setTimeout(() => {
+				_process.send(_task);
+			}, _task.delay);
 		});
 	}
 
