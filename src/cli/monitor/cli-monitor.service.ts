@@ -35,7 +35,7 @@ export class CliMonitorService extends BaseMonitorService implements OnDestroy {
 
 	private _checkChanges(path: string): void {
 		this.config.buildConfig.projectDefinitions.forEach(_project => {
-			if (path.includes(`/${_project.name}/`)) {
+			if (path.includes(`\\${_project.name}\\`)) {
 				this._saveStateOnDebounce(_project.name);
 			}
 		});
