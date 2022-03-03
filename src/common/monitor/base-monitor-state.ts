@@ -44,7 +44,7 @@ export abstract class BaseMonitorState implements OnInit {
 	}
 
 	public save(): void {
-		this.logging.log("BaseMonitorState.reset", `Saving state to ${BaseMonitorState.FILE_NAME}...`);
+		this.logging.log("BaseMonitorState.save", `Saving state to ${BaseMonitorState.FILE_NAME}...`);
 		this.fileSystem.writeFile(this.statePath, this.export());
 	}
 
