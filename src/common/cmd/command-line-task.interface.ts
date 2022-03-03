@@ -14,6 +14,6 @@ export class CommandLineTask implements CommandLineTask {
 		this.command = task.command;
 		this.directory = task.directory;
 		this.output = task.output;
-		this.taskId = task.taskId || randomUUID()
+		this.taskId = task.taskId || randomUUID();
 	}
 }
