@@ -3,6 +3,7 @@ import { BaseConfigurationService, IProjectDefinition } from "../config";
 import { BaseFileSystemService } from "../filesystem";
 import { BaseLoggingService } from "../logging";
 import { BaseMonitorService } from "../monitor";
+import { Benchmark } from "../utils";
 
 type BuildQueue = string[][];
 
@@ -163,6 +164,8 @@ export abstract class BaseBuildService implements BaseBuildService {
 			this._generateTasksForProjects(_queue)
 		);
 		
+		const _benchmark = new Benchmark();
+
 		for (let i = 0; i < _buildGroups.length; i++) {
 			
 			const _group: CommandLineTask[] = _buildGroups[i];
@@ -177,16 +180,18 @@ export abstract class BaseBuildService implements BaseBuildService {
 					continue;
 
 				// execute builds in parallel
+				const _groupBenchmark = new Benchmark();
 				const _exitCode: number = await this.cmd.execParallel(..._group).catch(_err => {
-					throw new Error(_err);
+					this.logging.error(_method, `Build executed with code ${_err} in ${_benchmark.toString()}.`);
+					return _err;
 				});
 
 				if (_exitCode > 0)
 					return Promise.reject(_exitCode);
 
 				_group.length > 1
-					? this.logging.log(_method, `Completed build for ${_projects.join(", ")}.`)
-					: this.logging.log(_method, `Completed build for ${_projects[0]}.`);
+					? this.logging.log(_method, `Completed build for ${_projects.join(", ")} in ${_groupBenchmark.toString()}.`)
+					: this.logging.log(_method, `Completed build for ${_projects[0]} in ${_groupBenchmark.toString()}.`);
 				
 				this.monitor.state.record(_projects[i]);
 			} catch (_err) {
@@ -195,6 +200,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 		}
 
 		this._buildQueue = [];
+		this.logging.log(_method, `SUCCESS: Completed build queue in ${_benchmark.toString()}`);
 		return Promise.resolve(0);
 	}
 
@@ -207,7 +213,10 @@ export abstract class BaseBuildService implements BaseBuildService {
 			const [command, ...args]: CliCommand = this.cmd.parseCommand(
 				_definition.buildCommand || `ng build ${_project} --c production`
 			);
-			_accumulator.push(new CommandLineTask({ command, args, directory: this.fileSystem.root }));
+			_accumulator.push(new CommandLineTask({ command, args,
+				delay: 3000, // wait 3s for ngcc
+				directory: this.fileSystem.root
+			}));
 			
 			return _accumulator;
 		}, []);
