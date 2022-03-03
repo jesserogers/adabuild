@@ -12,7 +12,9 @@ export class ChokidarService {
 	private _watchers: Map<string, IWatcher<ChokidarEventListener>> = new Map();
 
 	public createWatcher(path: string): IWatcher<ChokidarEventListener> {
-		const _fsWatcher: Chokidar.FSWatcher = Chokidar.watch(path);
+		const _fsWatcher: Chokidar.FSWatcher = Chokidar.watch(path, {
+			ignoreInitial: true
+		});
 		const _watcher = new ChokidarWatcher(_fsWatcher, () => {
 			this._watchers.delete(path);
 		});
