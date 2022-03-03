@@ -44,6 +44,7 @@ export class CliPromptService {
 	
 		switch (_cmd) {
 
+			// test command
 			case "parallel": {
 				return this.cmd.execParallel(
 					new CommandLineTask({ command: "echo", args: ["ur mom"], output: true }),
