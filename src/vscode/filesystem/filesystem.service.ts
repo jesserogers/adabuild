@@ -32,7 +32,7 @@ export class FileSystemService extends BaseFileSystemService implements BaseFile
 		return vscode.workspace.createFileSystemWatcher(glob as vscode.GlobPattern);
 	}
 
-	public getJsonFile<T>(path: string): Promise<T> {
+	public readFile<T>(path: string): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
 			vscode.workspace.fs.readFile(vscode.Uri.file(path)).then(
 				_bytes => {

@@ -1,6 +1,6 @@
 import { Injectable } from "@kuroi/syringe";
 import * as vscode from "vscode";
-import { APP_NAME } from "../../common";
+import { APP_NAME, BaseCommandLineService, CommandLineTask } from "../../common";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
@@ -9,19 +9,19 @@ import { APP_NAME } from "../../common";
 @Injectable({
 	scope: "global"
 })
-export class CommandLineService {
+export class CommandLineService extends BaseCommandLineService {
 
 	private _terminal!: vscode.Terminal;
 
-	public exec(command: string, directory?: string): vscode.Terminal {
+	public exec(task: CommandLineTask): vscode.Terminal {
 		if (!this._terminal && !this._findPreviousTerminal()) {
 			this._terminal = vscode.window.createTerminal({
 				name: APP_NAME,
-				cwd: directory
+				cwd: task.directory
 			});
 		}
 		this._terminal.show();
-		this._terminal.sendText(command);
+		this._terminal.sendText(task.command);
 		return this._terminal;
 	}
 
