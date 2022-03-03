@@ -38,11 +38,11 @@ export abstract class BaseMonitorService implements OnDestroy {
 		if (projects.length) {
 			projects.forEach(project => {
 				this.state.clear(project);
-				this.logging.log("Successfully reset " + project);
+				this.logging.log("BaseMonitorService.reset", "Successfully reset " + project);
 			});
 		} else {
 			this.state.clear();
-			this.logging.log("Successfully reset all projects");
+			this.logging.log("BaseMonitorService.reset", "Successfully reset all projects");
 		}
 		this.state.save();
 	}
@@ -66,7 +66,7 @@ export abstract class BaseMonitorService implements OnDestroy {
 	}
 
 	private _saveState(project: string): void {
-		this.logging.log(project + " changed");
+		this.logging.log("BaseMonitorService._saveState", project + " changed");
 		this.state.change(project);
 	}
 

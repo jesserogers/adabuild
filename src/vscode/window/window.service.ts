@@ -9,31 +9,33 @@ import { APP_NAME, BaseLoggingService } from "../../common";
 @Injectable({
 	scope: "global"
 })
-export class WindowService implements BaseLoggingService {
+export class WindowService extends BaseLoggingService {
 
 	public inputBox = vscode.window.showInputBox;
 
 	private _outputChannel!: vscode.OutputChannel;
 
-	public info(message: string): void {
-		vscode.window.showInformationMessage(`adabuild: ${message}`);
+	public info(method: string, message: string): void {
+		this._outputChannel.appendLine(`${APP_NAME}.${method} - [LOG]  - ${this._getTimeStamp()} - ${message}`);
+		vscode.window.showInformationMessage(`adabuild [INFO] ${message}`);
 	}
 
-	public warn(message: string): void {
-		vscode.window.showWarningMessage(`adabuild: ${message}`);
+	public warn(method: string, message: string): void {
+		this._outputChannel.appendLine(`${APP_NAME}.${method} - [WARN] - ${this._getTimeStamp()} - ${message}`);
+		vscode.window.showWarningMessage(`adabuild [WARN] - ${this._getTimeStamp()} - ${message}`);
 	}
 
-	public error(message: string): void {
-		vscode.window.showErrorMessage(`adabuild: ${message}`);
+	public error(method: string, message: string): void {
+		this._outputChannel.appendLine(`${APP_NAME}.${method} - [ERROR] - ${this._getTimeStamp()} - ${message}`);
+		vscode.window.showErrorMessage(`adabuild [ERROR] - ${this._getTimeStamp()} - ${message}`);
 	}
 
-	public log(message: string): void {
+	public log(method: string, message: string): void {
 		if (!this._outputChannel) {
 			this._outputChannel = vscode.window.createOutputChannel(APP_NAME);
 			this._outputChannel.show();
 		}
-		this._outputChannel.appendLine(`[${APP_NAME}]: ${message}`);
+		this._outputChannel.appendLine(`${APP_NAME}.${method} [LOG] - ${this._getTimeStamp()} - ${message}`);
 	}
-
 
 }

@@ -24,9 +24,9 @@ export class AdaBuildExtension implements OnInit {
 	onInit(): void {
 		this.config.loadConfiguration().then(() => {
 			this.monitor.start();
-			this.window.log("Extension activated.");
+			this.window.log("AdaBuildExtension.onInit", "Extension activated.");
 		}).catch(_error => {
-			this.window.error(_error);
+			this.window.error("AdaBuildExtension.onInit", _error);
 		});
 	}
 

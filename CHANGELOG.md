@@ -6,4 +6,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-- Initial release
+ - CLI
+ - Parallel builds
+
+### v0.0.1
+
+ - VS Code Extension with intelligent command chaining to provide a simple incremental building experience
