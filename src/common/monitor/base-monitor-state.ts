@@ -4,20 +4,11 @@ import { BaseLoggingService } from "../logging";
 import { IMonitorStoredState } from "./monitor-stored-state.interface";
 import { IMonitorHistory } from "./monitor-history.interface";
 
-export interface BaseMonitorState {
-	changed: Set<string>;
-	history: IMonitorHistory;
-	record(project: string): void;
-	clear(project?: string): void;
-	save(): void;
-	setChanged(changed: string[] | Set<string>): void;
-	setHistory(history: IMonitorHistory): void;	
-	hasChanged(project: string): boolean;
-	change(project: string): void;
-	export(): string;
-}
-
 export abstract class BaseMonitorState implements OnInit {
+
+	public changed: Set<string> = new Set();
+
+	public history: IMonitorHistory = {};
 	
 	protected static readonly FILE_NAME: string = ".adabuildstate";
 
