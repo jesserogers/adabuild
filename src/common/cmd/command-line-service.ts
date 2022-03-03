@@ -22,15 +22,26 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 	abstract exec(task: CommandLineTask): any;
 
 	/** Forks tasks into concurrent threads */
-	public async execParallel(...tasks: CommandLineTask[]): Promise<number> {
-		return new Promise(async (resolve, reject) => {
+	public execParallel(...tasks: CommandLineTask[]): Promise<number> {
+		return new Promise((resolve, reject) => {
 			
-			let _counter: number = 0;
+			let _completed: Set<string> = new Set();
 			const _loadBalancedTasks: CommandLineTask[][] = this._loadBalanceTasks(tasks);
 			
 			for (let i = 0; i < _loadBalancedTasks.length; i++) {
 				const _tasks: CommandLineTask[] = _loadBalancedTasks[i];
-				const _code: number = await this._runParallelTasks(_tasks,
+				this._runParallelTasks(_tasks,
+					_exit => {
+						const _code: number = _exit.value || 0;
+						if (_code > 0) {
+							this.abort();
+							return reject(_code);
+						} else if (_code === 0) {
+							_completed.add(_exit.taskId);
+							if (_completed.size === tasks.length)
+								return resolve(0);
+						}
+					},
 					_out => {
 						const _value: string = _out.value.type === "Buffer"
 							? this.decoder.decode(new Uint8Array(_out.value.data))
@@ -40,17 +51,15 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 					},
 					_close => {
 						this.logging.log(`Closing process (${_close.taskId})...`);
-					}
-				);
+						if (!_completed.has(_close.taskId))
+							_completed.add(_close.taskId);
 
-				if (_code > 0) {
-					this.abort();
-					return reject(_code);
-				} else if (_code === 0) {
-					_counter++;
-					if (_counter === tasks.length)
-						return resolve(0);
-				}
+						if (_completed.size === _tasks.length)
+							return resolve(0);
+					}
+				).catch(_err => {
+					return reject(_err);
+				});
 			}
 		});
 	}
@@ -60,16 +69,15 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 	}
 
 	public parseCommand(command: string): CliCommand {
-		// @todo: validate
-		return command?.split(" ") as [string, ...string[]] || [];
-	}
+		if (!command)
+			throw new Error("Invalid command line: " + command);
 
-	private _spawnProcess(): ChildProcess {
-		return fork(__dirname + "\\thread.js");;
+		return command?.split(" ") as [string, ...string[]] || [];
 	}
 
 	private async _runParallelTasks(
 		_tasks: CommandLineTask[],
+		_onExit?: (_message: IChildProcessMessage) => void,
 		_onStdout?: (_message: IChildProcessMessage) => void,
 		_onClose?: (_message: IChildProcessMessage) => void
 	): Promise<number> {
@@ -81,14 +89,15 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 
 			for (let i = 0; i < _tasks.length; i++) {
 				try {
-					const _exitCode = await this._runTask(_process, _tasks[i], _onStdout, _onClose);
+					// wait for task to finish
+					const _exitCode = await this._runTask(_process, _tasks[i], _onStdout, _onClose).catch(() => 1);
+					
 					if (_exitCode > 0) {
 						this._destroyProcess(_process);
 						return reject(_exitCode);
-					}
-					if (_exitCode === 0) {
+					} else {
 						_counter++;
-						// last task completed successfully
+						// final task completed successfully
 						if (_counter === _tasks.length) {
 							this._destroyProcess(_process);
 							return resolve(_exitCode);
@@ -126,6 +135,7 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 					case "close":
 						if (_onClose)
 							_onClose(_message);
+						resolve(0);
 						break;
 
 					case "error":
@@ -140,13 +150,17 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 		});
 	}
 
+	protected _spawnProcess(): ChildProcess {
+		return fork(__dirname + "\\thread.js");;
+	}
+
 	protected _destroyProcess(_process: ChildProcess): void {
 		_process.removeAllListeners("message");
 		_process.kill();
 		this._processes.delete(_process.pid);
 	}
 
-	private _loadBalanceTasks(_tasks: CommandLineTask[]): CommandLineTask[][] {
+	protected _loadBalanceTasks(_tasks: CommandLineTask[]): CommandLineTask[][] {
 		const _loadBalancedTasks: CommandLineTask[][] = [];
 
 		for (let i = 0; i < _tasks.length; i++) {
