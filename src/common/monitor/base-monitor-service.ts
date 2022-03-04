@@ -1,7 +1,6 @@
 import { OnDestroy } from "@kuroi/syringe";
 import { BaseConfigurationService } from "../config";
-import { BaseFileSystemService } from "../filesystem";
-import { IWatcher } from "../filesystem/watcher.interface";
+import { BaseFileSystemService, ChokidarEventListener, IWatcher } from "../filesystem";
 import { BaseLoggingService } from "../logging";
 import { debounce, IDisposable } from "../utils";
 import { BaseMonitorState } from "./base-monitor-state";
@@ -16,7 +15,7 @@ export abstract class BaseMonitorService implements OnDestroy {
 
 	protected _saveStateOnDebounce: (project: string) => void;
 
-	protected _watcher!: IWatcher<any>;
+	protected _watcher!: IWatcher<ChokidarEventListener>;
 
 	constructor(
 		protected fileSystem: BaseFileSystemService,
@@ -47,7 +46,23 @@ export abstract class BaseMonitorService implements OnDestroy {
 		this.state.save();
 	}
 
-	abstract watch(): void;
+	public watch(): void {
+		if (this._watcher)
+			this._watcher.dispose();
+	
+		this._watcher = this.fileSystem.watch(this.config.buildConfig.projectsRootGlob);
+		this._changeListener = this._watcher.onDidChange(_path => this._checkChanges(_path));
+		this._createListener = this._watcher.onDidCreate(_path => this._checkChanges(_path));
+		this._deleteListener = this._watcher.onDidDelete(_path => this._checkChanges(_path));
+	}
+
+	private _checkChanges(path: string): void {
+		this.config.buildConfig.projectDefinitions.forEach(_project => {
+			if (path.includes(`\\${_project.name}\\`)) {
+				this._saveStateOnDebounce(_project.name);
+			}
+		});
+	}
 
 	onDestroy(): void {
 		this.reset();
