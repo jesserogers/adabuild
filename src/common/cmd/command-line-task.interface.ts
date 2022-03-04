@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { v4 as uuidv4 } from "uuid";
 
 export interface CommandLineTask {
 	args: string[];
@@ -16,6 +16,6 @@ export class CommandLineTask implements CommandLineTask {
 		this.delay = task.delay || 0;
 		this.directory = task.directory;
 		this.output = task.output;
-		this.taskId = task.taskId || randomUUID();
+		this.taskId = task.taskId || uuidv4();
 	}
 }
