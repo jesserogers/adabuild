@@ -7,6 +7,12 @@ import { Benchmark } from "../utils";
 
 type BuildQueue = string[][];
 
+/**
+ * @author Jesse Rogers <jesse.rogers@adaptiva.com>
+ * @description Manages Angular (and other) build processes in order of dependency.
+ * 	Attempts to parallelize builds when possible.
+ * @see BaseCommandLineService
+ */
 export abstract class BaseBuildService {
 
 	protected _buildQueue: BuildQueue = [];
@@ -25,6 +31,7 @@ export abstract class BaseBuildService {
 
 	}
 
+	/** Requests a project name to build */
 	public build(incremental: boolean = false): Promise<number> {
 		this._clear();
 		return this._requestProjectName().then(_project => 
@@ -35,6 +42,7 @@ export abstract class BaseBuildService {
 		});
 	}
 
+	/** Builds a project (and its dependencies) by name */
 	public buildProject(project: string, incremental: boolean = false): Promise<number> {
 		if (!project)
 			return Promise.resolve(-1);
@@ -51,6 +59,7 @@ export abstract class BaseBuildService {
 		);
 	}
 
+	/** * Checks notes * Builds all projects? */
 	public buildAllProjects(): Promise<number> {
 		this._clear();
 		this.config.buildConfig.projectDefinitions.forEach(_project => {
@@ -63,6 +72,7 @@ export abstract class BaseBuildService {
 		});
 	}
 
+	/** Runs an application in debug mode. Defaults to `ng serve` */
 	public debugApplication(): void {
 		this._requestProjectName().then(_app => {
 			const _project: IProjectDefinition | undefined = this.config.getProject(_app);
@@ -177,9 +187,10 @@ export abstract class BaseBuildService {
 					this.logging.log(_method, `Executing build for ${_projects.join(", ")}...`);
 				else
 					continue;
+				
+				const _groupBenchmark = new Benchmark();
 
 				// execute builds in parallel
-				const _groupBenchmark = new Benchmark();
 				const _exitCode: number = await this.cmd.execParallel(..._group).then(_code => {
 					this.monitor.state.record(..._projects);
 					return _code;
@@ -200,7 +211,7 @@ export abstract class BaseBuildService {
 			}
 		}
 
-		this.logging.log(_method, `SUCCESS: Completed build queue in ${_benchmark.toString()}`);
+		this.logging.info(_method, `SUCCESS: Completed build queue in ${_benchmark.toString()}`);
 		return Promise.resolve(0);
 	}
 

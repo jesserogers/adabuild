@@ -6,6 +6,10 @@ import { IChildProcessMessage } from "./child-process-message.interface";
 import { CliCommand } from "./cli-command.type";
 import { CommandLineTask } from "./command-line-task.interface";
 
+/**
+ * @author Jesse Rogers <jesse.rogers@adaptiva.com>
+ * @description Provides an API to execute cmd lines in parallel
+ */
 export abstract class BaseCommandLineService {
 
 	public availableCores: number = 1;
@@ -19,9 +23,12 @@ export abstract class BaseCommandLineService {
 		this.availableCores = cpus().length - 1;
 	}
 
+	/**
+	 * @todo implement single task execution in base class
+	 */
 	abstract exec(task: CommandLineTask): any;
 
-	/** Forks tasks into concurrent threads */
+	/** Forks tasks into concurrent processes and resolves when all complete */
 	public execParallel(...tasks: CommandLineTask[]): Promise<number> {
 		return new Promise((resolve, reject) => {
 			
@@ -67,10 +74,12 @@ export abstract class BaseCommandLineService {
 		});
 	}
 
+	/** Kills all running child processes */
 	public abort(): void {
 		this._processes.forEach(_process => this._destroyProcess(_process));
 	}
 
+	/** Parses a command into parts digestible by spawn() */
 	public parseCommand(command: string): CliCommand {
 		if (!command)
 			throw new Error("Invalid command line: " + command);
@@ -155,9 +164,7 @@ export abstract class BaseCommandLineService {
 				}
 			});
 
-			setTimeout(() => {
-				_process.send(_task);
-			}, _task.delay);
+			setTimeout(() => { _process.send(_task); }, _task.delay);
 		});
 	}
 

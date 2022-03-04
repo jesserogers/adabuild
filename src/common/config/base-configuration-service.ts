@@ -8,6 +8,8 @@ export abstract class BaseConfigurationService {
 
 	public buildConfig!: IBuildConfig;
 
+	private _projectMap: Map<string, IProjectDefinition> = new Map();
+
 	constructor(
 		protected fileSystem: BaseFileSystemService,
 		protected logging: BaseLoggingService
@@ -15,6 +17,7 @@ export abstract class BaseConfigurationService {
 
 	}
 
+	/** Looks for `adabuild.config.json` in project root  */
 	public loadConfiguration(): Promise<IBuildConfig> {
 		if (this.buildConfig)
 			return Promise.resolve(this.buildConfig);
@@ -32,16 +35,22 @@ export abstract class BaseConfigurationService {
 				throw new Error(_configFileName + " failed validation");
 			}
 			this.buildConfig = _config;
+			// store values in a map for quicker access
+			this.buildConfig.projectDefinitions.forEach(_project =>
+				this._projectMap.set(_project.name, _project)
+			);
 			return _config;
 		});
 	}
 
+	/**
+	 * Finds a project definition by name
+	 */
 	public getProject(name: string): IProjectDefinition | undefined {
-		return this.buildConfig?.projectDefinitions.find(_project =>
-			_project.name === name
-		);
+		return this._projectMap.get(name);
 	}
 
+	/** Copies tsconfig.dev.json to tsconfig.json in project root */
 	public copyTsConfigDev(): Promise<boolean> {
 		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.dev.json",
@@ -55,6 +64,7 @@ export abstract class BaseConfigurationService {
 		);
 	}
 
+	/** Copies tsconfig.prod.json to tsconfig.json in project root */
 	public copyTsConfigProd(): Promise<boolean> {
 		return this.fileSystem.copyFile(
 			this.fileSystem.root + "\\tsconfig.prod.json",

@@ -4,6 +4,10 @@ import { BaseLoggingService } from "../logging";
 import { IMonitorStoredState } from "./monitor-stored-state.interface";
 import { IMonitorHistory } from "./monitor-history.interface";
 
+/**
+ * @author Jesse Rogers <jesse.rogers@adaptiva.com>
+ * @description Stores state data for changed and built projects
+ */
 export abstract class BaseMonitorState implements OnInit {
 
 	public changed: Set<string> = new Set();
@@ -27,6 +31,7 @@ export abstract class BaseMonitorState implements OnInit {
 		this._fetchPreviousState();
 	}
 
+	/** Increments build history and removes from changed project list */
 	public record(...projects: string[]): void {
 		for (const project of projects) {
 			this.history[project] = (this.history[project] || 0) + 1;
@@ -35,6 +40,7 @@ export abstract class BaseMonitorState implements OnInit {
 		this.save();
 	}
 
+	/** Remove one or all projects from state */
 	public clear(project?: string): void {
 		if (!project) {
 			this.changed.clear();
@@ -45,6 +51,7 @@ export abstract class BaseMonitorState implements OnInit {
 		}
 	}
 
+	/** Write state to .adabuildstate file */
 	public save(): void {
 		this.logging.log("BaseMonitorState.save", `Saving state to ${BaseMonitorState.FILE_NAME}...`);
 		this.fileSystem.writeFile(this.statePath, this.export());
@@ -66,6 +73,7 @@ export abstract class BaseMonitorState implements OnInit {
 		this.changed.add(project);
 	}
 
+	/** Returns current state as JSON */
 	public export(): string {
 		return JSON.stringify({
 			changed: Array.from(this.changed),

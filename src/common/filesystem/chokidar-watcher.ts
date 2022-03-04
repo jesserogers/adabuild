@@ -3,6 +3,10 @@ import { IWatcher } from "../../common";
 import { ChokidarEventListenerCallback } from "./chokidar-event-listener-callback.type";
 import { ChokidarEventListener } from "./chokidar-event-listener.type";
 
+/**
+ * @author Jesse Rogers <jesse.rogers@adaptiva.com>
+ * @description Exposes listeners for Chokidar events of interest
+ */
 export class ChokidarWatcher implements IWatcher<ChokidarEventListener> {
 
 	public onDidChange: ChokidarEventListener;

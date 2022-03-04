@@ -4,6 +4,10 @@ import { ChokidarEventListener } from "./chokidar-event-listener.type";
 import { ChokidarService } from "./chokidar.service";
 import { IWatcher } from "./watcher.interface";
 
+/**
+ * @author Jesse Rogers <jesse.rogers@adaptiva.com>
+ * @description Provides simplified APIs for interacting with the file system
+ */
 export abstract class BaseFileSystemService {
 
 	abstract get root(): string;
@@ -14,11 +18,16 @@ export abstract class BaseFileSystemService {
 	) {
 
 	}
-
-	watch(glob: string): IWatcher<ChokidarEventListener> {
-		return this.chokidar.createWatcher(glob);
+	
+	/** Get list of folders in a directory */
+	getDirectory(path: string): Promise<any> {
+		throw new Error("Method not implemented.");
 	}
 	
+	/**
+	 * Read file as a given object type
+	 * @param parse set to false to read as string
+	 */
 	readFile<T>(path: string, parse: boolean = true): Promise<T> {
 		return new Promise((resolve, reject) => {
 			FileSystem.readFile(path, "utf-8", (err: NodeJS.ErrnoException | null, data: string) => {
@@ -39,10 +48,7 @@ export abstract class BaseFileSystemService {
 		});
 	}
 	
-	getDirectory(path: string): Promise<any> {
-		throw new Error("Method not implemented.");
-	}
-	
+	/** Copy file from source path to destination path */
 	copyFile(source: string, destination: string): Promise<boolean> {
 		return this.readFile<any>(source).then(_content =>
 			this.writeFile(destination, _content).then(() => true).catch(_err => {
@@ -55,6 +61,7 @@ export abstract class BaseFileSystemService {
 		});
 	}
 	
+	/** Write content to file at a specified path */
 	writeFile(path: string, content: string | Object): Promise<void> {
 		if (typeof content === "object")
 			content = JSON.stringify(content);
@@ -68,4 +75,12 @@ export abstract class BaseFileSystemService {
 			});
 		});
 	}
+
+	/**
+	 * Returns an `IWatcher` instance listening to a specified file path
+	 */
+	watch(glob: string): IWatcher<ChokidarEventListener> {
+		return this.chokidar.createWatcher(glob);
+	}
+
 }

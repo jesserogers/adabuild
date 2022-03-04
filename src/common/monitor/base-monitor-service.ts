@@ -5,6 +5,12 @@ import { BaseLoggingService } from "../logging";
 import { debounce, IDisposable } from "../utils";
 import { BaseMonitorState } from "./base-monitor-state";
 
+/**
+ * @author Jesse Rogers <jesse.rogers@adaptiva.com>
+ * @description Invokes the file system watcher and updates its state object accordingly
+ * @see BaseMonitorState
+ * @see BaseFileSystemService
+ */
 export abstract class BaseMonitorService implements OnDestroy {
 
 	protected _changeListener!: IDisposable;
@@ -26,13 +32,15 @@ export abstract class BaseMonitorService implements OnDestroy {
 		this._saveStateOnDebounce = debounce((project: string) => this._saveState(project), 1000);
 	}
 
+	/** Start watching files */
 	public start(): void {
 		if (!this.config.buildConfig)
 			return;
 
-		this.watch();
+		this._watch();
 	}
 	
+	/** Supply a list of projects to remove from state */
 	public reset(...projects: string[]): void {
 		if (projects.length) {
 			projects.forEach(project => {
@@ -46,7 +54,7 @@ export abstract class BaseMonitorService implements OnDestroy {
 		this.state.save();
 	}
 
-	public watch(): void {
+	private _watch(): void {
 		if (this._watcher)
 			this._watcher.dispose();
 	
