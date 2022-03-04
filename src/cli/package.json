@@ -6,6 +6,6 @@
 		"@kuroi/syringe": "^2.0.0"
 	},
 	"bin": {
-		"ada": "./cli.js"
+		"adabuild": "./cli.js"
 	}
 }
