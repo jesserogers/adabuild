@@ -16,17 +16,17 @@ export class WindowService extends BaseLoggingService {
 	private _outputChannel!: vscode.OutputChannel;
 
 	public info(_method: string, message: string): void {
-		this._outputChannel.appendLine(`${APP_NAME} - [LOG] - ${this._getTimeStamp()} - ${message}`);
+		this._outputChannel.appendLine(`${APP_NAME} [LOG] - ${this._getTimeStamp()} - ${message}`);
 		vscode.window.showInformationMessage(`[adabuild] ${message}`);
 	}
 
 	public warn(_method: string, message: string): void {
-		this._outputChannel.appendLine(`${APP_NAME} - [WARN] - ${this._getTimeStamp()} - ${message}`);
+		this._outputChannel.appendLine(`${APP_NAME} [WARN] - ${this._getTimeStamp()} - ${message}`);
 		vscode.window.showWarningMessage(`[adabuild] ${message}`);
 	}
 
 	public error(_method: string, message: string): void {
-		this._outputChannel.appendLine(`${APP_NAME} - [ERROR] - ${this._getTimeStamp()} - ${message}`);
+		this._outputChannel.appendLine(`${APP_NAME} [ERROR] - ${this._getTimeStamp()} - ${message}`);
 		vscode.window.showErrorMessage(`[adabuild] ${message}`);
 	}
 
