@@ -94,7 +94,7 @@ export abstract class BaseBuildService {
 		this._enqueueDependencies(project, incremental);
 
 		if (incremental && !this.monitor.state.hasChanged(project)) {
-			this.logging.log("BaseBuildService._enqueueBuild", `No delta for ${project}: skipping incremental build.`);
+			this.logging.log("BaseBuildService._enqueueBuild", `No action: ${project} and all dependencies up to date`);
 			return Promise.resolve(0);
 		}
 
@@ -225,7 +225,7 @@ export abstract class BaseBuildService {
 				_definition.buildCommand || `ng build ${_project} --c production`
 			);
 			_accumulator.push(new CommandLineTask({ command, args,
-				delay: 1000, // wait 1s for ngcc
+				delay: 500, // give ngcc some time to figure itself out
 				directory: this.fileSystem.root
 			}));
 			
