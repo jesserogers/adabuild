@@ -1,5 +1,9 @@
-import { performance } from 'perf_hooks'
+import { performance } from 'perf_hooks';
 
+/**
+ * @author Jesse Rogers <jesse.rogers@adaptiva.com>
+ * @description Utility class to benchmark task execution speeds
+ */
 export class Benchmark {
 
 	private _start: number = 0;
