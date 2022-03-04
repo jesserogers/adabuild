@@ -4,21 +4,13 @@ import { BaseLoggingService } from "../logging";
 import { IBuildConfig } from "./config.interface";
 import { IProjectDefinition } from "./project-definition.interface";
 
-export interface BaseConfigurationService {
-	buildConfig: IBuildConfig;
-	loadConfiguration(): Promise<IBuildConfig>;
-	getProject(name: string): IProjectDefinition | undefined;
-	copyTsConfigDev(): Promise<boolean>;
-	copyTsConfigProd(): Promise<boolean>;
-}
-
-export abstract class BaseConfigurationService implements BaseConfigurationService {
+export abstract class BaseConfigurationService {
 
 	public buildConfig!: IBuildConfig;
 
 	constructor(
 		protected fileSystem: BaseFileSystemService,
-		protected window: BaseLoggingService
+		protected logging: BaseLoggingService
 	) {
 
 	}
@@ -36,7 +28,7 @@ export abstract class BaseConfigurationService implements BaseConfigurationServi
 		return this.fileSystem.readFile<IBuildConfig>(_configFilePath).then(_config => {
 			if (!this._validateBuildConfig(_config)) {
 				console.error("Invalid config", _config);
-				this.window.error("Invalid config file");
+				this.logging.error("BaseConfigurationService.loadConfiguration", "Invalid config file");
 				throw new Error(_configFileName + " failed validation");
 			}
 			this.buildConfig = _config;
@@ -57,7 +49,7 @@ export abstract class BaseConfigurationService implements BaseConfigurationServi
 		).catch(
 			_error => {
 				console.error(_error);
-				this.window.error("Failed to copy tsconfig.dev.json");
+				this.logging.error("BaseConfigurationService.copyTsConfigDev", "Failed to copy tsconfig.dev.json");
 				return false;
 			}
 		);
@@ -70,7 +62,7 @@ export abstract class BaseConfigurationService implements BaseConfigurationServi
 		).catch(
 			_error => {
 				console.error(_error);
-				this.window.error("Failed to copy tsconfig.prod.json");
+				this.logging.error("BaseConfigurationService.copyTsConfigProd", "Failed to copy tsconfig.prod.json");
 				return false;
 			}
 		);
@@ -81,21 +73,21 @@ export abstract class BaseConfigurationService implements BaseConfigurationServi
 			return false;
 	
 		if (!config.projectsRootGlob) {
-			this.window.error("Invalid project root glob: " + config.projectsRootGlob);
+			this.logging.error("BaseConfigurationService._validateBuildConfig", "Invalid project root glob: " + config.projectsRootGlob);
 			return false;
 		}
 	
 		for (const _project of config.projectDefinitions) {
 			if (!_project) {
-				this.window.error("Invalid project: " + _project);
+				this.logging.error("BaseConfigurationService._validateBuildConfig", "Invalid project: " + _project);
 				return false;
 			}
 			if (!_project.name) {
-				this.window.error("Invalid project name: " + _project.name);
+				this.logging.error("BaseConfigurationService._validateBuildConfig", "Invalid project name: " + _project.name);
 				return false;
 			}
 			if (!["application", "library"].includes(_project.type)) {
-				this.window.error("Invalid project type: " + _project.type);
+				this.logging.error("BaseConfigurationService._validateBuildConfig", "Invalid project type: " + _project.type);
 				return false;
 			}
 		}
