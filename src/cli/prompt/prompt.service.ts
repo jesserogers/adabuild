@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@kuroi/syringe";
 import { stdin, stdout } from "process";
 import * as readline from "readline";
-import { BaseBuildService, BaseCommandLineService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, CliCommand, CommandLineTask } from "../../common";
+import { BaseBuildService, BaseCommandLineService, BaseLoggingService, BaseMonitorService, CliCommand } from "../../common";
 import { CliCommandLineService } from "../cmd";
 import { IArgumentMap } from "./argument-map.interface";
 
@@ -16,7 +16,6 @@ export class CliPromptService {
 		@Inject(BaseCommandLineService) private cmd: CliCommandLineService,
 		@Inject(BaseBuildService) private build: BaseBuildService,
 		@Inject(BaseMonitorService) private monitor: BaseMonitorService,
-		@Inject(BaseFileSystemService) private fileSystem: BaseFileSystemService,
 		@Inject(BaseLoggingService) private logging: BaseLoggingService
 	) {
 
