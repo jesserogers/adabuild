@@ -1,5 +1,6 @@
 export interface IChildProcessMessage<T = any> {
 	type: string;
 	taskId: string;
-	value: T
+	value: T,
+	out?: string;
 }
