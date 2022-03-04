@@ -15,7 +15,7 @@
 	"activationEvents": [
 		"onStartupFinished"
 	],
-	"main": "./out/vscode/main.js",
+	"main": "out/vscode/main.js",
 	"contributes": {
 		"commands": [
 			{
