@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@kuroi/syringe";
-import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, CommandLineTask, IProjectDefinition } from "../../common";
+import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService } from "../../common";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
