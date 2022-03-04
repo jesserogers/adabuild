@@ -31,7 +31,14 @@ export class AdaBuildCli {
 	}
 
 	public help(): void {
-		console.log("Commands:\t\trun\nFlags:\t\t--all\n\t\t--incremental [default: true]");
+		console.log(`
+		Commands		run
+
+						build
+							[Flags]:
+								--all [default = false]
+								--incremental [default = true]
+		`);
 	}
 
 	public run(): void {
