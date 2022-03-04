@@ -93,7 +93,7 @@ export abstract class BaseMonitorState implements OnInit {
 				this.setHistory(_state.history);
 
 		}).catch(_error => {
-			this.logging.log(_error);
+			this.logging.log("BaseMonitorState._fetchPreviousState", "No previous state in directory");
 		});
 	}
 }
