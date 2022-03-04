@@ -27,9 +27,11 @@ export abstract class BaseMonitorState implements OnInit {
 		this._fetchPreviousState();
 	}
 
-	public record(project: string): void {
-		this.history[project] = (this.history[project] || 0) + 1;
-		this.changed.delete(project);
+	public record(...projects: string[]): void {
+		for (const project of projects) {
+			this.history[project] = (this.history[project] || 0) + 1;
+			this.changed.delete(project);
+		}
 		this.save();
 	}
 
