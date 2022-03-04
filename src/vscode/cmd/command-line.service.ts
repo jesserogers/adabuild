@@ -1,6 +1,7 @@
-import { Injectable } from "@kuroi/syringe";
+import { Inject, Injectable } from "@kuroi/syringe";
+import { TextDecoder } from "util";
 import * as vscode from "vscode";
-import { APP_NAME, BaseCommandLineService, CommandLineTask } from "../../common";
+import { APP_NAME, BaseCommandLineService, BaseLoggingService, CommandLineTask } from "../../common";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
@@ -12,6 +13,13 @@ import { APP_NAME, BaseCommandLineService, CommandLineTask } from "../../common"
 export class CommandLineService extends BaseCommandLineService {
 
 	private _terminal!: vscode.Terminal;
+
+	constructor(
+		@Inject(BaseLoggingService) logging: BaseLoggingService,
+		@Inject(TextDecoder) decoder: TextDecoder
+	) {
+		super(logging, decoder);
+	}
 
 	public exec(task: CommandLineTask): vscode.Terminal {
 		if (!this._terminal && !this._findPreviousTerminal()) {
