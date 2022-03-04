@@ -52,11 +52,11 @@ export abstract class BaseFileSystemService {
 	copyFile(source: string, destination: string): Promise<boolean> {
 		return this.readFile<any>(source).then(_content =>
 			this.writeFile(destination, _content).then(() => true).catch(_err => {
-				this.logging.error(_err);
+				this.logging.error("BaseFileSystem.copyFile", _err);
 				return false;
 			})
 		).catch(_err => {
-			this.logging.error(_err);
+			this.logging.error("BaseFileSystem.copyFile", _err);
 			return false;
 		});
 	}

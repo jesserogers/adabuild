@@ -31,7 +31,7 @@ export class AdaBuildCli {
 	}
 
 	public help(): void {
-		this.logging.log("Help!");
+		console.log("Commands:\t\trun\nFlags:\t\t--all\n\t\t--incremental [default: true]");
 	}
 
 	public run(): void {
@@ -39,7 +39,7 @@ export class AdaBuildCli {
 			this.monitor.start();
 			this.prompt.start();
 		}).catch(_error => {
-			this.logging.error(_error);
+			this.logging.error("AdaBuildCli.run", _error);
 		});
 	}
 

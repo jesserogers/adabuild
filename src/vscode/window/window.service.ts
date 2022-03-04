@@ -15,27 +15,27 @@ export class WindowService extends BaseLoggingService {
 
 	private _outputChannel!: vscode.OutputChannel;
 
-	public info(method: string, message: string): void {
-		this._outputChannel.appendLine(`${APP_NAME}.${method} - [LOG]  - ${this._getTimeStamp()} - ${message}`);
-		vscode.window.showInformationMessage(`adabuild [INFO] ${message}`);
+	public info(_method: string, message: string): void {
+		this._outputChannel.appendLine(`${APP_NAME} - [LOG] - ${this._getTimeStamp()} - ${message}`);
+		vscode.window.showInformationMessage(`[adabuild] ${message}`);
 	}
 
-	public warn(method: string, message: string): void {
-		this._outputChannel.appendLine(`${APP_NAME}.${method} - [WARN] - ${this._getTimeStamp()} - ${message}`);
-		vscode.window.showWarningMessage(`adabuild [WARN] - ${this._getTimeStamp()} - ${message}`);
+	public warn(_method: string, message: string): void {
+		this._outputChannel.appendLine(`${APP_NAME} - [WARN] - ${this._getTimeStamp()} - ${message}`);
+		vscode.window.showWarningMessage(`[adabuild] ${message}`);
 	}
 
-	public error(method: string, message: string): void {
-		this._outputChannel.appendLine(`${APP_NAME}.${method} - [ERROR] - ${this._getTimeStamp()} - ${message}`);
-		vscode.window.showErrorMessage(`adabuild [ERROR] - ${this._getTimeStamp()} - ${message}`);
+	public error(_method: string, message: string): void {
+		this._outputChannel.appendLine(`${APP_NAME} - [ERROR] - ${this._getTimeStamp()} - ${message}`);
+		vscode.window.showErrorMessage(`[adabuild] ${message}`);
 	}
 
-	public log(method: string, message: string): void {
+	public log(_method: string, message: string): void {
 		if (!this._outputChannel) {
 			this._outputChannel = vscode.window.createOutputChannel(APP_NAME);
 			this._outputChannel.show();
 		}
-		this._outputChannel.appendLine(`${APP_NAME}.${method} [LOG] - ${this._getTimeStamp()} - ${message}`);
+		this._outputChannel.appendLine(`${APP_NAME} [LOG] - ${this._getTimeStamp()} - ${message}`);
 	}
 
 }
