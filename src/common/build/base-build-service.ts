@@ -7,17 +7,13 @@ import { Benchmark } from "../utils";
 
 type BuildQueue = string[][];
 
-export interface BaseBuildService {
-	build(incremental: boolean): void;
-	buildAllProjects(): void;
-	debugApplication(): void;
-}
-
-export abstract class BaseBuildService implements BaseBuildService {
+export abstract class BaseBuildService {
 
 	protected _buildQueue: BuildQueue = [];
 
 	protected _requestedBuild: string = "";
+
+	private _buildList: Set<string> = new Set();
 
 	constructor(
 		protected monitor: BaseMonitorService,
@@ -30,6 +26,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 	}
 
 	public build(incremental: boolean = false): Promise<number> {
+		this._clear();
 		return this._requestProjectName().then(_project => 
 			this.buildProject(_project, incremental)
 		).catch(_err => {
@@ -43,9 +40,11 @@ export abstract class BaseBuildService implements BaseBuildService {
 			return Promise.resolve(-1);
 
 		if (!this.config.getProject(project)) {
-			this.logging.error("BaseBuildService.buildProject", "Invalid project name \"" + project + "\"")
+			this.logging.error("BaseBuildService.buildProject", "Invalid project name \"" + project + "\"");
 			return Promise.reject("Invalid project name: " + project);
 		}
+
+		this._clear();
 
 		return this.config.copyTsConfigProd().then(() =>
 			this._enqueueBuild(project, incremental)
@@ -53,7 +52,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 	}
 
 	public buildAllProjects(): Promise<number> {
-		this._buildQueue = [];
+		this._clear();
 		this.config.buildConfig.projectDefinitions.forEach(_project => {
 			this._enqueueBuild(_project.name, true);
 		});
@@ -89,14 +88,12 @@ export abstract class BaseBuildService implements BaseBuildService {
 			return Promise.resolve(0);
 		}
 
-		this._enqueue(project);
+		this._enqueue([project]);
 		this.logging.log("BaseBuildService._enqueueBuild", `Running ${incremental ? "incremental" : "full"} build for ${project}...`);
 		return this._executeBuildQueue();
 	}
 
-	abstract _requestProjectName(): Promise<string>;
-
-	private _enqueue(...projects: string[]): void {
+	private _enqueue(projects: string[]): void {
 		this.logging.log("BaseBuildService._enqueue", "Queueing " + projects.join(", ") + " for build...");
 		this._buildQueue.push(projects);
 	}
@@ -104,7 +101,6 @@ export abstract class BaseBuildService implements BaseBuildService {
 	private _enqueueDependencies(project: string, incremental = false): void {
 		const _project: IProjectDefinition | undefined = this.config.getProject(project);
 		const _queue: Set<string> = new Set();
-		const _flattenedQueue: Set<string> = new Set();
 
 		if (!_project)
 			throw new Error("Invalid project: " + project);
@@ -117,7 +113,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 				const _dependency: string = _project.dependencies[i];
 				// skip if any previous build queues include dependency
-				if (_flattenedQueue.has(_dependency))
+				if (this._buildList.has(_dependency))
 					continue;
 
 				const _dependencyDefinition: IProjectDefinition | undefined = this.config.getProject(_dependency);
@@ -129,7 +125,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 				// check if dependency can be run in parallel
 				if (_queue.size && !this._hasIdenticalDependencies(_dependencyDefinition, _lastDependencyDefinition)) {
-					this._enqueue(...Array.from(_queue).filter(p => !_flattenedQueue.has(p)));
+					this._enqueue([..._queue]);
 					_queue.clear();
 				}
 
@@ -146,8 +142,11 @@ export abstract class BaseBuildService implements BaseBuildService {
 				
 				_lastDependencyDefinition = _dependencyDefinition;
 				_queue.add(_dependency);
-				_flattenedQueue.add(_dependency);
+				this._buildList.add(_dependency);
 			}
+			
+			if (_queue.size)
+				this._enqueue([..._queue]);
 		}
 	}
 
@@ -170,7 +169,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 			
 			const _group: CommandLineTask[] = _buildGroups[i];
 			const _projects: string[] = this._buildQueue[i];
-			
+
 			try {
 				if (_group.length === 1)
 					this.logging.log(_method, `Executing build for ${_projects[0]}...`);
@@ -181,8 +180,11 @@ export abstract class BaseBuildService implements BaseBuildService {
 
 				// execute builds in parallel
 				const _groupBenchmark = new Benchmark();
-				const _exitCode: number = await this.cmd.execParallel(..._group).catch(_err => {
-					this.logging.error(_method, `Build executed with code ${_err} in ${_benchmark.toString()}.`);
+				const _exitCode: number = await this.cmd.execParallel(..._group).then(_code => {
+					this.monitor.state.record(..._projects);
+					return _code;
+				}).catch(_err => {
+					this.logging.error(_method, `Build Failed with code ${_err} in ${_benchmark.toString()}.`);
 					return _err;
 				});
 
@@ -192,14 +194,12 @@ export abstract class BaseBuildService implements BaseBuildService {
 				_group.length > 1
 					? this.logging.log(_method, `Completed build for ${_projects.join(", ")} in ${_groupBenchmark.toString()}.`)
 					: this.logging.log(_method, `Completed build for ${_projects[0]} in ${_groupBenchmark.toString()}.`);
-				
-				this.monitor.state.record(_projects[i]);
+
 			} catch (_err) {
 				return Promise.reject(_err);
 			}
 		}
 
-		this._buildQueue = [];
 		this.logging.log(_method, `SUCCESS: Completed build queue in ${_benchmark.toString()}`);
 		return Promise.resolve(0);
 	}
@@ -214,7 +214,7 @@ export abstract class BaseBuildService implements BaseBuildService {
 				_definition.buildCommand || `ng build ${_project} --c production`
 			);
 			_accumulator.push(new CommandLineTask({ command, args,
-				delay: 3000, // wait 3s for ngcc
+				delay: 1000, // wait 1s for ngcc
 				directory: this.fileSystem.root
 			}));
 			
@@ -233,5 +233,12 @@ export abstract class BaseBuildService implements BaseBuildService {
 		return _next.dependencies.length === _previous.dependencies.length &&
 			_next.dependencies.every(_dependency => _previous.dependencies.includes(_dependency));
 	}
+
+	private _clear(): void {
+		this._buildQueue = [];
+		this._buildList.clear();
+	}
+
+	abstract _requestProjectName(): Promise<string>;
 
 }
