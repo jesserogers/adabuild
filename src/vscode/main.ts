@@ -1,7 +1,7 @@
 import { destroyAllInstances, inject } from "@kuroi/syringe";
-import { TextDecoder, TextEncoder } from "util";
+import { TextDecoder } from "util";
 import { ExtensionContext } from 'vscode';
-import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState } from "../common";
+import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState, ChokidarService } from "../common";
 import { AdaBuildExtension } from "./app";
 import { BuildService } from "./build";
 import { CommandLineService } from "./cmd";
@@ -16,7 +16,7 @@ export function activate(context: ExtensionContext) {
 		const adabuild: AdaBuildExtension = inject(AdaBuildExtension, {
 			providers: [
 				TextDecoder,
-				TextEncoder,
+				ChokidarService,
 				{
 					for: BaseBuildService, provide: {
 						use: BuildService
