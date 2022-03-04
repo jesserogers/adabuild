@@ -1,8 +1,4 @@
-export interface BaseLoggingService {
-
-}
-
-export abstract class BaseLoggingService implements BaseLoggingService {
+export abstract class BaseLoggingService {
 	protected _getTimeStamp(): string {
 		return new Date().toLocaleString();
 	}
