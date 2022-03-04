@@ -5,7 +5,17 @@
 	"dependencies": {
 		"@kuroi/syringe": "^2.0.0"
 	},
-	"bin": {
-		"adabuild": "./cli.js"
+	"main": "cli.js",
+	"bin": "cli.js",
+	"pkg": {
+		"scripts": "./**/*.js",
+		"targets": [
+			"node14-win-x64"
+		],
+		"output": "adabuild",
+		"outputPath": "bin"
+	},
+	"scripts": {
+		"pkgr": "pkg . --output adabuild"
 	}
 }
