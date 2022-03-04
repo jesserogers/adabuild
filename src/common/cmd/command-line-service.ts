@@ -6,7 +6,7 @@ import { IChildProcessMessage } from "./child-process-message.interface";
 import { CliCommand } from "./cli-command.type";
 import { CommandLineTask } from "./command-line-task.interface";
 
-export abstract class BaseCommandLineService implements BaseCommandLineService {
+export abstract class BaseCommandLineService {
 
 	public availableCores: number = 1;
 
@@ -38,6 +38,9 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 							return reject(_code);
 						} else if (_code === 0) {
 							_completed.add(_exit.taskId);
+							
+							if (_exit.out)
+								this.logging.log(`process[${_exit.taskId}]:`, _exit.out);
 							if (_completed.size === tasks.length)
 								return resolve(0);
 						}
@@ -51,13 +54,13 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 					},
 					_close => {
 						this.logging.log(`Closing process (${_close.taskId})...`);
-						if (!_completed.has(_close.taskId))
-							_completed.add(_close.taskId);
+						_completed.add(_close.taskId);
 
 						if (_completed.size === _tasks.length)
 							return resolve(0);
 					}
 				).catch(_err => {
+					this.abort();
 					return reject(_err);
 				});
 			}
@@ -90,7 +93,7 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 			for (let i = 0; i < _tasks.length; i++) {
 				try {
 					// wait for task to finish
-					const _exitCode = await this._runTask(_process, _tasks[i], _onStdout, _onClose).catch(_error => {
+					const _exitCode = await this._runTask(_process, _tasks[i], _onExit, _onStdout, _onClose).catch(_error => {
 						this.logging.error("BaseCommandLineService._runParallelTasks", _error);
 						return 1;
 					});
@@ -116,6 +119,7 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 	protected _runTask(
 		_process: ChildProcess,
 		_task: CommandLineTask,
+		_onExit?: (_message: IChildProcessMessage) => void,
 		_onStdout?: (_message: IChildProcessMessage) => void,
 		_onClose?: (_message: IChildProcessMessage) => void
 	): Promise<number> {
@@ -132,6 +136,8 @@ export abstract class BaseCommandLineService implements BaseCommandLineService {
 						break;
 
 					case "exit":
+						if (_onExit)
+							_onExit(_message);
 						resolve(_message.value);
 						break;
 
