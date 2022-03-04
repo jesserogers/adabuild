@@ -58,8 +58,8 @@
 		"esbuild-base": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --external:vscode --format=cjs --platform=node",
 		"precompile:common": "shx rm -rf out/common",
 		"compile:common": "tsc -p src/common",
-		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:common",
-		"compile:vscode": "npm run esbuild-base -- --sourcemap",
+		"precompile:vscode": "shx rm -rf out/vscode",
+		"compile:vscode": "tsc -p src/vscode",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
@@ -71,6 +71,7 @@
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.0",
 		"@types/node": "14.x",
+		"@types/uuid": "^8.3.4",
 		"@types/vscode": "^1.64.0",
 		"@typescript-eslint/eslint-plugin": "^5.12.1",
 		"@typescript-eslint/parser": "^5.12.1",
@@ -85,6 +86,7 @@
 		"vsce": "^2.6.7"
 	},
 	"dependencies": {
-		"@kuroi/syringe": "^2.0.0"
+		"@kuroi/syringe": "^2.0.0",
+		"uuid": "^8.3.2"
 	}
 }
