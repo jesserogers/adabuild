@@ -47,11 +47,9 @@ export class CliPromptService {
 			case "build": {
 				const [_project, ..._projectArgs] = _args;
 				const _argMap: IArgumentMap = this._parseArgs(_projectArgs);
-
-				const _buildAll: boolean = _argMap.all === "true";
 				const _incremental: boolean = _argMap.incremental !== "false";
 
-				if (_buildAll)
+				if (_project?.toLowerCase() === "all")
 					return this.build.buildAllProjects().catch(() => 1);
 				else
 					return this.build.buildProject(_project, _incremental).catch(() => 1);
