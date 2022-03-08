@@ -17,6 +17,10 @@ export abstract class BaseConfigurationService {
 
 	}
 
+	public getConcurrencyLimit(): number {
+		return this.buildConfig?.maxConcurrentBuilds || 0;
+	}
+
 	/** Looks for `adabuild.config.json` in project root  */
 	public loadConfiguration(): Promise<IBuildConfig> {
 		if (this.buildConfig)
