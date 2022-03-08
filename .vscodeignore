@@ -7,6 +7,7 @@ out/cli/**
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/.eslintrc.json
+**/adabuild.config.json
 **/*.map
 **/*.ts
 **/*.vsix
