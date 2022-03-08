@@ -60,7 +60,7 @@
 		"compile:common": "tsc -p src/common",
 		"precompile:vscode": "shx rm -rf out/vscode",
 		"compile:vscode": "tsc -p src/vscode",
-		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"vscode:prepublish": "npm run compile:vscode",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
