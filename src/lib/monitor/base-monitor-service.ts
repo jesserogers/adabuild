@@ -89,7 +89,6 @@ export abstract class BaseMonitorService implements OnDestroy {
 	}
 
 	private _saveState(project: string): void {
-		this.logging.log("BaseMonitorService._saveState", project + " changed");
 		this.state.change(project);
 		this.state.save();
 	}
