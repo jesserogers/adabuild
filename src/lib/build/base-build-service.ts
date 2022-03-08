@@ -133,8 +133,21 @@ export abstract class BaseBuildService {
 					throw new Error("Invalid dependency: " + _dependency);
 				}
 
+				const _concurrencyLimit: number = this.config.getConcurrencyLimit();
+
 				// check if dependency can be run in parallel
-				if (_queue.size && !this._hasIdenticalDependencies(_dependencyDefinition, _buildGroupHead)) {
+				if (
+					_queue.size &&
+					(
+						// concurrency limit met
+						(_concurrencyLimit && _queue.size >= _concurrencyLimit) ||
+						// or differing dependencies
+						!this._hasIdenticalDependencies(_dependencyDefinition, _buildGroupHead)
+					)
+				) {
+					// can't run in parallel, so dump current queue into a build group
+					// and run it back
+					// @todo: handle carryover if concurrency limit exceeded
 					this._enqueue([..._queue]);
 					_queue.clear();
 					_buildGroupHead = _dependencyDefinition;
@@ -193,6 +206,7 @@ export abstract class BaseBuildService {
 				const _groupBenchmark = new Benchmark();
 
 				// execute builds in parallel
+				// @todo: only use the parallel method more than one project in group
 				const _exitCode: number = await this.cmd.execParallel(..._group).then(_code => {
 					this.monitor.state.record(..._projects);
 					return _code;
