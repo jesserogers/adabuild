@@ -34,10 +34,12 @@ export class AdaBuildCli {
 		console.log(`
 		Commands		run
 
-						build
+						build [project | all]
 							[Flags]:
-								--all [default = false]
 								--incremental [default = true]
+							[ex]:
+								build my-project --incremental=false
+								build all
 		`);
 		process.exit(0);
 	}
