@@ -1,9 +1,9 @@
 import { IProjectDefinition } from "./project-definition.interface";
 
 export interface IBuildConfig {
-	maxConcurrentBuilds: number;
 	projectsRootGlob: string;
 	projectDefinitions: IProjectDefinition[];
+	maxConcurrentBuilds?: number;
 	prebuild?: string;
 	postbuild?: string;
 }
