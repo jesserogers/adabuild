@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@kuroi/syringe";
-import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService } from "../../common";
+import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService } from "../../lib";
 import { WindowService } from "../window";
 
 /**

@@ -1,6 +1,6 @@
 import { Inject, Injectable, OnInit } from "@kuroi/syringe";
 import * as vscode from "vscode";
-import { BaseBuildService, BaseConfigurationService, BaseLoggingService, BaseMonitorService } from "../../common";
+import { BaseBuildService, BaseConfigurationService, BaseLoggingService, BaseMonitorService } from "../../lib";
 import { WindowService } from "../window";
 
 /**

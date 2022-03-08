@@ -2,7 +2,7 @@
 import { inject } from "@kuroi/syringe";
 import * as process from "process";
 import { TextDecoder } from "util";
-import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState, ChokidarService } from "../common";
+import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState, ChokidarService } from "../lib";
 import { AdaBuildCli } from "./app";
 import { CliBuildService } from "./build";
 import { CliCommandLineService } from "./cmd";

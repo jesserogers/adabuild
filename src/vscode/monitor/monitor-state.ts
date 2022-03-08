@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnInit } from "@kuroi/syringe";
-import { BaseFileSystemService, BaseLoggingService, BaseMonitorState } from "../../common";
+import { BaseFileSystemService, BaseLoggingService, BaseMonitorState } from "../../lib";
 
 @Injectable()
 export class MonitorState extends BaseMonitorState implements OnInit {

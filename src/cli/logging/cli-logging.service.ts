@@ -1,5 +1,5 @@
 import { Injectable } from "@kuroi/syringe";
-import { BaseLoggingService } from "../../common";
+import { BaseLoggingService } from "../../lib";
 
 @Injectable({
 	scope: "global"

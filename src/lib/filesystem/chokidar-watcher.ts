@@ -1,5 +1,5 @@
 import { FSWatcher } from "chokidar";
-import { IWatcher } from "../../common";
+import { IWatcher } from "../../lib";
 import { ChokidarEventListenerCallback } from "./chokidar-event-listener-callback.type";
 import { ChokidarEventListener } from "./chokidar-event-listener.type";
 

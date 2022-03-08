@@ -1,6 +1,6 @@
 import { Injectable } from "@kuroi/syringe";
 import * as vscode from "vscode";
-import { APP_NAME, BaseLoggingService } from "../../common";
+import { APP_NAME, BaseLoggingService } from "../../lib";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@kuroi/syringe";
-import { BaseFileSystemService, BaseLoggingService, ChokidarService } from "../../common";
+import { BaseFileSystemService, BaseLoggingService, ChokidarService } from "../../lib";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>

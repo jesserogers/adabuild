@@ -1,5 +1,5 @@
 import * as Chokidar from "chokidar";
-import { IWatcher } from "../../common";
+import { IWatcher } from "../../lib";
 import { ChokidarEventListener } from "./chokidar-event-listener.type";
 import { ChokidarWatcher } from "./chokidar-watcher";
 

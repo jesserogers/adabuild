@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@kuroi/syringe";
 import { ChildProcess, spawn } from "child_process";
 import { TextDecoder } from "util";
-import { BaseCommandLineService, BaseLoggingService, CliCommand, CommandLineTask } from "../../common";
+import { BaseCommandLineService, BaseLoggingService, CliCommand, CommandLineTask } from "../../lib";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>

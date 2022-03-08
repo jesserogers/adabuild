@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnDestroy } from "@kuroi/syringe";
-import { BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState } from "../../common";
+import { BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState } from "../../lib";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>

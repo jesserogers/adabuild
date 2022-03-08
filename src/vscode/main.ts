@@ -1,7 +1,7 @@
 import { destroyAllInstances, inject } from "@kuroi/syringe";
 import { TextDecoder } from "util";
 import { ExtensionContext } from 'vscode';
-import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState, ChokidarService } from "../common";
+import { BaseBuildService, BaseCommandLineService, BaseConfigurationService, BaseFileSystemService, BaseLoggingService, BaseMonitorService, BaseMonitorState, ChokidarService } from "../lib";
 import { AdaBuildExtension } from "./app";
 import { BuildService } from "./build";
 import { CommandLineService } from "./cmd";

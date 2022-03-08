@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@kuroi/syringe";
-import { BaseConfigurationService, BaseLoggingService, BaseMonitorService } from "../../common";
+import { BaseConfigurationService, BaseLoggingService, BaseMonitorService } from "../../lib";
 import { CliPromptService } from "../prompt";
 
 @Injectable({

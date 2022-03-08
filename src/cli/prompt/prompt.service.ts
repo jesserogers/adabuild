@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@kuroi/syringe";
 import { stdin, stdout } from "process";
 import * as readline from "readline";
-import { BaseBuildService, BaseCommandLineService, BaseLoggingService, BaseMonitorService, CliCommand } from "../../common";
+import { BaseBuildService, BaseCommandLineService, BaseLoggingService, BaseMonitorService, CliCommand } from "../../lib";
 import { CliCommandLineService } from "../cmd";
 import { IArgumentMap } from "./argument-map.interface";
 

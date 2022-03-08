@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@kuroi/syringe";
 import { TextDecoder } from "util";
 import * as vscode from "vscode";
-import { APP_NAME, BaseCommandLineService, BaseLoggingService, CommandLineTask } from "../../common";
+import { APP_NAME, BaseCommandLineService, BaseLoggingService, CommandLineTask } from "../../lib";
 
 /**
  * @author Jesse Rogers <jesse.rogers@adaptiva.com>
