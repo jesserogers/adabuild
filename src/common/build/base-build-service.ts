@@ -19,7 +19,7 @@ export abstract class BaseBuildService {
 
 	protected _requestedBuild: string = "";
 
-	private _buildList: Set<string> = new Set();
+	private _buildManifest: Set<string> = new Set();
 
 	constructor(
 		protected monitor: BaseMonitorService,
@@ -117,13 +117,13 @@ export abstract class BaseBuildService {
 
 		if (_project.dependencies && _project.dependencies.length) {
 			
-			let _lastDependencyDefinition: IProjectDefinition | undefined;
+			let _buildGroupHead: IProjectDefinition | undefined;
 
 			for (let i = 0; i < _project.dependencies.length; i++) {
 
 				const _dependency: string = _project.dependencies[i];
 				// skip if any previous build queues include dependency
-				if (this._buildList.has(_dependency))
+				if (this._buildManifest.has(_dependency))
 					continue;
 
 				const _dependencyDefinition: IProjectDefinition | undefined = this.config.getProject(_dependency);
@@ -134,9 +134,12 @@ export abstract class BaseBuildService {
 				}
 
 				// check if dependency can be run in parallel
-				if (_queue.size && !this._hasIdenticalDependencies(_dependencyDefinition, _lastDependencyDefinition)) {
+				if (_queue.size && !this._hasIdenticalDependencies(_dependencyDefinition, _buildGroupHead)) {
 					this._enqueue([..._queue]);
 					_queue.clear();
+					_buildGroupHead = _dependencyDefinition;
+				} else if (!_buildGroupHead) {
+					_buildGroupHead = _dependencyDefinition;
 				}
 
 				if (incremental) {
@@ -150,9 +153,8 @@ export abstract class BaseBuildService {
 					}
 				}
 				
-				_lastDependencyDefinition = _dependencyDefinition;
 				_queue.add(_dependency);
-				this._buildList.add(_dependency);
+				this._buildManifest.add(_dependency);
 			}
 			
 			if (_queue.size)
@@ -241,13 +243,12 @@ export abstract class BaseBuildService {
 		if (!_next.dependencies.length)
 			return true;
 		
-		return _next.dependencies.length === _previous.dependencies.length &&
-			_next.dependencies.every(_dependency => _previous.dependencies.includes(_dependency));
+		return _next.dependencies.every(_dependency => _previous.dependencies.includes(_dependency));
 	}
 
 	private _clear(): void {
 		this._buildQueue = [];
-		this._buildList.clear();
+		this._buildManifest.clear();
 	}
 
 	abstract _requestProjectName(): Promise<string>;
