@@ -48,6 +48,9 @@
 			}
 		]
 	},
+	"repository": {
+		"url": "http://10.1.10.15/jesserogers/adabuild.git"
+	},
 	"scripts": {
 		"precompile:cli": "shx rm -rf out/cli && npm run compile:common",
 		"compile:cli": "tsc -p src/cli",
