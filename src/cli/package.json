@@ -16,6 +16,6 @@
 		"outputPath": "bin"
 	},
 	"scripts": {
-		"pkgr": "pkg . --output adabuild"
+		"pkgr": "pkg . --output adabuild --options max_old_space_size=8192"
 	}
 }
