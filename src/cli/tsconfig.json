@@ -4,6 +4,6 @@
 		"outDir": "../../out"
 	},
 	"include": [
-		"./**/*.ts"
+		"./cli.ts"
 	]
 }
