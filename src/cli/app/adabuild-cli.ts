@@ -13,7 +13,7 @@ export class AdaBuildCli {
 		@Inject(CliPromptService) private prompt: CliPromptService,
 		@Inject(BaseMonitorService) private monitor: BaseMonitorService
 	) {
-		logging.log("CLI activated");
+		logging.log("AdaBuildCli", "CLI activated");
 	}
 
 	public parseCommand(command: string, ...args: string[]): void {
@@ -39,6 +39,7 @@ export class AdaBuildCli {
 								--all [default = false]
 								--incremental [default = true]
 		`);
+		process.exit(0);
 	}
 
 	public run(): void {
