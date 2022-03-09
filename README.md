@@ -44,7 +44,10 @@ I also recommend ensuring that your Node configuration is set to opt out of upda
  4. The `adabuild` Node process should now be running in the background, watching `CloudFramework` for changes.
  5. Run `build {project}` to initiate a build, or `reset {project?}` to clear its history.
 
-### VS Code
+### ~~VS Code~~
+
+**The VS Code extension does not currently work within Adaptiva Developer VMs. Please use the CLI.**
+
  1. Copy the `.vsix` file for `adabuild` into your machine somewhere.
  2. Open VS Code and navigate to the "Extensions" tab.
  3. Find the extensions menu and select "Install from .VSIX"
