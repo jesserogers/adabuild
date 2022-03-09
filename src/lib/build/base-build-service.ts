@@ -34,7 +34,7 @@ export abstract class BaseBuildService {
 	/** Requests a project name to build */
 	public build(incremental: boolean = false): Promise<number> {
 		this._clear();
-		return this._requestProjectName().then(_project => 
+		return this._requestProjectName().then(_project =>
 			this.buildProject(_project, incremental)
 		).catch(_err => {
 			this.logging.log("BaseBuildService.build", _err);
@@ -73,21 +73,25 @@ export abstract class BaseBuildService {
 	}
 
 	/** Runs an application in debug mode. Defaults to `ng serve` */
-	public debugApplication(): void {
-		this._requestProjectName().then(_app => {
-			const _project: IProjectDefinition | undefined = this.config.getProject(_app);
-			if (_project?.type !== "application") {
-				this.logging.error("BaseBuildService.debugApplication", "Cannot debug project type " + _project?.type);
-				return;
-			}
-			this.config.copyTsConfigDev().then(() => {
-				this.cmd.exec({
-					command: _project?.debugCommand || `ng serve ${_app}`,
-					directory: this.fileSystem.root,
-					args: []
-				});
-			});
-		});
+	public debug(): void {
+		this._requestProjectName().then(_app => this.debugProject(_app));
+	}
+
+	public debugProject(project: string): Promise<number> {
+		const _project: IProjectDefinition | undefined = this.config.getProject(project);
+		if (_project?.type !== "application") {
+			const _errorMessage: string = "Cannot debug project type " + _project?.type;
+			this.logging.error("BaseBuildService.debugApplication", );
+			return Promise.reject(_errorMessage);
+		}
+		return this.config.copyTsConfigDev().then(() =>
+			this.cmd.exec({
+				command: _project?.debugCommand || `ng serve ${project}`,
+				directory: this.fileSystem.root,
+				args: [],
+				output: true
+			})
+		);
 	}
 
 	private async _enqueueBuild(project: string, incremental = false): Promise<number> {
@@ -116,7 +120,7 @@ export abstract class BaseBuildService {
 			throw new Error("Invalid project: " + project);
 
 		if (_project.dependencies && _project.dependencies.length) {
-			
+
 			let _buildGroupHead: IProjectDefinition | undefined;
 
 			for (let i = 0; i < _project.dependencies.length; i++) {
@@ -165,11 +169,11 @@ export abstract class BaseBuildService {
 						this.monitor.state.change(project);
 					}
 				}
-				
+
 				_queue.add(_dependency);
 				this._buildManifest.add(_dependency);
 			}
-			
+
 			if (_queue.size)
 				this._enqueue([..._queue]);
 		}
@@ -187,11 +191,11 @@ export abstract class BaseBuildService {
 		const _buildGroups: CommandLineTask[][] = this._buildQueue.map(_queue =>
 			this._generateTasksForProjects(_queue)
 		);
-		
+
 		const _benchmark = new Benchmark();
 
 		for (let i = 0; i < _buildGroups.length; i++) {
-			
+
 			const _group: CommandLineTask[] = _buildGroups[i];
 			const _projects: string[] = this._buildQueue[i];
 
@@ -202,7 +206,7 @@ export abstract class BaseBuildService {
 					this.logging.log(_method, `Executing build for ${_projects.join(", ")}...`);
 				else
 					continue;
-				
+
 				const _groupBenchmark = new Benchmark();
 
 				// execute builds in parallel
@@ -236,15 +240,14 @@ export abstract class BaseBuildService {
 			const _definition: IProjectDefinition | undefined = this.config.getProject(_project);
 			if (!_definition)
 				throw new Error("Invalid project: " + _project);
-				
-			const [command, ...args]: CliCommand = this.cmd.parseCommand(
-				_definition.buildCommand || `ng build ${_project} --c production`
-			);
-			_accumulator.push(new CommandLineTask({ command, args,
+
+			_accumulator.push(new CommandLineTask({
+				command: _definition.buildCommand || `ng build ${_project} --c production`,
+				args: [],
 				delay: 500, // give ngcc some time to figure itself out
 				directory: this.fileSystem.root
 			}));
-			
+
 			return _accumulator;
 		}, []);
 	}
@@ -256,7 +259,7 @@ export abstract class BaseBuildService {
 		// if next project has *no* dependencies, consider it to be identical
 		if (!_next.dependencies.length)
 			return true;
-		
+
 		return _next.dependencies.every(_dependency => _previous.dependencies.includes(_dependency));
 	}
 
