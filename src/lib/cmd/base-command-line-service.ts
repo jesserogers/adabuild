@@ -1,4 +1,4 @@
-import { ChildProcess, fork } from "child_process";
+import { ChildProcess, fork, spawn } from "child_process";
 import { cpus } from "os";
 import { TextDecoder } from "util";
 import { BaseLoggingService } from "../logging";
@@ -75,8 +75,8 @@ export abstract class BaseCommandLineService {
 	}
 
 	/** Kills all running child processes */
-	public abort(): void {
-		this._processes.forEach(_process => this._destroyProcess(_process));
+	public abort(force: boolean = false): void {
+		this._processes.forEach(_process => this._destroyProcess(_process, force));
 	}
 
 	/** Parses a command into parts digestible by spawn() */
@@ -172,9 +172,11 @@ export abstract class BaseCommandLineService {
 		return fork(__dirname + "\\thread.js");;
 	}
 
-	protected _destroyProcess(_process: ChildProcess): void {
+	protected _destroyProcess(_process: ChildProcess, _force: boolean = false): void {
 		_process.removeAllListeners("message");
-		_process.kill();
+		_process.kill("SIGINT");
+		if (_force)
+			spawn("taskkill", ["/pid", _process.pid.toString(), '/f', '/t']);
 		this._processes.delete(_process.pid);
 	}
 
