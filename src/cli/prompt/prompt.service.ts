@@ -35,6 +35,8 @@ export class CliPromptService {
 			const _command: CliCommand = this.cmd.parseCommand(answer);
 			this._delegateCommand(_command).then(() => {
 				this._prompt();
+			}).catch(_err => {
+				this.logging.error("PromptService._promopt", _err);
 			});
 		});
 	}
@@ -55,6 +57,22 @@ export class CliPromptService {
 					return this.build.buildProject(_project, _incremental).catch(() => 1);
 			}
 
+			case "debug": {
+				const [_project] = _args;
+				if (_project)
+					return this.build.debugProject(_project);
+				else
+					return Promise.reject("No project name supplied");
+			}
+
+			case "abort":
+			case "kill":
+			case "stop": {
+				this.logging.log("PromptService#abort", "Aborting all procesess...");
+				this.cmd.abort(true);
+				break;
+			}
+
 			case "reset": {
 				const _argMap: IArgumentMap = this._parseArgs(_args);
 				const _projects: string[] = _argMap.project?.split(",").map(
@@ -62,6 +80,11 @@ export class CliPromptService {
 				).filter(x => !!x) || [];
 
 				this.monitor.reset(..._projects);
+				break;
+			}
+
+			case "cls": {
+				console.clear();
 				break;
 			}
 
