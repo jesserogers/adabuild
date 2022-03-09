@@ -7,6 +7,8 @@ export interface CommandLineTask {
 	directory?: string;
 	output?: boolean;
 	taskId?: string;
+	forceClose?: boolean;
+	onOutput?: (output: string) => void;
 }
 
 export class CommandLineTask implements CommandLineTask {
@@ -17,5 +19,7 @@ export class CommandLineTask implements CommandLineTask {
 		this.directory = task.directory;
 		this.output = task.output;
 		this.taskId = task.taskId || uuidv4();
+		this.onOutput = task.onOutput;
+		this.forceClose = task.forceClose || false;
 	}
 }
