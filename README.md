@@ -33,6 +33,8 @@ set NODE_OPTIONS=--max-old-space-size=8192
 export NODE_OPTIONS=--max-old-space-size=8192
 ```
 
+I also recommend ensuring that your Node configuration is set to opt out of update notifications. Head to `C:/users/{yourname}/.config/configstore/update-notifier-npm.json` and set `optOut` to `true`.
+
 ## Usage
 
 ### CLI
