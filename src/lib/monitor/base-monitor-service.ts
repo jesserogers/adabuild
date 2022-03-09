@@ -19,7 +19,7 @@ export abstract class BaseMonitorService implements OnDestroy {
 
 	protected _deleteListener!: IDisposable;
 
-	protected _saveStateOnDebounce: (project: string) => void;
+	protected _saveStateOnDebounce: () => void;
 
 	protected _watcher!: IWatcher<ChokidarEventListener>;
 
@@ -29,7 +29,7 @@ export abstract class BaseMonitorService implements OnDestroy {
 		protected config: BaseConfigurationService,
 		public state: BaseMonitorState
 	) {
-		this._saveStateOnDebounce = debounce((project: string) => this._saveState(project), 1000);
+		this._saveStateOnDebounce = debounce(() => this.state.save(), 1000);
 	}
 
 	/** Start watching files */
@@ -67,7 +67,8 @@ export abstract class BaseMonitorService implements OnDestroy {
 	private _checkChanges(path: string): void {
 		this.config.buildConfig.projectDefinitions.forEach(_project => {
 			if (path.includes(`\\${_project.name}\\`)) {
-				this._saveStateOnDebounce(_project.name);
+				this.state.change(_project.name);
+				this._saveStateOnDebounce();
 			}
 		});
 	}
@@ -86,11 +87,6 @@ export abstract class BaseMonitorService implements OnDestroy {
 		
 		if (this._watcher)
 			this._watcher.dispose();
-	}
-
-	private _saveState(project: string): void {
-		this.state.change(project);
-		this.state.save();
 	}
 
 }
