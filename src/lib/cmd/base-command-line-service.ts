@@ -26,7 +26,7 @@ export abstract class BaseCommandLineService {
 	/**
 	 * @todo implement single task execution in base class
 	 */
-	abstract exec(task: CommandLineTask): any;
+	abstract exec(task: CommandLineTask): Promise<number>;
 
 	/** Forks tasks into concurrent processes and resolves when all complete */
 	public execParallel(...tasks: CommandLineTask[]): Promise<number> {
