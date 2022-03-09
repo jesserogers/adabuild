@@ -52,7 +52,7 @@
 		"url": "http://10.1.10.15/jesserogers/adabuild.git"
 	},
 	"scripts": {
-		"precompile:cli": "shx rm -rf out/cli && npm run compile:common",
+		"precompile:cli": "shx rm -rf out/cli",
 		"compile:cli": "tsc -p src/cli",
 		"postcompile:cli": "shx cp src/cli/package.json out/cli",
 		"exe:cli": "chmod +x ./out/cli/cli.js",
@@ -64,6 +64,10 @@
 		"precompile:vscode": "shx rm -rf out/vscode",
 		"compile:vscode": "tsc -p src/vscode",
 		"vscode:prepublish": "npm run compile:vscode",
+		"package:cli": "npm run compile:common && npm run compile:cli && cd out/cli && npm run pkgr",
+		"postpackage:cli": "shx cp out/cli/adabuild.exe ./dist/adabuild.exe && shx cp README.md ./dist/README.md && shx cp CHANGELOG.md ./dist/CHANGELOG.md",
+		"package:vscode": "vsce package --out ./dist/",
+		"package:all": "npm run package:cli && npm run package:vscode",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
