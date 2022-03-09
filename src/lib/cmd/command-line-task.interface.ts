@@ -9,6 +9,7 @@ export interface CommandLineTask {
 	taskId?: string;
 	forceClose?: boolean;
 	onOutput?: (output: string) => void;
+	hide?: boolean;
 }
 
 export class CommandLineTask implements CommandLineTask {
@@ -21,5 +22,6 @@ export class CommandLineTask implements CommandLineTask {
 		this.taskId = task.taskId || uuidv4();
 		this.onOutput = task.onOutput;
 		this.forceClose = task.forceClose || false;
+		this.hide = task.hide === undefined ? true : task.hide;
 	}
 }
