@@ -81,17 +81,23 @@ export abstract class BaseBuildService {
 		const _project: IProjectDefinition | undefined = this.config.getProject(project);
 		if (_project?.type !== "application") {
 			const _errorMessage: string = "Cannot debug project type " + _project?.type;
-			this.logging.error("BaseBuildService.debugApplication", );
+			this.logging.error("BaseBuildService.debugProject", );
 			return Promise.reject(_errorMessage);
 		}
-		return this.config.copyTsConfigDev().then(() =>
+		return this.config.copyTsConfigDev().then(() => new Promise((resolve, reject) => {
 			this.cmd.exec({
 				command: _project?.debugCommand || `ng serve ${project}`,
 				directory: this.fileSystem.root,
 				args: [],
-				output: true
-			})
-		);
+				output: true,
+				onOutput: (output: string) => {
+					if (output.includes("Compiled successfully."))
+						resolve(0);
+				}
+			}).catch(_err => {
+				reject(_err);
+			});
+		}));
 	}
 
 	private async _enqueueBuild(project: string, incremental = false): Promise<number> {
