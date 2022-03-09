@@ -41,6 +41,7 @@ I also recommend ensuring that your Node configuration is set to opt out of upda
  1. Drop the `adabuild` application directory into an easily accessible folder on your development machine. Anywhere under your `C:` drive is fine.
  2. Add this directory to your `PATH`.
  3. Open the `CloudFramework` folder in a `cmd` prompt (admin is not a bad idea) and enter `adabuild run` to start the app.
+  - To take advantage of incremental builds, leave the app running in the background and let it watch for changes.
  4. The `adabuild` Node process should now be running in the background, watching `CloudFramework` for changes.
  5. Run `build {project}` to initiate a build, or `reset {project?}` to clear its history.
 
