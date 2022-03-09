@@ -90,6 +90,7 @@ export abstract class BaseBuildService {
 				directory: this.fileSystem.root,
 				args: [],
 				output: true,
+				hide: false,
 				onOutput: (output: string) => {
 					if (output.includes("Compiled successfully."))
 						resolve(0);
