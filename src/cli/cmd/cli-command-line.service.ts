@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@kuroi/syringe";
-import { ChildProcess, spawn } from "child_process";
+import { ChildProcess, exec, spawn } from "child_process";
 import { TextDecoder } from "util";
 import { BaseCommandLineService, BaseLoggingService, CliCommand, CommandLineTask } from "../../lib";
 
@@ -23,22 +23,33 @@ export class CliCommandLineService extends BaseCommandLineService {
 
 	public exec(task: CommandLineTask): Promise<number> {
 		return new Promise((resolve, reject) => {
-			const _process: ChildProcess = spawn(task.command, {
-				cwd: task.directory
+			const _process: ChildProcess = exec(task.command, {
+				cwd: task.directory,
+				windowsHide: true
 			});
 
 			_process.on("exit", code => {
-				this._destroyProcess(_process);
+				this._destroyProcess(_process, task.forceClose);
 				resolve(code || 0);
 			});
 
+			_process.on("close", () => {
+				this._destroyProcess(_process, task.forceClose);
+				resolve(0);
+			});
+
 			_process.on("error", _error => {
-				this._destroyProcess(_process);
+				this._destroyProcess(_process, task.forceClose);
 				reject(_error);
 			});
 
 			if (task.output)
-				_process.stdout?.on("data", out => console.log(out));
+				_process.stdout?.on("data", out => {
+					console.log(out);
+
+					if (task.onOutput)
+						task.onOutput(out);
+				});
 
 			this._processes.set(_process.pid, _process);
 
