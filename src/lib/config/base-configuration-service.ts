@@ -63,7 +63,7 @@ export abstract class BaseConfigurationService {
 			_error => {
 				console.error(_error);
 				this.logging.error("BaseConfigurationService.copyTsConfigDev", "Failed to copy tsconfig.dev.json");
-				return false;
+				return true;
 			}
 		);
 	}
@@ -77,7 +77,7 @@ export abstract class BaseConfigurationService {
 			_error => {
 				console.error(_error);
 				this.logging.error("BaseConfigurationService.copyTsConfigProd", "Failed to copy tsconfig.prod.json");
-				return false;
+				return true;
 			}
 		);
 	}
