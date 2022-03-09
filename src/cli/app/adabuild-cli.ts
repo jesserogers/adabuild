@@ -31,15 +31,30 @@ export class AdaBuildCli {
 	}
 
 	public help(): void {
-		console.log(`
-		Commands		run
+		console.log(`Enter "adabuild run" to start the application.
 
-						build [project | all]
-							[Flags]:
+		Commands:		build [project | all]
+							[desc]: Compiles a project and its dependencies
+							[flags]:
 								--incremental [default = true]
 							[ex]:
 								build my-project --incremental=false
 								build all
+
+						debug [project]
+							[desc]: Run a project in debug mode
+							[ex]:
+								debug my-project
+
+						stop
+							[desc]: End all adabuild child processes
+
+						reset [...projects]
+							[desc]: Clear build and change history for a list of projects
+							[ex]:
+								reset my-project,my-other-project
+								reset // note: if no project list, adabuild will reset everything
+
 		`);
 		process.exit(0);
 	}
