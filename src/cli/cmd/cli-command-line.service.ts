@@ -25,7 +25,7 @@ export class CliCommandLineService extends BaseCommandLineService {
 		return new Promise((resolve, reject) => {
 			const _process: ChildProcess = exec(task.command, {
 				cwd: task.directory,
-				windowsHide: true
+				windowsHide: task.hide
 			});
 
 			_process.on("exit", code => {
