@@ -21,11 +21,6 @@ namespace adabuild.Monitor
 			get { return FileSystemService.Root + $"\\{STATE_FILE}"; }
 		}
 
-		public State()
-		{
-			// arg-less constructor required for JSON deserialization
-		}
-
 		public State(ref FileSystem.Service _fileSystem)
 		{
 			FileSystemService = _fileSystem;
@@ -33,6 +28,10 @@ namespace adabuild.Monitor
 			changed = new List<string>();
 			LoadExistingState();
 		}
+
+		
+		// Blank constructor for JSON deserialization
+		public State() { }
 
 		public void Record(string _project)
 		{
