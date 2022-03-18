@@ -5,17 +5,17 @@ namespace adabuild
 	class Program
 	{
 
-		static FileSystem.Service FileSystemService;
+		private static FileSystem.Service FileSystemService;
 
-		static Config.Service ConfigService;
+		private static Config.Service ConfigService;
 
-		static Monitor.State MonitorState;
+		private static Monitor.State MonitorState;
 
-		static Monitor.Service MonitorService;
+		private static Monitor.Service MonitorService;
 
-		static CommandLine.Service CommandLineService;
+		private static CommandLine.Service CommandLineService;
 
-		static Build.Service BuildService;
+		private static Build.Service BuildService;
 
 		static void Main(string[] args)
 		{
@@ -23,27 +23,12 @@ namespace adabuild
 			FileSystemService = new FileSystem.Service();
 			ConfigService = new Config.Service(ref FileSystemService);
 			MonitorState = new Monitor.State(ref FileSystemService);
-			MonitorService = new Monitor.Service(ref MonitorState);
+			MonitorService = new Monitor.Service(ref FileSystemService, ref ConfigService, ref MonitorState);
 			CommandLineService = new CommandLine.Service(ref FileSystemService);
 			BuildService = new Build.Service(ref MonitorService, ref ConfigService, ref CommandLineService);
 			
 			if (args.Length > 0)
 				Run(args);
-			else
-				RunTest();
-		}
-
-		static void RunTest()
-		{
-			int _exit = CommandLineService.Exec(new string[]
-			{
-				@"/C echo Hello!",
-				@"/C npm --version",
-				@"/C ng --version",
-				@"/C echo Goodbye!"
-			}).GetAwaiter().GetResult();
-
-			Console.WriteLine($"Test commands exited with code: {_exit}");
 		}
 
 		static void Run(string[] _args)
@@ -66,7 +51,12 @@ namespace adabuild
 				}
 
 				case "watch":
+				{
+					MonitorService.Start();
+					string _userInput = Console.ReadLine();
+					Console.WriteLine($"omg user said {_userInput}");
 					break;
+				}
 
 				case "help":
 					break;
@@ -77,8 +67,7 @@ namespace adabuild
 					
 				default:
 				{
-					RunTest();
-					break;
+					throw new Exception($"Invalid arguments provided: {_args[0]}");
 				}
 			}
 		}
