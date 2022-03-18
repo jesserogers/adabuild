@@ -39,6 +39,7 @@ namespace adabuild
 			{
 				@"/C echo Hello!",
 				@"/C npm --version",
+				@"/C ng --version",
 				@"/C echo Goodbye!"
 			}).GetAwaiter().GetResult();
 
@@ -54,7 +55,8 @@ namespace adabuild
 					if (_args.Length > 1)
 					{
 						string _project = _args[1];
-						BuildService.Build(_project).GetAwaiter().GetResult();
+						int _exit = BuildService.Build(_project).GetAwaiter().GetResult();
+						Console.WriteLine($"Completed build for {_project} with code: {_exit}");
 					}
 					else
 					{
