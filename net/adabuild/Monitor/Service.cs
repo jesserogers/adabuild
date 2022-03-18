@@ -74,34 +74,33 @@ namespace adabuild.Monitor
 		private void OnChanged(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Changed)
-				CheckChanges("changed", e.FullPath);
+				CheckChanges(e.FullPath);
 		}
 
 		private void OnCreated(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Created)
-				CheckChanges("created", e.FullPath);
+				CheckChanges(e.FullPath);
 		}
 
 		private void OnDeleted(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Deleted)
-				CheckChanges("deleted", e.FullPath);
+				CheckChanges(e.FullPath);
 		}
 
 		private void OnRenamed(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Renamed)
-				CheckChanges("renamed", e.FullPath);
+				CheckChanges(e.FullPath);
 		}
 
-		private void CheckChanges(string _type, string _path)
+		private void CheckChanges(string _path)
 		{
 			foreach (Config.ProjectDefinition _project in ConfigService.Configuration.projectDefinitions)
 			{
 				if (_path.Contains($"{ConfigService.Configuration.projectsRootGlob}\\{_project.name}\\"))
 				{
-					Console.WriteLine($"File {_type} at {_path}"); // @todo: remove this
 					State.Change(_project.name);
 					SaveState();
 					return;
