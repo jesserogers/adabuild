@@ -12,6 +12,8 @@ namespace adabuild.CommandLine
 
 		public AsyncProcessTask AsyncTask;
 
+		public bool ShowOutput;
+
 		public int Id
 		{
 			get { return ChildProcess.Id; }
@@ -25,7 +27,8 @@ namespace adabuild.CommandLine
 			String _command,
 			String _directory,
 			Action<AsyncProcess> _onStart,
-			Func<int, EventHandler> _onExitFactory
+			Func<int, EventHandler> _onExitFactory,
+			bool _showOutput = false
 		)
 		{
 			ChildProcess = new Process
@@ -34,18 +37,20 @@ namespace adabuild.CommandLine
 				StartInfo =
 				{
 					FileName = "cmd.exe",
-					Arguments = _command,
+					Arguments = $"/C {_command}",
 					WorkingDirectory = _directory,
 					WindowStyle = ProcessWindowStyle.Hidden,
+					CreateNoWindow = false,
 					RedirectStandardOutput = true,
 					RedirectStandardError = true
 				}
 			};
 			OnStart = _onStart;
 			OnExitFactory = _onExitFactory;
+			ShowOutput = _showOutput;
 		}
 
-		public async Task<int> Run(int _delay = 250, bool _output = true)
+		public async Task<int> Run(int _delay = 250)
 		{
 
 			if (_delay > 0)
@@ -59,11 +64,10 @@ namespace adabuild.CommandLine
 			Console.WriteLine($"Started process [{ChildProcess.Id}]");
 			AsyncTask = new AsyncProcessTask(ChildProcess, OnExitFactory);
 
-			ChildProcess.Exited += AsyncTask.EventHandler;
+			ChildProcess.Exited += AsyncTask.OnExit;
 
 			ChildProcess.BeginErrorReadLine();
-			if (_output)
-				ChildProcess.BeginOutputReadLine();
+			ChildProcess.BeginOutputReadLine();
 
 			await AsyncTask.GetTask();
 			return ChildProcess.ExitCode;
