@@ -12,31 +12,41 @@ namespace adabuild.CommandLine
 
 		private Process RunningProcess;
 
-		private EventHandler Handler;
+		private EventHandler ExitHandler;
+		
+		private bool isCompleted;
+
+		public bool IsCompleted{
+			get { return isCompleted; }
+		}
 
 		public Task GetTask()
 		{
 			return Tcs.Task;
 		}
 
-		public void EventHandler(object _sender, EventArgs _event)
+		public void OnExit(object _sender, EventArgs _event)
 		{
-			if (!RunningProcess.HasExited)
-				RunningProcess.WaitForExit();
-
 			if (Tcs.Task.IsCompleted)
 				return;
 
+			isCompleted = true;
+
+			if (!RunningProcess.HasExited)
+				RunningProcess.WaitForExit();
+
 			Tcs.SetResult(RunningProcess.ExitCode);
 
-			if (Handler != null)
-				Handler(RunningProcess, _event);
+			if (ExitHandler != null)
+				ExitHandler(RunningProcess, _event);
 		}
 
-		public AsyncProcessTask(Process _process, Func<int, EventHandler> _exitFactory)
-		{
+		public AsyncProcessTask(
+			Process _process,
+			Func<int, EventHandler> _exitHandlerFactory
+		) {
 			RunningProcess = _process;
-			Handler = _exitFactory(_process.Id);
+			ExitHandler = _exitHandlerFactory(_process.Id);
 		}
 
 	}
