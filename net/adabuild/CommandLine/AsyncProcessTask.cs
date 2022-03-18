@@ -27,7 +27,7 @@ namespace adabuild.CommandLine
 
 		public void OnExit(object _sender, EventArgs _event)
 		{
-			if (Tcs.Task.IsCompleted)
+			if (isCompleted)
 				return;
 
 			isCompleted = true;
