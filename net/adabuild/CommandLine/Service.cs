@@ -69,10 +69,8 @@ namespace adabuild.CommandLine
 					AsyncProcess _process = Processes[_processId];
 
 					if (_process == null)
-					{
-						Console.Error.WriteLine($"Process [{_processId}] removed before cleanup!");
 						return;
-					}
+
 					else
 					{
 
@@ -99,10 +97,10 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler((object s, DataReceivedEventArgs e) =>
 			{
 				AsyncProcess _process = Processes[_processId];
+
 				if (_process == null)
-				{
-					Console.Error.WriteLine($"Process [{_processId}] removed before cleanup!");
-				}
+					return;
+
 				else
 				{
 					if (e.Data != null && ((string)e.Data).Length > 0)
@@ -127,29 +125,14 @@ namespace adabuild.CommandLine
 			EventHandler _handler = new EventHandler((object sender, EventArgs e) =>
 			{
 				if (!Processes.ContainsKey(_processId))
-				{
-					Console.Error.WriteLine($"Cannot find process [{_processId}]");
 					return;
-				}
 
 				AsyncProcess _process = Processes[_processId];
-				Console.WriteLine($"Process [{_processId}] exited with code: {_process.ChildProcess.ExitCode}");
 
 				if (_process.ChildProcess.ExitCode > 0)
-				{
-
-					if (_process.ChildProcess.StandardError != null)
-					{
-						string _error = _process.ChildProcess.StandardError.ReadToEnd();
-						if (_error.Length > 0)
-							Console.Error.WriteLine(_error);
-					}
-
 					DestroyAllProcesses();
-					return;
-				}
-
-				DestroyProcess(_process);
+				else
+					DestroyProcess(_process);
 
 			});
 
@@ -171,7 +154,6 @@ namespace adabuild.CommandLine
 
 			try
 			{
-				Console.WriteLine($"Destroying process [{_process.Id}]...");
 				_process.ChildProcess.Exited -= ProcessExitHandlers[_process.Id];
 				_process.ChildProcess.OutputDataReceived -= StandardOutHandlers[_process.Id];
 				_process.ChildProcess.ErrorDataReceived -= StandardErrorHandlers[_process.Id];
