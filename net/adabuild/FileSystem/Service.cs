@@ -17,8 +17,7 @@ namespace adabuild.FileSystem
 
 		public Service()
 		{
-			// Root = Directory.GetCurrentDirectory();
-			Root = @"C:\Development\angular-lib-project";
+			Root = Directory.GetCurrentDirectory();
 		}
 
 		public async Task WriteFile(string _path, string _content)
