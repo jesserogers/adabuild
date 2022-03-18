@@ -18,12 +18,15 @@ namespace adabuild.CommandLine
 
 		private ConcurrentDictionary<int, DataReceivedEventHandler> StandardOutHandlers;
 
+		private ConcurrentDictionary<int, DataReceivedEventHandler> StandardErrorHandlers;
+
 		public Service(ref FileSystem.Service _fileSystemService)
 		{
 			FileSystemService = _fileSystemService;
 			Processes = new ConcurrentDictionary<int, AsyncProcess>();
 			ProcessExitHandlers = new ConcurrentDictionary<int, EventHandler>();
 			StandardOutHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
+			StandardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 		}
 
 		public async Task<int> Exec(string _command)
@@ -54,6 +57,7 @@ namespace adabuild.CommandLine
 		private void RegisterProcess(AsyncProcess _process)
 		{
 			_process.ChildProcess.OutputDataReceived += StandardOutCallbackFactory(_process.Id);
+			_process.ChildProcess.ErrorDataReceived += StandardErrorCallbackFactory(_process.Id);
 			Processes.TryAdd(_process.Id, _process);
 		}
 
@@ -62,9 +66,6 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler(
 				(object sender, DataReceivedEventArgs e) =>
 				{
-					if (e.Data != null && ((string)e.Data).Length > 0)
-						Console.WriteLine($"Process [{_processId}]: {e.Data}");
-					
 					AsyncProcess _process = Processes[_processId];
 
 					if (_process == null)
@@ -72,12 +73,52 @@ namespace adabuild.CommandLine
 						Console.Error.WriteLine($"Process [{_processId}] removed before cleanup!");
 						return;
 					}
-					// check if process has already exited
-					if (_process.ChildProcess.HasExited && ProcessExitHandlers.ContainsKey(_process.Id))
-						_process.AsyncTask.EventHandler(_process.ChildProcess, null);
+					else
+					{
+
+						if (_process.ShowOutput && e.Data != null && ((string)e.Data).Length > 0)
+							Console.WriteLine($"Process [{_processId}]: {e.Data}");
+
+						if (
+							_process.ChildProcess.HasExited &&
+							ProcessExitHandlers.ContainsKey(_process.Id) &&
+							!_process.AsyncTask.IsCompleted
+						)
+						{
+							_process.AsyncTask.OnExit(_process.ChildProcess, null);
+						}
+					}
 				}
 			);
 			StandardOutHandlers.TryAdd(_processId, _handler);
+			return _handler;
+		}
+
+		private DataReceivedEventHandler StandardErrorCallbackFactory(int _processId)
+		{
+			DataReceivedEventHandler _handler = new DataReceivedEventHandler((object s, DataReceivedEventArgs e) =>
+			{
+				AsyncProcess _process = Processes[_processId];
+				if (_process == null)
+				{
+					Console.Error.WriteLine($"Process [{_processId}] removed before cleanup!");
+				}
+				else
+				{
+					if (e.Data != null && ((string)e.Data).Length > 0)
+						Console.Error.WriteLine($"Process [{_processId}]: {e.Data}");
+
+					if (
+						_process.ChildProcess.HasExited &&
+						ProcessExitHandlers.ContainsKey(_process.Id) &&
+						!_process.AsyncTask.IsCompleted
+					)
+					{
+						_process.AsyncTask.OnExit(_process.ChildProcess, null);
+					}
+				}
+			});
+			StandardErrorHandlers.TryAdd(_processId, _handler);
 			return _handler;
 		}
 
@@ -126,15 +167,18 @@ namespace adabuild.CommandLine
 		{
 			EventHandler _processExitHandler;
 			DataReceivedEventHandler _stdOutHandler;
+			DataReceivedEventHandler _stdErrHandler;
 
 			try
 			{
 				Console.WriteLine($"Destroying process [{_process.Id}]...");
 				_process.ChildProcess.Exited -= ProcessExitHandlers[_process.Id];
 				_process.ChildProcess.OutputDataReceived -= StandardOutHandlers[_process.Id];
-				
+				_process.ChildProcess.ErrorDataReceived -= StandardErrorHandlers[_process.Id];
+
 				ProcessExitHandlers.TryRemove(_process.Id, out _processExitHandler);
 				StandardOutHandlers.TryRemove(_process.Id, out _stdOutHandler);
+				StandardErrorHandlers.TryRemove(_process.Id, out _stdErrHandler);
 				Processes.TryRemove(_process.Id, out _process);
 
 				_process.ChildProcess.Kill();
