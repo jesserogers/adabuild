@@ -49,7 +49,7 @@ namespace adabuild.Build
 
 		private void Enqueue(HashSet<string> _projects)
 		{
-			Console.WriteLine($"Queueing projects: {String.Join(", ", _projects)}");
+			Console.WriteLine($"Queueing {String.Join(", ", _projects)}...");
 			BuildQueue.Enqueue(_projects);
 		}
 
@@ -72,8 +72,10 @@ namespace adabuild.Build
 					if (BuildManifest.Contains(_dependency))
 						continue;
 
-					// @todo: null check dependency
 					Config.ProjectDefinition _dependencyDefinition = ConfigService.GetProject(_dependency);
+
+					if (_dependencyDefinition == null)
+						throw new Exception($"Invalid dependency definition for {_dependency}");
 
 					byte _concurrencyLimit = ConfigService.GetConcurrencyLimit();
 
@@ -107,7 +109,7 @@ namespace adabuild.Build
 				}
 
 				if (_buildGroup.Count > 0)
-					BuildQueue.Enqueue(_buildGroup);
+					Enqueue(_buildGroup);
 			}
 		}
 
@@ -118,21 +120,22 @@ namespace adabuild.Build
 
 			foreach (HashSet<string> _buildGroup in BuildQueue)
 			{
+				if (_buildGroup.Count == 0)
+					continue;
 
 				try
 				{
 					string[] _commands = _buildGroup.Select(_name =>
 					{
 						Config.ProjectDefinition _project = ConfigService.GetProject(_name);
-						return _project.buildCommand != null
-							? _project.buildCommand
-							: $"ng build{_project.name} --configuration production";
+						return _project.buildCommand != null ?
+							_project.buildCommand : $"ng build {_project.name} --configuration production";
 					}).ToArray();
 
 					int _exitCode;
 					
 					Console.WriteLine($"Executing build for {String.Join(", ", _buildGroup)}...");
-
+					
 					if (_buildGroup.Count == 1)
 						_exitCode = await CommandLineService.Exec(_commands[0]);
 					else if (_buildGroup.Count > 1)
@@ -144,6 +147,8 @@ namespace adabuild.Build
 						return _exitCode;
 
 					Console.WriteLine($"Completed build for {String.Join(", ", _buildGroup)}.");
+					MonitorService.State.Record(_buildGroup.ToArray());
+					await MonitorService.State.Save();
 					
 				}
 				catch
