@@ -16,6 +16,8 @@ namespace adabuild.Monitor
 
 		private FileSystem.Service FileSystemService;
 
+		private string LastExport;
+
 		private string STATE_PATH
 		{
 			get { return FileSystemService.Root + $"\\{STATE_FILE}"; }
@@ -62,7 +64,16 @@ namespace adabuild.Monitor
 
 		public async Task Save()
 		{
-			await FileSystemService.WriteFile(STATE_PATH, Export());
+			string _export = Export();
+
+			// don't write to disk if state is the same
+			if (_export == LastExport)
+				await Task.CompletedTask;
+			else
+			{
+				LastExport = _export;
+				await FileSystemService.WriteFile(STATE_PATH, _export);
+			}			
 		}
 
 		public bool HasChanged(string _project)
