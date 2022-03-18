@@ -16,12 +16,23 @@
 			"stopAtEntry": false
 		},
 		{
-			"name": "adabuild (test build)",
+			"name": "adabuild (build)",
 			"type": "coreclr",
 			"request": "launch",
 			"preLaunchTask": "build",
 			"program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/adabuild.dll",
 			"args": ["build", "lib-project"],
+			"cwd": "C:\\Development\\angular-lib-project",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
+			"name": "adabuild (watch)",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/adabuild.dll",
+			"args": ["watch"],
 			"cwd": "C:\\Development\\angular-lib-project",
 			"console": "internalConsole",
 			"stopAtEntry": false
