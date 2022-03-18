@@ -118,8 +118,13 @@ namespace adabuild.Build
 			if (BuildQueue.Count < 1)
 				return 0;
 
-			foreach (HashSet<string> _buildGroup in BuildQueue)
+			ConfigService.CopyTsConfigProd();
+
+			HashSet<string> _buildGroup;
+			while (BuildQueue.Count > 0)
 			{
+				_buildGroup = BuildQueue.Dequeue();
+
 				if (_buildGroup.Count == 0)
 					continue;
 
@@ -158,6 +163,7 @@ namespace adabuild.Build
 			}
 
 			Console.WriteLine($"SUCCESS: Completed build queue.");
+			Clear();
 			return 0;
 		}
 
