@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace adabuild.Monitor
 {
@@ -9,40 +9,104 @@ namespace adabuild.Monitor
 
 		public State State;
 
-		public Service(ref State _state)
+		private FileSystemWatcher Watcher;
+
+		private FileSystem.Service FileSystemService;
+
+		private Config.Service ConfigService;
+
+		private Action SaveState;
+
+		public Service(
+			ref FileSystem.Service _fileSystem,
+			ref Config.Service _config,
+			ref State _state
+		)
 		{
+			FileSystemService = _fileSystem;
+			ConfigService = _config;
 			State = _state;
 		}
 
 		public void Start()
 		{
 			Console.WriteLine("Starting Monitor Service...");
+			SaveState = Utilities.Debouncer.Wrap(State.Save);
 			Watch();
 		}
 
-		public async Task Reset()
+		public void Reset()
 		{
 			State.Clear();
-			await State.Save();
+			SaveState();
 		}
 
-		public async Task Reset(string _project)
+		public void Reset(string _project)
 		{
 			State.Clear(_project);
-			await State.Save();
+			SaveState();
 		}
 
-		public async Task Reset(string[] _projects)
+		public void Reset(string[] _projects)
 		{
 			foreach (string _project in _projects)
 				State.Clear(_project);
 
-			await State.Save();
+			SaveState();
 		}
 
 		private void Watch()
 		{
-			// @todo: all of it!
+			string _path = $"{FileSystemService.Root}\\{ConfigService.Configuration.projectsRootGlob}";
+			Watcher = new FileSystemWatcher(_path);
+
+			Watcher.NotifyFilter = NotifyFilters.DirectoryName
+				| NotifyFilters.FileName
+				| NotifyFilters.LastWrite;
+			Watcher.Changed += OnChanged;
+			Watcher.Created += OnCreated;
+			Watcher.Deleted += OnDeleted;
+			Watcher.Renamed += OnRenamed;
+			Watcher.IncludeSubdirectories = true;
+			Watcher.EnableRaisingEvents = true;
+		}
+
+		private void OnChanged(object s, FileSystemEventArgs e)
+		{
+			if (e.ChangeType == WatcherChangeTypes.Changed)
+				CheckChanges("changed", e.FullPath);
+		}
+
+		private void OnCreated(object s, FileSystemEventArgs e)
+		{
+			if (e.ChangeType == WatcherChangeTypes.Created)
+				CheckChanges("created", e.FullPath);
+		}
+
+		private void OnDeleted(object s, FileSystemEventArgs e)
+		{
+			if (e.ChangeType == WatcherChangeTypes.Deleted)
+				CheckChanges("deleted", e.FullPath);
+		}
+
+		private void OnRenamed(object s, FileSystemEventArgs e)
+		{
+			if (e.ChangeType == WatcherChangeTypes.Renamed)
+				CheckChanges("renamed", e.FullPath);
+		}
+
+		private void CheckChanges(string _type, string _path)
+		{
+			foreach (Config.ProjectDefinition _project in ConfigService.Configuration.projectDefinitions)
+			{
+				if (_path.Contains($"{ConfigService.Configuration.projectsRootGlob}\\{_project.name}\\"))
+				{
+					Console.WriteLine($"File {_type} at {_path}"); // @todo: remove this
+					State.Change(_project.name);
+					SaveState();
+					return;
+				}
+			}
 		}
 
 	}
