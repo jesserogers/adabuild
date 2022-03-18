@@ -5,13 +5,24 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": ".NET Core Launch (console)",
+			"name": "adabuild",
 			"type": "coreclr",
 			"request": "launch",
 			"preLaunchTask": "build",
 			"program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/adabuild.dll",
 			"args": [],
-			"cwd": "${workspaceFolder}",
+			"cwd": "C:\\Development\\angular-lib-project",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
+			"name": "adabuild (test build)",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/adabuild.dll",
+			"args": ["build", "lib-project"],
+			"cwd": "C:\\Development\\angular-lib-project",
 			"console": "internalConsole",
 			"stopAtEntry": false
 		},
