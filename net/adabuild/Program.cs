@@ -5,27 +5,30 @@ namespace adabuild
 	class Program
 	{
 
-		private static FileSystem.Service FileSystemService;
+		private static FileSystem.Service fileSystemService;
 
-		private static Config.Service ConfigService;
+		private static Config.Service configService;
 
-		private static Monitor.State MonitorState;
+		private static Monitor.State monitorState;
 
-		private static Monitor.Service MonitorService;
+		private static Monitor.Service monitorService;
 
-		private static CommandLine.Service CommandLineService;
+		private static CommandLine.Service commandLineService;
 
-		private static Build.Service BuildService;
+		private static Build.Service buildService;
+
+		private static Cli cli;
 
 		static void Main(string[] args)
 		{
 			// construct instances
-			FileSystemService = new FileSystem.Service();
-			ConfigService = new Config.Service(ref FileSystemService);
-			MonitorState = new Monitor.State(ref FileSystemService);
-			MonitorService = new Monitor.Service(ref FileSystemService, ref ConfigService, ref MonitorState);
-			CommandLineService = new CommandLine.Service(ref FileSystemService);
-			BuildService = new Build.Service(ref MonitorService, ref ConfigService, ref CommandLineService);
+			fileSystemService = new FileSystem.Service();
+			configService = new Config.Service(ref fileSystemService);
+			monitorState = new Monitor.State(ref fileSystemService);
+			monitorService = new Monitor.Service(ref fileSystemService, ref configService, ref monitorState);
+			commandLineService = new CommandLine.Service(ref fileSystemService);
+			buildService = new Build.Service(ref monitorService, ref configService, ref commandLineService);
+			cli = new Cli(ref buildService, ref monitorService);
 			
 			if (args.Length > 0)
 				Run(args);
@@ -40,7 +43,7 @@ namespace adabuild
 					if (_args.Length > 1)
 					{
 						string _project = _args[1];
-						int _exit = BuildService.Build(_project).GetAwaiter().GetResult();
+						int _exit = buildService.Build(_project).GetAwaiter().GetResult();
 						Console.WriteLine($"Completed build for {_project} with code: {_exit}");
 					}
 					else
@@ -50,11 +53,9 @@ namespace adabuild
 					break;
 				}
 
-				case "watch":
+				case "run":
 				{
-					MonitorService.Start();
-					string _userInput = Console.ReadLine();
-					Console.WriteLine($"omg user said {_userInput}");
+					cli.Start();
 					break;
 				}
 
