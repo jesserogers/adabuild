@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 export class AdaBuildExtension{
 
-	public terminal!: vscode.Terminal;
+	public terminal!: vscode.Terminal | null;
 
 	private _projectName: string = "";
 
@@ -21,24 +21,15 @@ export class AdaBuildExtension{
 	}
 
 	public run(): void {
-		if (!this.terminal) {
-			this.terminal = vscode.window.createTerminal("adabuild");
-			this._execute("adabuild run");
-		}
+		this._execute("adabuild run");
 	}
 
 	public stop(): void {
-		if (this.terminal)
-			this.terminal.sendText("stop");
-		else
-			vscode.window.showErrorMessage("[adabuild] No terminal instance!");
+		this._execute("stop");
 	}
 
 	public start(): void {
-		if (this.terminal)
-			this.terminal.sendText("start");
-		else
-			vscode.window.showErrorMessage("[adabuild] No terminal instance!");
+		this._execute("start");
 	}
 
 	public build(): void {
@@ -48,8 +39,7 @@ export class AdaBuildExtension{
 		}).then(
 			_project => {
 				this._projectName = _project || "";
-				if (this.terminal)
-					this.terminal.sendText("build " + this._projectName);
+				this._execute("build " + this._projectName);
 			},
 			_error => {
 				vscode.window.showErrorMessage("[adabuild] Unexpected error requesting project name: " + _error);
@@ -58,10 +48,7 @@ export class AdaBuildExtension{
 	}
 
 	public reset(): void {
-		if (this.terminal)
-			this.terminal.sendText("reset");
-		else
-			vscode.window.showErrorMessage("[adabuild] No terminal instance!");
+		this._execute("reset");
 	}
 
 	private _findExistingTerminal(): void {
@@ -72,9 +59,21 @@ export class AdaBuildExtension{
 			this.terminal = _terminal;
 	}
 
+	private _createTerminal(): void {
+		this.terminal = vscode.window.createTerminal("adabuild");
+	}
+
 	private _execute(_command: string): void {
-		this.terminal.sendText(_command);
-		this.terminal.show();
+		if (!this.terminal) {
+			this._createTerminal();
+			vscode.window.onDidCloseTerminal(_terminal => {
+				if (_terminal.name === "adabuild")
+					this.terminal = null;
+			});
+		}
+
+		this.terminal?.sendText(_command);
+		this.terminal?.show();
 	}
 
 }
