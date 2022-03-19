@@ -10,10 +10,17 @@ namespace adabuild
 
 		private Monitor.Service monitorService;
 
-		public Cli(ref Build.Service _buildService, ref Monitor.Service _monitorService)
+		private CommandLine.Service commandLineService;
+
+		public Cli(
+			ref Build.Service _buildService,
+			ref Monitor.Service _monitorService,
+			ref CommandLine.Service _commandLineService
+		)
 		{
 			buildService = _buildService;
 			monitorService = _monitorService;
+			commandLineService = _commandLineService;
 		}
 
 		public void Start()
@@ -35,7 +42,6 @@ namespace adabuild
 			switch (_args[0])
 			{
 				case "build":
-				{
 					string _project = _args[1];
 					if (_project == null || _project.Length < 1)
 					{
@@ -45,23 +51,36 @@ namespace adabuild
 					buildService.Build(_project).GetAwaiter().GetResult();
 					// @todo: handle --incremental flag
 					break;
-				}
 
 				case "reset":
-				{
 					monitorService.state.Clear();
 					monitorService.state.Save().GetAwaiter().GetResult();
 					break;
-				}
 
 				case "cls":
-				{
 					Console.Clear();
 					break;
-				}
+
+				case "stop":
+					Stop();
+					break;
+
+				case "start":
+					monitorService.Start();
+					break;
+
+				default:
+					Logger.Error($"Unknown command \"{_args[0]}\"");
+					break;
 			}
 
 			Run();
+		}
+
+		private void Stop()
+		{
+			commandLineService.DestroyAllProcesses();
+			monitorService.Stop();
 		}
 
 		private string Prompt()
