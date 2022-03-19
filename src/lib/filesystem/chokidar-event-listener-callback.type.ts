@@ -1,1 +1,0 @@
-export type ChokidarEventListenerCallback = (path: string) => void;
