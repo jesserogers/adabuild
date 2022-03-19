@@ -15,6 +15,8 @@ namespace adabuild.Monitor
 
 		private Config.Service configService;
 
+		private bool isRunning = false;
+
 		private Action SaveState;
 
 		public Service(
@@ -30,6 +32,10 @@ namespace adabuild.Monitor
 
 		public void Start()
 		{
+			if (isRunning)
+				return;
+			
+			isRunning = true;
 			Logger.Info("Starting Monitor Service...");
 			SaveState = Utilities.Debouncer.Wrap(state.Save);
 			Watch();
@@ -38,6 +44,7 @@ namespace adabuild.Monitor
 		public void Stop()
 		{
 			DestroyWatcher();
+			isRunning = false;
 			Logger.Info("Stopped Monitor Service.");
 		}
 
