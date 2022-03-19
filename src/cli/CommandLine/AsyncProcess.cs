@@ -52,7 +52,6 @@ namespace adabuild.CommandLine
 
 		public async Task<int> Run(int _delay = 250)
 		{
-
 			if (_delay > 0)
 				await Task.Delay(_delay);
 
