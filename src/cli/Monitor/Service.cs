@@ -30,9 +30,15 @@ namespace adabuild.Monitor
 
 		public void Start()
 		{
-			Console.WriteLine("Starting Monitor Service...");
+			Logger.Info("Starting Monitor Service...");
 			SaveState = Utilities.Debouncer.Wrap(state.Save);
 			Watch();
+		}
+
+		public void Stop()
+		{
+			DestroyWatcher();
+			Logger.Info("Stopped Monitor Service.");
 		}
 
 		public void Reset()
@@ -69,6 +75,15 @@ namespace adabuild.Monitor
 			watcher.Renamed += OnRenamed;
 			watcher.IncludeSubdirectories = true;
 			watcher.EnableRaisingEvents = true;
+		}
+
+		private void DestroyWatcher()
+		{
+			watcher.Changed -= OnChanged;
+			watcher.Created -= OnCreated;
+			watcher.Deleted -= OnDeleted;
+			watcher.Renamed -= OnRenamed;
+			watcher.Dispose();
 		}
 
 		private void OnChanged(object s, FileSystemEventArgs e)
