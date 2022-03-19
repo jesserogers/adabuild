@@ -2,6 +2,8 @@
 .vscode-test/**
 src/**
 out/cli/**
+bin/**
+obj/**
 dist/**
 .gitignore
 .yarnrc
@@ -9,6 +11,8 @@ vsc-extension-quickstart.md
 **/tsconfig.json
 **/.eslintrc.json
 **/adabuild.config.json
+**/adabuild.csproj
+**/adabuild.sln
 **/*.map
 **/*.ts
 **/*.vsix
