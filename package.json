@@ -19,32 +19,24 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "adabuild.run",
+				"title": "adabuild: Run"
+			},
+			{
 				"command": "adabuild.build",
-				"title": "adabuild: Build Project"
-			},
-			{
-				"command": "adabuild.incrementalbuild",
-				"title": "adabuild: Build Project (Incremental)"
-			},
-			{
-				"command": "adabuild.buildall",
-				"title": "adabuild: Build All Projects"
-			},
-			{
-				"command": "adabuild.copytsconfigdev",
-				"title": "adabuild: Set TS Config (DEV)"
-			},
-			{
-				"command": "adabuild.copytsconfigprod",
-				"title": "adabuild: Set TS Config (PROD)"
-			},
-			{
-				"command": "adabuild.debugapplication",
-				"title": "adabuild: Debug Application"
+				"title": "adabuild: Build"
 			},
 			{
 				"command": "adabuild.reset",
-				"title": "adabuild: Reset Changes"
+				"title": "adabuild: Reset"
+			},
+			{
+				"command": "adabuild.stop",
+				"title": "adabuild: Stop"
+			},
+			{
+				"command": "adabuild.start",
+				"title": "adabuild: Start"
 			}
 		]
 	},
@@ -53,38 +45,22 @@
 		"url": "http://10.1.10.15/jesserogers/adabuild.git"
 	},
 	"scripts": {
-		"precompile:cli": "shx rm -rf out/cli",
-		"compile:cli": "tsc -p src/cli",
-		"postcompile:cli": "shx cp src/cli/package.json out/cli",
-		"exe:cli": "chmod +x ./out/cli/cli.js",
-		"start:cli": "npm run compile:cli && npm run exe:cli && npm run start:cli:standalone",
-		"start:cli:standalone": "node ./out/cli/cli.js run",
 		"esbuild-base": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --external:vscode --format=cjs --platform=node",
-		"precompile:common": "shx rm -rf out/lib",
-		"compile:common": "tsc -p src/lib",
 		"precompile:vscode": "shx rm -rf out/vscode",
-		"compile:vscode": "tsc -p src/vscode",
+		"compile:vscode": "npm run esbuild-base",
 		"vscode:prepublish": "npm run compile:vscode",
 		"package:cli": "npm run compile:common && npm run compile:cli && cd out/cli && npm run pkgr",
 		"postpackage:cli": "shx cp out/cli/adabuild.exe ./dist/adabuild.exe && shx cp README.md ./dist/README.md && shx cp CHANGELOG.md ./dist/CHANGELOG.md",
 		"package:vscode": "vsce package --out ./dist/",
-		"package:all": "npm run package:cli && npm run package:vscode",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js",
-		"test:cli": "node ./out/cli/main.js"
-	},
-	"dependencies": {
-		"@kuroi/syringe": "^2.0.0",
-		"chokidar": "^3.5.3",
-		"uuid": "^8.3.2"
+		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.0",
 		"@types/node": "14.x",
-		"@types/uuid": "^8.3.4",
 		"@types/vscode": "^1.64.0",
 		"@typescript-eslint/eslint-plugin": "^5.12.1",
 		"@typescript-eslint/parser": "^5.12.1",
