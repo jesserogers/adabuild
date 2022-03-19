@@ -28,7 +28,7 @@ namespace adabuild
 			monitorService = new Monitor.Service(ref fileSystemService, ref configService, ref monitorState);
 			commandLineService = new CommandLine.Service(ref fileSystemService);
 			buildService = new Build.Service(ref monitorService, ref configService, ref commandLineService);
-			cli = new Cli(ref buildService, ref monitorService);
+			cli = new Cli(ref buildService, ref monitorService, ref commandLineService);
 			
 			if (args.Length > 0)
 				Run(args);
