@@ -36,8 +36,8 @@ namespace adabuild.CommandLine
 				EnableRaisingEvents = true,
 				StartInfo =
 				{
-					FileName = "cmd.exe",
-					Arguments = $"/C {_command}",
+					FileName = "bash",
+					Arguments = $"-c \"{_command}\"",
 					WorkingDirectory = _directory,
 					WindowStyle = ProcessWindowStyle.Hidden,
 					CreateNoWindow = false,
