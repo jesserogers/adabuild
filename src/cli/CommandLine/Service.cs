@@ -111,7 +111,7 @@ namespace adabuild.CommandLine
 
 				else
 				{
-					if (e.Data != null && ((string)e.Data).Length > 0)
+					if (_process.ShowOutput && e.Data != null && ((string)e.Data).Length > 0)
 						Console.Error.WriteLine($"Process [{_processId}]: {e.Data}");
 
 					if (
@@ -184,7 +184,6 @@ namespace adabuild.CommandLine
 
 		private void DestroyAllProcesses()
 		{
-			Console.WriteLine("Destroying all processes...");
 			foreach (KeyValuePair<int, AsyncProcess> _process in Processes)
 				DestroyProcess(_process.Value);
 		}
