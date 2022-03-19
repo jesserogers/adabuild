@@ -1,75 +1,80 @@
-import { Inject, Injectable, OnInit } from "@kuroi/syringe";
 import * as vscode from "vscode";
-import { BaseBuildService, BaseConfigurationService, BaseLoggingService, BaseMonitorService } from "../../lib";
-import { WindowService } from "../window";
 
-/**
- * @author Jesse Rogers <jesse.rogers@adaptiva.com>
- * @description Main application logic behind adabuild VS Code extension
- */
-@Injectable({
-	scope: "global"
-})
-export class AdaBuildExtension implements OnInit {
+export class AdaBuildExtension{
 
-	constructor(
-		@Inject(BaseMonitorService) private monitor: BaseMonitorService,
-		@Inject(BaseBuildService) private builder: BaseBuildService,
-		@Inject(BaseConfigurationService) private config: BaseConfigurationService,
-		@Inject(BaseLoggingService) private window: WindowService
-	) {
+	public terminal!: vscode.Terminal;
 
-	}
+	private _projectName: string = "";
 
-	onInit(): void {
-		this.config.loadConfiguration().then(() => {
-			this.monitor.start();
-			this.window.log("AdaBuildExtension.onInit", "Extension activated.");
-		}).catch(_error => {
-			this.window.error("AdaBuildExtension.onInit", _error);
-		});
+	constructor() {
+		this._findExistingTerminal();
 	}
 
 	public generateCommands(): vscode.Disposable[] {
 		return [
-			// normal build command
-			vscode.commands.registerCommand(`adabuild.build`, () => {
-				this.builder.build();
-			}),
-			// incremental build command
-			vscode.commands.registerCommand(`adabuild.incrementalbuild`, () => {
-				this.builder.build(true);
-			}),
-			// build all Angular projects
-			vscode.commands.registerCommand(`adabuild.buildall`, () => {
-				this.builder.buildAllProjects();
-			}),
-			// debug app
-			vscode.commands.registerCommand(`adabuild.debugapplication`, () => {
-				this.builder.debug();
-			}),
-			// tsconfig dev command
-			vscode.commands.registerCommand(`adabuild.copytsconfigdev`, () => {
-				this.config.copyTsConfigDev();
-			}),
-			// tsconfig prod command
-			vscode.commands.registerCommand(`adabuild.copytsconfigprod`, () => {
-				this.config.copyTsConfigProd();
-			}),
-			// reset
-			vscode.commands.registerCommand(`adabuild.reset`, () => {
-				this.window.inputBox({
-					value: "",
-					placeHolder: "Enter a comma separated list of projects to reset. Leave blank to reset all projects."
-				}).then(_project => {
-					const _projects: string[] = _project?.split(",")
-						.map(x => x.trim())
-						.filter(x => !!x) || [];
-
-					this.monitor.reset(..._projects);
-				});
-			})
+			vscode.commands.registerCommand("adabuild.run", () => this.run()),
+			vscode.commands.registerCommand("adabuild.stop", () => this.stop()),
+			vscode.commands.registerCommand("adabuild.start", () => this.start()),
+			vscode.commands.registerCommand("adabuild.build", () => this.build()),
+			vscode.commands.registerCommand("adabuild.reset", () => this.reset()),
 		];
+	}
+
+	public run(): void {
+		if (!this.terminal) {
+			this.terminal = vscode.window.createTerminal("adabuild");
+			this._execute("adabuild run");
+		}
+	}
+
+	public stop(): void {
+		if (this.terminal)
+			this.terminal.sendText("stop");
+		else
+			vscode.window.showErrorMessage("[adabuild] No terminal instance!");
+	}
+
+	public start(): void {
+		if (this.terminal)
+			this.terminal.sendText("start");
+		else
+			vscode.window.showErrorMessage("[adabuild] No terminal instance!");
+	}
+
+	public build(): void {
+		vscode.window.showInputBox({
+			value: this._projectName,
+			placeHolder: "Enter project name"
+		}).then(
+			_project => {
+				this._projectName = _project || "";
+				if (this.terminal)
+					this.terminal.sendText("build " + this._projectName);
+			},
+			_error => {
+				vscode.window.showErrorMessage("[adabuild] Unexpected error requesting project name: " + _error);
+			}
+		);
+	}
+
+	public reset(): void {
+		if (this.terminal)
+			this.terminal.sendText("reset");
+		else
+			vscode.window.showErrorMessage("[adabuild] No terminal instance!");
+	}
+
+	private _findExistingTerminal(): void {
+		const _terminal: vscode.Terminal | undefined = vscode.window.terminals.find(_terminal =>
+			_terminal.name === "adabuild");
+
+		if (_terminal)
+			this.terminal = _terminal;
+	}
+
+	private _execute(_command: string): void {
+		this.terminal.sendText(_command);
+		this.terminal.show();
 	}
 
 }
