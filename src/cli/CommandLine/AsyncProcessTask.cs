@@ -16,6 +16,8 @@ namespace adabuild.CommandLine
 		
 		private bool isCompleted;
 
+		private bool showOutput;
+
 		public bool IsCompleted{
 			get { return isCompleted; }
 		}
@@ -35,6 +37,12 @@ namespace adabuild.CommandLine
 			if (!RunningProcess.HasExited)
 				RunningProcess.WaitForExit();
 
+			if (!showOutput)
+			{
+				string _errorMessage = RunningProcess.StandardError.ReadToEnd();
+				Console.Error.WriteLine(_errorMessage);
+			}
+
 			Tcs.SetResult(RunningProcess.ExitCode);
 
 			if (ExitHandler != null)
@@ -43,10 +51,12 @@ namespace adabuild.CommandLine
 
 		public AsyncProcessTask(
 			Process _process,
-			Func<int, EventHandler> _exitHandlerFactory
+			Func<int, EventHandler> _exitHandlerFactory,
+			bool _showOutput = false
 		) {
 			RunningProcess = _process;
 			ExitHandler = _exitHandlerFactory(_process.Id);
+			showOutput = _showOutput;
 		}
 
 	}
