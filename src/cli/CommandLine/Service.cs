@@ -14,19 +14,19 @@ namespace adabuild.CommandLine
 
 		private ConcurrentDictionary<int, AsyncProcess> Processes;
 
-		private ConcurrentDictionary<int, EventHandler> ProcessExitHandlers;
+		private ConcurrentDictionary<int, EventHandler> processExitHandlers;
 
-		private ConcurrentDictionary<int, DataReceivedEventHandler> StandardOutHandlers;
+		private ConcurrentDictionary<int, DataReceivedEventHandler> standardOutHandlers;
 
-		private ConcurrentDictionary<int, DataReceivedEventHandler> StandardErrorHandlers;
+		private ConcurrentDictionary<int, DataReceivedEventHandler> standardErrorHandlers;
 
 		public Service(ref FileSystem.Service _fileSystemService)
 		{
 			FileSystemService = _fileSystemService;
 			Processes = new ConcurrentDictionary<int, AsyncProcess>();
-			ProcessExitHandlers = new ConcurrentDictionary<int, EventHandler>();
-			StandardOutHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
-			StandardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
+			processExitHandlers = new ConcurrentDictionary<int, EventHandler>();
+			standardOutHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
+			standardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 		}
 
 		public async Task<int> Exec(string _command, int _delay = 0)
@@ -64,9 +64,9 @@ namespace adabuild.CommandLine
 
 		private void RegisterProcess(AsyncProcess _process)
 		{
-			_process.ChildProcess.OutputDataReceived += StandardOutCallbackFactory(_process.Id);
-			_process.ChildProcess.ErrorDataReceived += StandardErrorCallbackFactory(_process.Id);
-			Processes.TryAdd(_process.Id, _process);
+			_process.childProcess.OutputDataReceived += StandardOutCallbackFactory(_process.id);
+			_process.childProcess.ErrorDataReceived += StandardErrorCallbackFactory(_process.id);
+			Processes.TryAdd(_process.id, _process);
 		}
 
 		private DataReceivedEventHandler StandardOutCallbackFactory(int _processId)
@@ -82,21 +82,21 @@ namespace adabuild.CommandLine
 					else
 					{
 
-						if (_process.ShowOutput && e.Data != null && ((string)e.Data).Length > 0)
+						if (_process.showOutput && e.Data != null && ((string)e.Data).Length > 0)
 							Console.WriteLine($"Process [{_processId}]: {e.Data}");
 
 						if (
-							_process.ChildProcess.HasExited &&
-							ProcessExitHandlers.ContainsKey(_process.Id) &&
-							!_process.AsyncTask.IsCompleted
+							_process.childProcess.HasExited &&
+							processExitHandlers.ContainsKey(_process.id) &&
+							!_process.asyncTask.IsCompleted
 						)
 						{
-							_process.AsyncTask.OnExit(_process.ChildProcess, null);
+							_process.asyncTask.OnExit(_process.childProcess, null);
 						}
 					}
 				}
 			);
-			StandardOutHandlers.TryAdd(_processId, _handler);
+			standardOutHandlers.TryAdd(_processId, _handler);
 			return _handler;
 		}
 
@@ -111,20 +111,20 @@ namespace adabuild.CommandLine
 
 				else
 				{
-					if (_process.ShowOutput && e.Data != null && ((string)e.Data).Length > 0)
+					if (_process.showOutput && e.Data != null && ((string)e.Data).Length > 0)
 						Console.Error.WriteLine($"Process [{_processId}]: {e.Data}");
 
 					if (
-						_process.ChildProcess.HasExited &&
-						ProcessExitHandlers.ContainsKey(_process.Id) &&
-						!_process.AsyncTask.IsCompleted
+						_process.childProcess.HasExited &&
+						processExitHandlers.ContainsKey(_process.id) &&
+						!_process.asyncTask.IsCompleted
 					)
 					{
-						_process.AsyncTask.OnExit(_process.ChildProcess, null);
+						_process.asyncTask.OnExit(_process.childProcess, null);
 					}
 				}
 			});
-			StandardErrorHandlers.TryAdd(_processId, _handler);
+			standardErrorHandlers.TryAdd(_processId, _handler);
 			return _handler;
 		}
 
@@ -137,14 +137,14 @@ namespace adabuild.CommandLine
 
 				AsyncProcess _process = Processes[_processId];
 
-				if (_process.ChildProcess.ExitCode > 0)
+				if (_process.childProcess.ExitCode > 0)
 					DestroyAllProcesses();
 				else
 					DestroyProcess(_process);
 
 			});
 
-			ProcessExitHandlers.TryAdd(_processId, _handler);
+			processExitHandlers.TryAdd(_processId, _handler);
 			return _handler;
 		}
 
@@ -162,23 +162,23 @@ namespace adabuild.CommandLine
 
 			try
 			{
-				_process.ChildProcess.Exited -= ProcessExitHandlers[_process.Id];
-				_process.ChildProcess.OutputDataReceived -= StandardOutHandlers[_process.Id];
-				_process.ChildProcess.ErrorDataReceived -= StandardErrorHandlers[_process.Id];
+				_process.childProcess.Exited -= processExitHandlers[_process.id];
+				_process.childProcess.OutputDataReceived -= standardOutHandlers[_process.id];
+				_process.childProcess.ErrorDataReceived -= standardErrorHandlers[_process.id];
 
-				ProcessExitHandlers.TryRemove(_process.Id, out _processExitHandler);
-				StandardOutHandlers.TryRemove(_process.Id, out _stdOutHandler);
-				StandardErrorHandlers.TryRemove(_process.Id, out _stdErrHandler);
-				Processes.TryRemove(_process.Id, out _process);
+				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
+				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
+				standardErrorHandlers.TryRemove(_process.id, out _stdErrHandler);
+				Processes.TryRemove(_process.id, out _process);
 
-				_process.ChildProcess.Kill();
+				_process.childProcess.Kill();
 			}
 			catch (Exception e)
 			{
-				Console.Error.WriteLine($"Failed to destroy process [{_process.Id}]: {e.Message}");
-				ProcessExitHandlers.TryRemove(_process.Id, out _processExitHandler);
-				StandardOutHandlers.TryRemove(_process.Id, out _stdOutHandler);
-				Processes.TryRemove(_process.Id, out _process);
+				Console.Error.WriteLine($"Failed to destroy process [{_process.id}]: {e.Message}");
+				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
+				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
+				Processes.TryRemove(_process.id, out _process);
 			}
 		}
 

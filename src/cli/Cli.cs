@@ -49,8 +49,8 @@ namespace adabuild
 
 				case "reset":
 				{
-					monitorService.State.Clear();
-					monitorService.State.Save().GetAwaiter().GetResult();
+					monitorService.state.Clear();
+					monitorService.state.Save().GetAwaiter().GetResult();
 					break;
 				}
 

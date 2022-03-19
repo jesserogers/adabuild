@@ -8,15 +8,15 @@ namespace adabuild.CommandLine
 	public class AsyncProcess
 	{
 
-		public Process ChildProcess;
+		public Process childProcess;
 
-		public AsyncProcessTask AsyncTask;
+		public AsyncProcessTask asyncTask;
 
-		public bool ShowOutput;
+		public bool showOutput;
 
-		public int Id
+		public int id
 		{
-			get { return ChildProcess.Id; }
+			get { return childProcess.Id; }
 		}
 
 		private Action<AsyncProcess> OnStart;
@@ -31,7 +31,7 @@ namespace adabuild.CommandLine
 			bool _showOutput = false
 		)
 		{
-			ChildProcess = new Process
+			childProcess = new Process
 			{
 				EnableRaisingEvents = true,
 				StartInfo =
@@ -47,7 +47,7 @@ namespace adabuild.CommandLine
 			};
 			OnStart = _onStart;
 			OnExitFactory = _onExitFactory;
-			ShowOutput = _showOutput;
+			showOutput = _showOutput;
 		}
 
 		public async Task<int> Run(int _delay = 250)
@@ -55,23 +55,23 @@ namespace adabuild.CommandLine
 			if (_delay > 0)
 				await Task.Delay(_delay);
 
-			ChildProcess.Start();
+			childProcess.Start();
 
 			if (OnStart != null)
 				OnStart(this);
 
-			AsyncTask = new AsyncProcessTask(ChildProcess, OnExitFactory);
+			asyncTask = new AsyncProcessTask(childProcess, OnExitFactory);
 
-			ChildProcess.Exited += AsyncTask.OnExit;
+			childProcess.Exited += asyncTask.OnExit;
 
-			if (ShowOutput)
+			if (showOutput)
 			{
-				ChildProcess.BeginErrorReadLine();
-				ChildProcess.BeginOutputReadLine();
+				childProcess.BeginErrorReadLine();
+				childProcess.BeginOutputReadLine();
 			}
 
-			await AsyncTask.GetTask();
-			return ChildProcess.ExitCode;
+			await asyncTask.GetTask();
+			return childProcess.ExitCode;
 		}
 
 	}

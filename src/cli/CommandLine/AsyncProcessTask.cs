@@ -8,23 +8,24 @@ namespace adabuild.CommandLine
 	public class AsyncProcessTask
 	{
 
-		private TaskCompletionSource<int> Tcs = new TaskCompletionSource<int>();
+		private TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
 
-		private Process RunningProcess;
+		private Process runningProcess;
 
-		private EventHandler ExitHandler;
+		private EventHandler exitHandler;
 		
 		private bool isCompleted;
 
 		private bool showOutput;
 
-		public bool IsCompleted{
+		public bool IsCompleted
+		{
 			get { return isCompleted; }
 		}
 
 		public Task GetTask()
 		{
-			return Tcs.Task;
+			return tcs.Task;
 		}
 
 		public void OnExit(object _sender, EventArgs _event)
@@ -34,19 +35,19 @@ namespace adabuild.CommandLine
 
 			isCompleted = true;
 
-			if (!RunningProcess.HasExited)
-				RunningProcess.WaitForExit();
+			if (!runningProcess.HasExited)
+				runningProcess.WaitForExit();
 
 			if (!showOutput)
 			{
-				string _errorMessage = RunningProcess.StandardError.ReadToEnd();
+				string _errorMessage = runningProcess.StandardError.ReadToEnd();
 				Console.Error.WriteLine(_errorMessage);
 			}
 
-			Tcs.SetResult(RunningProcess.ExitCode);
+			tcs.SetResult(runningProcess.ExitCode);
 
-			if (ExitHandler != null)
-				ExitHandler(RunningProcess, _event);
+			if (exitHandler != null)
+				exitHandler(runningProcess, _event);
 		}
 
 		public AsyncProcessTask(
@@ -54,8 +55,8 @@ namespace adabuild.CommandLine
 			Func<int, EventHandler> _exitHandlerFactory,
 			bool _showOutput = false
 		) {
-			RunningProcess = _process;
-			ExitHandler = _exitHandlerFactory(_process.Id);
+			runningProcess = _process;
+			exitHandler = _exitHandlerFactory(_process.Id);
 			showOutput = _showOutput;
 		}
 

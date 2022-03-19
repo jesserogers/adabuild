@@ -6,52 +6,52 @@ namespace adabuild.Config
 	public class Service
 	{
 
-		public BuildConfiguration Configuration;
+		public BuildConfiguration configuration;
 
-		private FileSystem.Service FileSystemService;
+		private FileSystem.Service fileSystemService;
 
-		private Dictionary<string, ProjectDefinition> ProjectMap;
+		private Dictionary<string, ProjectDefinition> projectMap;
 
 		public Service(ref FileSystem.Service _fileSystem)
 		{
-			FileSystemService = _fileSystem;
-			ProjectMap = new Dictionary<string, ProjectDefinition>();
+			fileSystemService = _fileSystem;
+			projectMap = new Dictionary<string, ProjectDefinition>();
 			LoadConfiguration();
 		}
 
 		public void LoadConfiguration()
 		{
-			Configuration = FileSystemService.ReadFile<BuildConfiguration>(FileSystemService.Root + @"\adabuild.config.json");
+			configuration = fileSystemService.ReadFile<BuildConfiguration>(fileSystemService.Root + @"\adabuild.config.json");
 
-			foreach (ProjectDefinition _project in Configuration.projectDefinitions)
-				ProjectMap[_project.name] = _project;
+			foreach (ProjectDefinition _project in configuration.projectDefinitions)
+				projectMap[_project.name] = _project;
 		}
 
 		public ProjectDefinition GetProject(string _name)
 		{
-			if (ProjectMap.ContainsKey(_name))
-				return ProjectMap[_name];
+			if (projectMap.ContainsKey(_name))
+				return projectMap[_name];
 
 			return null;
 		}
 
 		public byte GetConcurrencyLimit()
 		{
-			return Configuration.maxConcurrentBuilds;
+			return configuration.maxConcurrentBuilds;
 		}
 
 		public async Task CopyTsConfigProd()
 		{
-			string _from = FileSystemService.Root + "\\tsconfig.prod.json";
-			string _to = FileSystemService.Root + "\\tsconfig.json";
-			await FileSystemService.CopyFile(_from, _to);
+			string _from = fileSystemService.Root + "\\tsconfig.prod.json";
+			string _to = fileSystemService.Root + "\\tsconfig.json";
+			await fileSystemService.CopyFile(_from, _to);
 		}
 
 		public async Task CopyTsConfigDev()
 		{
-			string _from = FileSystemService.Root + "\\tsconfig.dev.json";
-			string _to = FileSystemService.Root + "\\tsconfig.json";
-			await FileSystemService.CopyFile(_from, _to);
+			string _from = fileSystemService.Root + "\\tsconfig.dev.json";
+			string _to = fileSystemService.Root + "\\tsconfig.json";
+			await fileSystemService.CopyFile(_from, _to);
 		}
 
 	}

@@ -10,31 +10,31 @@ namespace adabuild.Build
 
 		private static int PARALLEL_BUILD_DELAY = 500;
 
-		private Monitor.Service MonitorService;
+		private Monitor.Service monitorService;
 
-		private Config.Service ConfigService;
+		private Config.Service configService;
 
-		private CommandLine.Service CommandLineService;
+		private CommandLine.Service commandLineService;
 
-		private Queue<HashSet<string>> BuildQueue = new Queue<HashSet<string>>();
+		private Queue<HashSet<string>> buildQueue = new Queue<HashSet<string>>();
 
-		private HashSet<string> BuildManifest = new HashSet<string>();
+		private HashSet<string> buildManifest = new HashSet<string>();
 
 		public Service(
 			ref Monitor.Service _monitorService,
 			ref Config.Service _configService,
 			ref CommandLine.Service _commandLineService
 		) {
-			MonitorService = _monitorService;
-			ConfigService = _configService;
-			CommandLineService = _commandLineService;
+			monitorService = _monitorService;
+			configService = _configService;
+			commandLineService = _commandLineService;
 		}
 
 		public Task<int> Build(string _project, bool _incremental = true)
 		{
 			EnqueueDependencies(_project, _incremental);
 
-			if (_incremental && !MonitorService.State.HasChanged(_project))
+			if (_incremental && !monitorService.state.HasChanged(_project))
 			{
 				Console.WriteLine($"No action: {_project} and all dependencies up to date.");
 				return Task.FromResult<int>(0);
@@ -51,12 +51,12 @@ namespace adabuild.Build
 
 		private void Enqueue(HashSet<string> _projects)
 		{
-			BuildQueue.Enqueue(_projects);
+			buildQueue.Enqueue(_projects);
 		}
 
 		private void EnqueueDependencies(string _project, bool _incremental)
 		{
-			Config.ProjectDefinition _projectDefinition = ConfigService.GetProject(_project);
+			Config.ProjectDefinition _projectDefinition = configService.GetProject(_project);
 
 			if (_projectDefinition == null)
 				return; // @todo: throw exception?
@@ -70,22 +70,22 @@ namespace adabuild.Build
 
 				foreach (string _dependency in _projectDefinition.dependencies)
 				{
-					if (BuildManifest.Contains(_dependency))
+					if (buildManifest.Contains(_dependency))
 						continue;
 
-					Config.ProjectDefinition _dependencyDefinition = ConfigService.GetProject(_dependency);
+					Config.ProjectDefinition _dependencyDefinition = configService.GetProject(_dependency);
 
 					if (_dependencyDefinition == null)
 						throw new Exception($"Invalid dependency definition for {_dependency}");
 
-					byte _concurrencyLimit = ConfigService.GetConcurrencyLimit();
+					byte _concurrencyLimit = configService.GetConcurrencyLimit();
 
 					if (
 						_buildGroup.Count > 0 &&
 						(_concurrencyLimit > 0 && _buildGroup.Count >= _concurrencyLimit) ||
 						!CanBuildInParallel(_dependencyDefinition, _buildGroupHead)
 					) {
-						BuildQueue.Enqueue(new HashSet<string>(_buildGroup));
+						buildQueue.Enqueue(new HashSet<string>(_buildGroup));
 						_buildGroup.Clear();
 						_buildGroupHead = _dependencyDefinition;
 					}
@@ -96,17 +96,17 @@ namespace adabuild.Build
 
 					if (_incremental)
 					{
-						if (!MonitorService.State.HasChanged(_dependency))
+						if (!monitorService.state.HasChanged(_dependency))
 						{
 							Console.WriteLine($"No delta for {_dependency}. Skipping incremental build.");
 							continue;
 						}
 						else
-							MonitorService.State.Change(_project);
+							monitorService.state.Change(_project);
 					}
 
 					_buildGroup.Add(_dependency);
-					BuildManifest.Add(_dependency);
+					buildManifest.Add(_dependency);
 				}
 
 				if (_buildGroup.Count > 0)
@@ -116,15 +116,15 @@ namespace adabuild.Build
 
 		private async Task<int> ExecuteBuildQueue()
 		{
-			if (BuildQueue.Count < 1)
+			if (buildQueue.Count < 1)
 				return 0;
 
-			await ConfigService.CopyTsConfigProd();
+			await configService.CopyTsConfigProd();
 
 			HashSet<string> _buildGroup;
-			while (BuildQueue.Count > 0)
+			while (buildQueue.Count > 0)
 			{
-				_buildGroup = BuildQueue.Dequeue();
+				_buildGroup = buildQueue.Dequeue();
 
 				if (_buildGroup.Count == 0)
 					continue;
@@ -133,7 +133,7 @@ namespace adabuild.Build
 				{
 					string[] _commands = _buildGroup.Select(_name =>
 					{
-						Config.ProjectDefinition _project = ConfigService.GetProject(_name);
+						Config.ProjectDefinition _project = configService.GetProject(_name);
 						return _project.buildCommand != null ?
 							_project.buildCommand : $"ng build {_project.name} --configuration production";
 					}).ToArray();
@@ -143,9 +143,9 @@ namespace adabuild.Build
 					Console.WriteLine($"Executing build for {String.Join(", ", _buildGroup)}...");
 					
 					if (_buildGroup.Count == 1)
-						_exitCode = await CommandLineService.Exec(_commands[0], PARALLEL_BUILD_DELAY);
+						_exitCode = await commandLineService.Exec(_commands[0], PARALLEL_BUILD_DELAY);
 					else if (_buildGroup.Count > 1)
-						_exitCode = await CommandLineService.Exec(_commands, PARALLEL_BUILD_DELAY);
+						_exitCode = await commandLineService.Exec(_commands, PARALLEL_BUILD_DELAY);
 					else
 						continue;
 
@@ -153,8 +153,8 @@ namespace adabuild.Build
 						return _exitCode;
 
 					Console.WriteLine($"Completed build for {String.Join(", ", _buildGroup)}.");
-					MonitorService.State.Record(_buildGroup.ToArray());
-					await MonitorService.State.Save();
+					monitorService.state.Record(_buildGroup.ToArray());
+					await monitorService.state.Save();
 					
 				}
 				catch
@@ -170,8 +170,8 @@ namespace adabuild.Build
 
 		private void Clear()
 		{
-			BuildQueue.Clear();
-			BuildManifest.Clear();
+			buildQueue.Clear();
+			buildManifest.Clear();
 		}
 
 		private bool CanBuildInParallel(Config.ProjectDefinition _next, Config.ProjectDefinition _head)

@@ -7,13 +7,13 @@ namespace adabuild.Monitor
 	public class Service
 	{
 
-		public State State;
+		public State state;
 
-		private FileSystemWatcher Watcher;
+		private FileSystemWatcher watcher;
 
-		private FileSystem.Service FileSystemService;
+		private FileSystem.Service fileSystemService;
 
-		private Config.Service ConfigService;
+		private Config.Service configService;
 
 		private Action SaveState;
 
@@ -23,52 +23,52 @@ namespace adabuild.Monitor
 			ref State _state
 		)
 		{
-			FileSystemService = _fileSystem;
-			ConfigService = _config;
-			State = _state;
+			fileSystemService = _fileSystem;
+			configService = _config;
+			state = _state;
 		}
 
 		public void Start()
 		{
 			Console.WriteLine("Starting Monitor Service...");
-			SaveState = Utilities.Debouncer.Wrap(State.Save);
+			SaveState = Utilities.Debouncer.Wrap(state.Save);
 			Watch();
 		}
 
 		public void Reset()
 		{
-			State.Clear();
+			state.Clear();
 			SaveState();
 		}
 
 		public void Reset(string _project)
 		{
-			State.Clear(_project);
+			state.Clear(_project);
 			SaveState();
 		}
 
 		public void Reset(string[] _projects)
 		{
 			foreach (string _project in _projects)
-				State.Clear(_project);
+				state.Clear(_project);
 
 			SaveState();
 		}
 
 		private void Watch()
 		{
-			string _path = $"{FileSystemService.Root}\\{ConfigService.Configuration.projectsRootGlob}";
-			Watcher = new FileSystemWatcher(_path);
+			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsRootGlob}";
+			watcher = new FileSystemWatcher(_path);
 
-			Watcher.NotifyFilter = NotifyFilters.DirectoryName
+			watcher.NotifyFilter = NotifyFilters.DirectoryName
 				| NotifyFilters.FileName
 				| NotifyFilters.LastWrite;
-			Watcher.Changed += OnChanged;
-			Watcher.Created += OnCreated;
-			Watcher.Deleted += OnDeleted;
-			Watcher.Renamed += OnRenamed;
-			Watcher.IncludeSubdirectories = true;
-			Watcher.EnableRaisingEvents = true;
+			watcher.Changed += OnChanged;
+			watcher.Created += OnCreated;
+			watcher.Deleted += OnDeleted;
+			watcher.Renamed += OnRenamed;
+			watcher.IncludeSubdirectories = true;
+			watcher.EnableRaisingEvents = true;
 		}
 
 		private void OnChanged(object s, FileSystemEventArgs e)
@@ -97,11 +97,11 @@ namespace adabuild.Monitor
 
 		private void CheckChanges(string _path)
 		{
-			foreach (Config.ProjectDefinition _project in ConfigService.Configuration.projectDefinitions)
+			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
 			{
-				if (_path.Contains($"{ConfigService.Configuration.projectsRootGlob}\\{_project.name}\\"))
+				if (_path.Contains($"{configService.configuration.projectsRootGlob}\\{_project.name}\\"))
 				{
-					State.Change(_project.name);
+					state.Change(_project.name);
 					SaveState();
 					return;
 				}

@@ -14,18 +14,18 @@ namespace adabuild.Monitor
 
 		public Dictionary<string, int> history { get; set; }
 
-		private FileSystem.Service FileSystemService;
+		private FileSystem.Service fileSystemService;
 
-		private string LastExport;
+		private string lastExport;
 
 		private string STATE_PATH
 		{
-			get { return FileSystemService.Root + $"\\{STATE_FILE}"; }
+			get { return fileSystemService.Root + $"\\{STATE_FILE}"; }
 		}
 
 		public State(ref FileSystem.Service _fileSystem)
 		{
-			FileSystemService = _fileSystem;
+			fileSystemService = _fileSystem;
 			history = new Dictionary<string, int>();
 			changed = new List<string>();
 			LoadExistingState();
@@ -67,12 +67,12 @@ namespace adabuild.Monitor
 			string _export = Export();
 
 			// don't write to disk if state is the same
-			if (_export == LastExport)
+			if (_export == lastExport)
 				await Task.CompletedTask;
 			else
 			{
-				LastExport = _export;
-				await FileSystemService.WriteFile(STATE_PATH, _export);
+				lastExport = _export;
+				await fileSystemService.WriteFile(STATE_PATH, _export);
 			}			
 		}
 
@@ -100,7 +100,7 @@ namespace adabuild.Monitor
 		{
 			try
 			{
-				State _cachedState = FileSystemService.ReadFile<State>(STATE_PATH);
+				State _cachedState = fileSystemService.ReadFile<State>(STATE_PATH);
 				if (_cachedState == null)
 				{
 					Console.WriteLine("No existing state file.");
