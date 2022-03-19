@@ -61,7 +61,6 @@ namespace adabuild.CommandLine
 			if (OnStart != null)
 				OnStart(this);
 
-			Console.WriteLine($"Started process [{ChildProcess.Id}]");
 			AsyncTask = new AsyncProcessTask(ChildProcess, OnExitFactory);
 
 			ChildProcess.Exited += AsyncTask.OnExit;
