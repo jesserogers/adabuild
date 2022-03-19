@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Text.Json;
 
 namespace adabuild.Config
 {
@@ -41,18 +40,18 @@ namespace adabuild.Config
 			return Configuration.maxConcurrentBuilds;
 		}
 
-		public void CopyTsConfigProd()
+		public async Task CopyTsConfigProd()
 		{
 			string _from = FileSystemService.Root + "\\tsconfig.prod.json";
 			string _to = FileSystemService.Root + "\\tsconfig.json";
-			FileSystemService.CopyFile(_from, _to).RunSynchronously();
+			await FileSystemService.CopyFile(_from, _to);
 		}
 
-		public void CopyTsConfigDev()
+		public async Task CopyTsConfigDev()
 		{
 			string _from = FileSystemService.Root + "\\tsconfig.dev.json";
 			string _to = FileSystemService.Root + "\\tsconfig.json";
-			FileSystemService.CopyFile(_from, _to).RunSynchronously();
+			await FileSystemService.CopyFile(_from, _to);
 		}
 
 	}
