@@ -29,16 +29,24 @@ namespace adabuild.CommandLine
 			StandardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 		}
 
-		public async Task<int> Exec(string _command)
+		public async Task<int> Exec(string _command, int _delay = 0)
 		{
 			AsyncProcess _process = SpawnProcess(_command);
+
+			if (_delay > 0)
+				await Task.Delay(_delay);
+			
 			int _exitCode = await _process.Run();
 			return _exitCode;
 		}
 
-		public async Task<int> Exec(string[] _commands)
+		public async Task<int> Exec(string[] _commands, int _delay = 0)
 		{
-			List<Task<int>> _taskList = _commands.Select(_command => Exec(_command)).ToList();
+			int _wait = 0;
+			List<Task<int>> _taskList = _commands.Select(_command => {
+				_wait += _delay;
+				return Exec(_command, _delay);
+			}).ToList();
 
 			while (_taskList.Any())
 			{
