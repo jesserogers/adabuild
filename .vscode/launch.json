@@ -29,6 +29,17 @@
 				"${workspaceFolder}/out/test/**/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
+		},
+		{
+			"name": "adabuild:test:run",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "buildcli",
+			"program": "${workspaceFolder}/src/cli/bin/Debug/netcoreapp3.1/win-x64/adabuild.dll",
+			"args": ["run"],
+			"cwd": "C:\\Development\\angular-lib-project",
+			"console": "integratedTerminal",
+			"stopAtEntry": false
 		}
 	]
 }
