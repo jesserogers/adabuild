@@ -64,8 +64,11 @@ namespace adabuild.CommandLine
 
 			ChildProcess.Exited += AsyncTask.OnExit;
 
-			ChildProcess.BeginErrorReadLine();
-			ChildProcess.BeginOutputReadLine();
+			if (ShowOutput)
+			{
+				ChildProcess.BeginErrorReadLine();
+				ChildProcess.BeginOutputReadLine();
+			}
 
 			await AsyncTask.GetTask();
 			return ChildProcess.ExitCode;
