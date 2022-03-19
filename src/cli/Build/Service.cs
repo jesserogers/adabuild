@@ -8,6 +8,8 @@ namespace adabuild.Build
 	public class Service
 	{
 
+		private static int PARALLEL_BUILD_DELAY = 500;
+
 		private Monitor.Service MonitorService;
 
 		private Config.Service ConfigService;
@@ -49,7 +51,6 @@ namespace adabuild.Build
 
 		private void Enqueue(HashSet<string> _projects)
 		{
-			Console.WriteLine($"Queueing {String.Join(", ", _projects)}...");
 			BuildQueue.Enqueue(_projects);
 		}
 
@@ -118,7 +119,7 @@ namespace adabuild.Build
 			if (BuildQueue.Count < 1)
 				return 0;
 
-			ConfigService.CopyTsConfigProd();
+			await ConfigService.CopyTsConfigProd();
 
 			HashSet<string> _buildGroup;
 			while (BuildQueue.Count > 0)
@@ -142,9 +143,9 @@ namespace adabuild.Build
 					Console.WriteLine($"Executing build for {String.Join(", ", _buildGroup)}...");
 					
 					if (_buildGroup.Count == 1)
-						_exitCode = await CommandLineService.Exec(_commands[0]);
+						_exitCode = await CommandLineService.Exec(_commands[0], PARALLEL_BUILD_DELAY);
 					else if (_buildGroup.Count > 1)
-						_exitCode = await CommandLineService.Exec(_commands);
+						_exitCode = await CommandLineService.Exec(_commands, PARALLEL_BUILD_DELAY);
 					else
 						continue;
 
