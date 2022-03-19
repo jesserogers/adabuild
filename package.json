@@ -45,13 +45,14 @@
 		"url": "http://10.1.10.15/jesserogers/adabuild.git"
 	},
 	"scripts": {
+		"compile:cli": "dotnet publish -r win-x64",
 		"esbuild-base": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --external:vscode --format=cjs --platform=node",
 		"precompile:vscode": "shx rm -rf out/vscode",
 		"compile:vscode": "npm run esbuild-base",
 		"vscode:prepublish": "npm run compile:vscode",
-		"package:cli": "npm run compile:common && npm run compile:cli && cd out/cli && npm run pkgr",
-		"postpackage:cli": "shx cp out/cli/adabuild.exe ./dist/adabuild.exe && shx cp README.md ./dist/README.md && shx cp CHANGELOG.md ./dist/CHANGELOG.md",
 		"package:vscode": "vsce package --out ./dist/",
+		"package:all": "npm run compile:cli && npm run package:vscode",
+		"postpackage:all": "shx cp README.md dist && shx cp CHANGELOG.md dist && shx cp package.json dist",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
