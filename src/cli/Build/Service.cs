@@ -16,9 +16,9 @@ namespace adabuild.Build
 
 		private CommandLine.Service commandLineService;
 
-		private Queue<HashSet<string>> buildQueue = new Queue<HashSet<string>>();
+		private Queue<HashSet<string>> buildQueue;
 
-		private HashSet<string> buildManifest = new HashSet<string>();
+		private HashSet<string> buildManifest;
 
 		public Service(
 			ref Monitor.Service _monitorService,
@@ -28,6 +28,8 @@ namespace adabuild.Build
 			monitorService = _monitorService;
 			configService = _configService;
 			commandLineService = _commandLineService;
+			buildQueue = new Queue<HashSet<string>>();
+			buildManifest = new HashSet<string>();
 		}
 
 		public Task<int> Build(string _project, bool _incremental = true)
@@ -36,7 +38,7 @@ namespace adabuild.Build
 
 			if (_incremental && !monitorService.state.HasChanged(_project))
 			{
-				Console.WriteLine($"No action: {_project} and all dependencies up to date.");
+				Logger.Info($"No action: {_project} and all dependencies up to date.");
 				return Task.FromResult<int>(0);
 			}
 
@@ -59,7 +61,7 @@ namespace adabuild.Build
 			Config.ProjectDefinition _projectDefinition = configService.GetProject(_project);
 
 			if (_projectDefinition == null)
-				return; // @todo: throw exception?
+				throw new Exception($"No valid project definition for {_project}");
 
 			HashSet<string> _buildGroup = new HashSet<string>();
 
@@ -76,7 +78,7 @@ namespace adabuild.Build
 					Config.ProjectDefinition _dependencyDefinition = configService.GetProject(_dependency);
 
 					if (_dependencyDefinition == null)
-						throw new Exception($"Invalid dependency definition for {_dependency}");
+						throw new Exception($"No valid project definition for {_dependency}");
 
 					byte _concurrencyLimit = configService.GetConcurrencyLimit();
 
@@ -98,7 +100,7 @@ namespace adabuild.Build
 					{
 						if (!monitorService.state.HasChanged(_dependency))
 						{
-							Console.WriteLine($"No delta for {_dependency}. Skipping incremental build.");
+							Logger.Info($"No delta for {_dependency}. Skipping incremental build.");
 							continue;
 						}
 						else
@@ -119,6 +121,8 @@ namespace adabuild.Build
 			if (buildQueue.Count < 1)
 				return 0;
 
+			Utilities.Benchmark _queueTimer = new Utilities.Benchmark();
+
 			await configService.CopyTsConfigProd();
 
 			HashSet<string> _buildGroup;
@@ -131,39 +135,45 @@ namespace adabuild.Build
 
 				try
 				{
-					string[] _commands = _buildGroup.Select(_name =>
+					string[] _commands = _buildGroup.Select((string _name) =>
 					{
 						Config.ProjectDefinition _project = configService.GetProject(_name);
 						return _project.buildCommand != null ?
 							_project.buildCommand : $"ng build {_project.name} --configuration production";
 					}).ToArray();
 
-					int _exitCode;
+					int _exitCode = 0;
+					string _groupName = String.Join(", ", _buildGroup);
+					Utilities.Benchmark _groupTimer = new Utilities.Benchmark();
 					
-					Console.WriteLine($"Executing build for {String.Join(", ", _buildGroup)}...");
+					Logger.Info($"Executing build for {_groupName}...");
 					
 					if (_buildGroup.Count == 1)
-						_exitCode = await commandLineService.Exec(_commands[0], PARALLEL_BUILD_DELAY);
+						_exitCode = await commandLineService.Exec(_commands[0]);
 					else if (_buildGroup.Count > 1)
 						_exitCode = await commandLineService.Exec(_commands, PARALLEL_BUILD_DELAY);
 					else
 						continue;
 
 					if (_exitCode != 0)
+					{
+						Clear();
 						return _exitCode;
+					}
 
-					Console.WriteLine($"Completed build for {String.Join(", ", _buildGroup)}.");
+					Logger.Info($"Completed build for {_groupName} in {_groupTimer.Elapsed()}");
 					monitorService.state.Record(_buildGroup.ToArray());
 					await monitorService.state.Save();
 					
 				}
 				catch
 				{
+					Clear();
 					return 1;
 				}
 			}
 
-			Console.WriteLine($"SUCCESS: Completed build queue.");
+			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
 			Clear();
 			return 0;
 		}
@@ -183,7 +193,7 @@ namespace adabuild.Build
 				return true;
 
 			foreach (string _dependency in _next.dependencies)
-				if (Array.IndexOf(_head.dependencies, _dependency) == -1)
+				if (!_head.dependencies.Contains(_dependency))
 					return false;
 
 			return true;
