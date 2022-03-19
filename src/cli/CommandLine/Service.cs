@@ -55,7 +55,7 @@ namespace adabuild.CommandLine
 				int _exitCode = await _completed;
 				if (_exitCode > 0)
 				{
-					Console.Error.WriteLine("Encountered error in parallel execution: stopping further processes...");
+					Logger.Error("Encountered error in parallel execution: stopping further processes...");
 					return 1;
 				}
 			}
@@ -83,7 +83,7 @@ namespace adabuild.CommandLine
 					{
 
 						if (_process.showOutput && e.Data != null && ((string)e.Data).Length > 0)
-							Console.WriteLine($"Process [{_processId}]: {e.Data}");
+							Logger.Info($"Process [{_processId}]: {e.Data}");
 
 						if (
 							_process.childProcess.HasExited &&
@@ -112,7 +112,7 @@ namespace adabuild.CommandLine
 				else
 				{
 					if (_process.showOutput && e.Data != null && ((string)e.Data).Length > 0)
-						Console.Error.WriteLine($"Process [{_processId}]: {e.Data}");
+						Logger.Error($"Process [{_processId}]: {e.Data}");
 
 					if (
 						_process.childProcess.HasExited &&
@@ -175,15 +175,18 @@ namespace adabuild.CommandLine
 			}
 			catch (Exception e)
 			{
-				Console.Error.WriteLine($"Failed to destroy process [{_process.id}]: {e.Message}");
+				Logger.Error($"Failed to destroy process [{_process.id}]: {e.Message}");
 				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
 				Processes.TryRemove(_process.id, out _process);
 			}
 		}
 
-		private void DestroyAllProcesses()
+		public void DestroyAllProcesses()
 		{
+			if (Processes.Count == 0)
+				return;
+
 			foreach (KeyValuePair<int, AsyncProcess> _process in Processes)
 				DestroyProcess(_process.Value);
 		}
