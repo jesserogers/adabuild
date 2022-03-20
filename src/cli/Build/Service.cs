@@ -104,7 +104,7 @@ namespace adabuild.Build
 					if (_dependencyDefinition == null)
 						throw new Exception($"No valid project definition for {_dependency}");
 
-					byte _concurrencyLimit = configService.GetConcurrencyLimit();
+					int _concurrencyLimit = configService.GetConcurrencyLimit();
 
 					if (
 						_buildGroup.Count > 0 &&
