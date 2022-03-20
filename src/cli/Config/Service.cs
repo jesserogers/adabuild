@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace adabuild.Config
@@ -37,19 +38,15 @@ namespace adabuild.Config
 
 		public byte GetConcurrencyLimit()
 		{
-			return configuration.maxConcurrentBuilds;
+			if (configuration.maxConcurrentBuilds == 0)
+				return (byte)Environment.ProcessorCount;
+			
+			return Math.Min(configuration.maxConcurrentBuilds, (byte)Environment.ProcessorCount);
 		}
 
-		public async Task CopyTsConfigProd()
+		public async Task CopyTsConfig(string _environment = "prod")
 		{
-			string _from = fileSystemService.Root + "\\tsconfig.prod.json";
-			string _to = fileSystemService.Root + "\\tsconfig.json";
-			await fileSystemService.CopyFile(_from, _to);
-		}
-
-		public async Task CopyTsConfigDev()
-		{
-			string _from = fileSystemService.Root + "\\tsconfig.dev.json";
+			string _from = fileSystemService.Root + $"\\tsconfig.{_environment}.json";
 			string _to = fileSystemService.Root + "\\tsconfig.json";
 			await fileSystemService.CopyFile(_from, _to);
 		}
