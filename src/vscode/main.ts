@@ -14,6 +14,7 @@ export function activate(context: ExtensionContext) {
 
 export function deactivate() {
 	if (app) {
+		app.stop();
 		if (app.terminal) {
 			app.terminal.dispose();
 		}
