@@ -36,12 +36,11 @@ namespace adabuild.Config
 			return null;
 		}
 
-		public byte GetConcurrencyLimit()
+		public int GetConcurrencyLimit()
 		{
-			if (configuration.maxConcurrentBuilds == 0)
-				return (byte)Environment.ProcessorCount;
-			
-			return Math.Min(configuration.maxConcurrentBuilds, (byte)Environment.ProcessorCount);
+			return configuration.maxConcurrentBuilds == 0 ?
+				Environment.ProcessorCount
+				: Math.Min(configuration.maxConcurrentBuilds, Environment.ProcessorCount);
 		}
 
 		public async Task CopyTsConfig(string _environment = "prod")
