@@ -38,9 +38,9 @@ namespace adabuild.Config
 
 		public int GetConcurrencyLimit()
 		{
+			int _processorCount = Environment.ProcessorCount * 2;
 			return configuration.maxConcurrentBuilds == 0 ?
-				Environment.ProcessorCount
-				: Math.Min(configuration.maxConcurrentBuilds, Environment.ProcessorCount);
+				_processorCount : Math.Min(configuration.maxConcurrentBuilds, _processorCount);
 		}
 
 		public async Task CopyTsConfig(string _environment = "prod")
