@@ -37,6 +37,14 @@
 			{
 				"command": "adabuild.start",
 				"title": "adabuild: Start"
+			},
+			{
+				"command": "adabuild.copytsconfigdev",
+				"title": "adabuild: Copy tsconfig (dev)"
+			},
+			{
+				"command": "adabuild.copytsconfigprod",
+				"title": "adabuild: Copy tsconfig (prod)"
 			}
 		]
 	},
