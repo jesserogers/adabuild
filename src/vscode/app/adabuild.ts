@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-export class AdaBuildExtension{
+export class adabuild {
 
 	public terminal!: vscode.Terminal | null;
 
