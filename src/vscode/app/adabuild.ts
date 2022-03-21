@@ -82,7 +82,7 @@ export class adabuild {
 			return;
 		}
 
-		const _command: string = "build all " + (!_incremental ? "--incremental false" : "");
+		const _command: string = "build all " + (!_incremental ? " --incremental false" : "");
 		this._execute(_command);
 	}
 
