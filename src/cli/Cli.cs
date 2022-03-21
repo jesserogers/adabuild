@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace adabuild
 {
@@ -33,13 +34,17 @@ namespace adabuild
 		{
 			string _input = Prompt();
 			string[] _args = _input.Split(" ");
+			
 			if (_args.Length == 0)
 			{
 				Console.Error.WriteLine("Invalid argument list");
+				return;
 			}
+
 			string _command = _args[0].Trim();
+			Dictionary<string, string> _arguments = ParseArguments(_args);
 			
-			switch (_args[0])
+			switch (_command)
 			{
 				case "build":
 					string _project = _args[1];
@@ -48,8 +53,19 @@ namespace adabuild
 						Console.Error.WriteLine("Please provide a valid project name");
 						break;
 					}
-					buildService.Build(_project).GetAwaiter().GetResult();
-					// @todo: handle --incremental flag
+
+					bool _incremental = true;
+					
+					if (
+						_arguments.ContainsKey("--incremental") &&
+						_arguments["--incremental"] == "false"
+					)
+						_incremental = false;
+
+					if (_project == "all")
+						buildService.BuildAll(_incremental).GetAwaiter().GetResult();
+					else
+						buildService.Build(_project, _incremental).GetAwaiter().GetResult();
 					break;
 
 				case "reset":
@@ -62,12 +78,9 @@ namespace adabuild
 					break;
 
 				case "stop":
+				case "kill":
 					Stop();
-					break;
-
-				case "start":
-					monitorService.Start();
-					break;
+					return;
 
 				default:
 					Logger.Error($"Unknown command \"{_args[0]}\"");
@@ -87,6 +100,39 @@ namespace adabuild
 		{
 			Console.Write("adabuild > ");
 			return Console.ReadLine();
+		}
+
+		public Dictionary<string, string> ParseArguments(string[] _args)
+		{
+			if (_args.Length == 0)
+				return null;
+
+			Dictionary<string, string> _argumentMap = new Dictionary<string, string>();
+
+			for (int i = 1; i < _args.Length; i++)
+			{
+				if (_args[i].StartsWith("--"))
+				{
+					if (_args[i].Contains("="))
+					{
+						string[] _split = _args[i].Split("=");
+						string _key = _split[0].Trim();
+						string _value = _split[1].Trim();
+						_argumentMap.Add(_key, _value);
+						continue;
+					}
+
+					if (i == _args.Length - 1)
+						_argumentMap.Add(_args[i], null);
+					else
+					{
+						_argumentMap.Add(_args[i], _args[i + 1]);
+						i++;
+					}
+				}
+			}
+
+			return _argumentMap;
 		}
 
 	}
