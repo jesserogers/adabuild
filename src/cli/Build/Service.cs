@@ -159,7 +159,7 @@ namespace adabuild.Build
 
 			Utilities.Benchmark _queueTimer = new Utilities.Benchmark();
 
-			if (configService.configuration.preBuild != null)
+			if (!String.IsNullOrEmpty(configService.configuration.preBuild))
 			{
 				_exitCode = await commandLineService.Exec(configService.configuration.preBuild);
 				if (_exitCode > 1)
@@ -181,8 +181,9 @@ namespace adabuild.Build
 					string[] _commands = _buildGroup.Select((string _name) =>
 					{
 						Config.ProjectDefinition _project = configService.GetProject(_name);
-						return _project.buildCommand != null ?
-							_project.buildCommand : $"ng build {_project.name} --configuration production";
+						if (String.IsNullOrEmpty(_project.buildCommand))
+							return $"ng build {_project.name} --configuration production";
+						return _project.buildCommand;
 					}).ToArray();
 
 					string _groupName = String.Join(", ", _buildGroup);
@@ -217,7 +218,7 @@ namespace adabuild.Build
 				}
 			}
 
-			if (configService.configuration.postBuild != null)
+			if (!String.IsNullOrEmpty(configService.configuration.postBuild))
 				_exitCode = await commandLineService.Exec(configService.configuration.postBuild);
 
 			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");

@@ -42,7 +42,7 @@ namespace adabuild.FileSystem
 			try
 			{
 				string _content = ReadFile(_source);
-				if (_content == null || _content.Length == 0)
+				if (String.IsNullOrEmpty(_content))
 					return;
 				await WriteFile(_destination, _content);
 			}
