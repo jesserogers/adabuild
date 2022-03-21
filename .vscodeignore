@@ -10,6 +10,7 @@ dist/**
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/.eslintrc.json
+**/.adabuildstate
 **/adabuild.config.json
 **/adabuild.csproj
 **/adabuild.sln
