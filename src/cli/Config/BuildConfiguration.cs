@@ -1,4 +1,6 @@
-﻿namespace adabuild.Config
+﻿using System.Text.Json;
+
+namespace adabuild.Config
 {
 	public class BuildConfiguration
 	{
@@ -18,6 +20,15 @@
 		public BuildConfiguration()
 		{
 
+		}
+
+		public string Export()
+		{
+			JsonSerializerOptions _options = new JsonSerializerOptions
+			{
+				WriteIndented = true
+			};
+			return JsonSerializer.Serialize(this, _options);
 		}
 
 	}
