@@ -36,6 +36,11 @@ namespace adabuild.Config
 			return null;
 		}
 
+		public ProjectDefinition[] GetProjects()
+		{
+			return configuration.projectDefinitions;
+		}
+
 		public int GetConcurrencyLimit()
 		{
 			int _processorCount = Environment.ProcessorCount * 2;
