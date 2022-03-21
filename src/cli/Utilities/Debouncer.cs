@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace adabuild.Utilities
+namespace adabuild
 {
 	public static class Debouncer
 	{

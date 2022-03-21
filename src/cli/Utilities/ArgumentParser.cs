@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace adabuild.Utilities
+namespace adabuild
 {
 	public static class ArgumentParser
 	{

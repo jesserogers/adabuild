@@ -1,6 +1,6 @@
 using System;
 
-namespace adabuild.Utilities
+namespace adabuild
 {
 
 	public class Benchmark
