@@ -48,13 +48,15 @@ namespace adabuild
 
 				case "reset":
 				case "clear":
-					Injector.MonitorService.Reset();
+					if (_args.Length > 1 && _args[1] != null && _args[1].Length > 0)
+						Injector.MonitorService.state.Clear(_args[1]);
+					else
+						Injector.MonitorService.state.Clear();
+					Injector.MonitorService.state.Save().GetAwaiter().GetResult();
 					break;
 					
 				default:
-				{
 					throw new Exception($"Invalid arguments provided: {_args[0]}");
-				}
 			}
 		}
 	}

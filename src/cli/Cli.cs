@@ -63,7 +63,8 @@ namespace adabuild
 					break;
 
 				case "reset":
-					if (_args[1] != null && _args[1].Length > 0)
+				case "clear":
+					if (_args.Length > 1 && _args[1] != null && _args[1].Length > 0)
 						monitorService.state.Clear(_args[1]);
 					else
 						monitorService.state.Clear();
