@@ -70,7 +70,7 @@ namespace adabuild.Monitor
 
 		private void Watch()
 		{
-			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsRootGlob}";
+			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
 			watcher = new FileSystemWatcher(_path);
 
 			watcher.NotifyFilter = NotifyFilters.DirectoryName
@@ -121,7 +121,7 @@ namespace adabuild.Monitor
 		{
 			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
 			{
-				if (_path.Contains($"{configService.configuration.projectsRootGlob}\\{_project.name}\\"))
+				if (_path.Contains($"{configService.configuration.projectsFolder}\\{_project.name}\\"))
 				{
 					state.Change(_project.name);
 					SaveState();
