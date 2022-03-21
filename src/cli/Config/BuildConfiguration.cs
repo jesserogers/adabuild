@@ -13,6 +13,8 @@
 
 		public string postBuild { get; set; }
 
+		public string terminal { get; set; } = "cmd.exe";
+
 		public BuildConfiguration()
 		{
 
