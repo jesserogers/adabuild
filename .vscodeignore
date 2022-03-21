@@ -2,6 +2,7 @@
 .vscode-test/**
 src/**
 out/cli/**
+out/vscode/*.js.map
 bin/**
 obj/**
 dist/**
