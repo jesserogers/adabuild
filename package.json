@@ -62,9 +62,8 @@
 	},
 	"scripts": {
 		"compile:cli": "dotnet publish -r win-x64",
-		"esbuild-base": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --external:vscode --format=cjs --platform=node",
 		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:cli",
-		"compile:vscode": "npm run esbuild-base",
+		"compile:vscode": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --sourcemap --external:vscode --format=cjs --platform=node",
 		"vscode:prepublish": "npm run compile:vscode",
 		"package:vscode": "vsce package --out ./dist/",
 		"postpackage:all": "shx cp README.md dist && shx cp CHANGELOG.md dist && shx cp package.json dist",
