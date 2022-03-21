@@ -108,14 +108,16 @@ export class adabuild {
 	}
 
 	private _createTerminal(): void {
-		this.terminal = vscode.window.createTerminal("adabuild");
+		this.terminal = vscode.window.createTerminal({
+			name: "adabuild"
+		});
 	}
 
 	private _execute(_command: string): void {
 		if (!this.terminal) {
 			this._createTerminal();
 			vscode.window.onDidCloseTerminal(_terminal => {
-				if (_terminal.name === "adabuild") {
+				if (_terminal.name === this.terminal?.name) {
 					this.terminal = null;
 					this._running = false;
 				}
