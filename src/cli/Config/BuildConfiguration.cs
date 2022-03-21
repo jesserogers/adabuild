@@ -3,7 +3,7 @@
 	public class BuildConfiguration
 	{
 
-		public string projectsRootGlob { get; set; }
+		public string projectsFolder { get; set; }
 
 		public ProjectDefinition[] projectDefinitions { get; set; }
 
