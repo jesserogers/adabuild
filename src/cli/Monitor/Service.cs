@@ -121,7 +121,7 @@ namespace adabuild.Monitor
 		{
 			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
 			{
-				if (_path.Contains($"{configService.configuration.projectsFolder}\\{_project.name}\\"))
+				if (_path.Contains($"\\{_project.name}\\"))
 				{
 					state.Change(_project.name);
 					SaveState();
