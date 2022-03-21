@@ -6,8 +6,6 @@ export class adabuild {
 
 	private _projectName: string = "";
 
-	private _projectRoot!: string;
-
 	private _running: boolean = false;
 
 	private get root(): string {
@@ -34,8 +32,10 @@ export class adabuild {
 	}
 
 	public run(): void {
-		if (this._running)
+		if (this._running) {
+			vscode.window.showWarningMessage("[adabuild] adabuild is already running.");
 			return;
+		}
 
 		this._execute("adabuild run");
 		this._running = true;
@@ -47,6 +47,7 @@ export class adabuild {
 			return;
 		}
 		this._execute("stop");
+		this._running = false;
 	}
 
 	public pause(): void {
