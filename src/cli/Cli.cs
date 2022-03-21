@@ -47,8 +47,7 @@ namespace adabuild
 			switch (_command)
 			{
 				case "build":
-					string _project = _args[1];
-					if (_project == null || _project.Length < 1)
+					if (_args[1] == null || _args[1].Length < 1)
 					{
 						Console.Error.WriteLine("Please provide a valid project name");
 						break;
@@ -62,14 +61,17 @@ namespace adabuild
 					)
 						_incremental = false;
 
-					if (_project == "all")
+					if (_args[1] == "all")
 						buildService.BuildAll(_incremental).GetAwaiter().GetResult();
 					else
-						buildService.Build(_project, _incremental).GetAwaiter().GetResult();
+						buildService.Build(_args[1], _incremental).GetAwaiter().GetResult();
 					break;
 
 				case "reset":
-					monitorService.state.Clear();
+					if (_args[1] != null && _args[1].Length > 0)
+						monitorService.state.Clear(_args[1]);
+					else
+						monitorService.state.Clear();
 					monitorService.state.Save().GetAwaiter().GetResult();
 					break;
 
