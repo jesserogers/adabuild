@@ -58,7 +58,7 @@ namespace adabuild
 			get
 			{
 				if (commandLineService == null)
-					commandLineService = new CommandLine.Service(FileSystemService);
+					commandLineService = new CommandLine.Service(FileSystemService, ConfigService);
 				return commandLineService;
 			}
 		}
