@@ -6,10 +6,10 @@ namespace adabuild
 	{
 		public static Dictionary<string, string> Parse(string[] _args)
 		{
-			if (_args.Length == 0)
-				return null;
-
 			Dictionary<string, string> _argumentMap = new Dictionary<string, string>();
+		
+			if (_args.Length <= 1)
+				return _argumentMap;
 
 			for (int i = 1; i < _args.Length; i++)
 			{
