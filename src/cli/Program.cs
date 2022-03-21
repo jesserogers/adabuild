@@ -53,7 +53,7 @@ namespace adabuild
 					break;
 				}
 
-				case "run":
+				case "start":
 				{
 					cli.Start();
 					break;
