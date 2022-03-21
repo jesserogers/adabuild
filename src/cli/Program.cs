@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace adabuild
 {
@@ -42,8 +43,20 @@ namespace adabuild
 				{
 					if (_args.Length > 1)
 					{
+						Dictionary<string, string> _arguments = cli.ParseArguments(_args);
 						string _project = _args[1];
-						int _exit = buildService.Build(_project).GetAwaiter().GetResult();
+						bool _incremental = true;
+
+						if (_arguments.ContainsKey("--incremental") && _arguments["--incremental"] == "false")
+							_incremental = false;
+
+						int _exit;
+						
+						if (_project == "all")
+							_exit = buildService.BuildAll(_incremental).GetAwaiter().GetResult();
+						else
+							_exit = buildService.Build(_project, _incremental).GetAwaiter().GetResult();
+
 						Console.WriteLine($"Completed build for {_project} with code: {_exit}");
 					}
 					else
