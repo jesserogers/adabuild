@@ -16,7 +16,7 @@ namespace adabuild.Build
 
 		private CommandLine.Service commandLineService;
 
-		private Queue<HashSet<string>> buildQueue;
+		private Queue<Queue<string>> buildQueue;
 
 		private HashSet<string> buildManifest;
 
@@ -28,13 +28,17 @@ namespace adabuild.Build
 			monitorService = _monitorService;
 			configService = _configService;
 			commandLineService = _commandLineService;
-			buildQueue = new Queue<HashSet<string>>();
+			buildQueue = new Queue<Queue<string>>();
 			buildManifest = new HashSet<string>();
 		}
 
 		public Task<int> Build(string _project, bool _incremental = true)
 		{
 			Clear();
+
+			if (!_incremental)
+				Logger.Info("Running non-incremental build.");
+
 			EnqueueDependencies(_project, _incremental);
 
 			if (_incremental && !monitorService.state.HasChanged(_project))
@@ -43,15 +47,18 @@ namespace adabuild.Build
 				return Task.FromResult<int>(0);
 			}
 
-			Enqueue(_project);
+			EnqueueBuildGroup(_project);
 			return ExecuteBuildQueue();
 		}
 
 		public Task<int> BuildAll(bool _incremental = true)
 		{
 			Clear();
-			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
+			foreach (Config.ProjectDefinition _project in configService.GetProjects())
 			{
+				if (buildManifest.Contains(_project.name))
+					continue;
+				
 				EnqueueDependencies(_project.name, _incremental);
 
 				if (_incremental && !monitorService.state.HasChanged(_project.name))
@@ -60,10 +67,10 @@ namespace adabuild.Build
 					continue;
 				}
 
-				Enqueue(_project.name);
+				EnqueueProject(_project.name);
 			}
 
-			if (buildQueue.Count == 0)
+			if (buildManifest.Count == 0)
 			{
 				Logger.Info($"No action: All projects up to date.");
 				return Task.FromResult<int>(0);
@@ -72,24 +79,33 @@ namespace adabuild.Build
 			return ExecuteBuildQueue();
 		}
 
-		private void Enqueue(string _project)
+		private void EnqueueBuildGroup(string _project)
 		{
-			Enqueue(new HashSet<string> { _project });
+			EnqueueBuildGroup(new Queue<string>(new string[] { _project }));
 		}
 
-		private void Enqueue(HashSet<string> _projects)
+		private void EnqueueBuildGroup(Queue<string> _projects)
 		{
 			buildQueue.Enqueue(_projects);
 		}
 
+		private void EnqueueProject(string _project)
+		{
+			buildManifest.Add(_project);
+			EnqueueBuildGroup(_project);
+		}
+
 		private void EnqueueDependencies(string _project, bool _incremental)
 		{
+			if (buildManifest.Contains(_project))
+				return;
+
 			Config.ProjectDefinition _projectDefinition = configService.GetProject(_project);
 
 			if (_projectDefinition == null)
 				throw new Exception($"No valid project definition for {_project}");
 
-			HashSet<string> _buildGroup = new HashSet<string>();
+			Queue<string> _buildGroup = new Queue<string>();
 			int _concurrencyLimit = configService.GetConcurrencyLimit();
 
 			if (_projectDefinition.dependencies != null && _projectDefinition.dependencies.Length > 0)
@@ -110,7 +126,7 @@ namespace adabuild.Build
 						(_concurrencyLimit > 0 && _buildGroup.Count >= _concurrencyLimit) ||
 						!CanBuildInParallel(_dependencyDefinition, _buildGroup)
 					) {
-						buildQueue.Enqueue(new HashSet<string>(_buildGroup));
+						buildQueue.Enqueue(new Queue<string>(_buildGroup));
 						_buildGroup.Clear();
 					}
 
@@ -125,25 +141,34 @@ namespace adabuild.Build
 							monitorService.state.Change(_project);
 					}
 
-					_buildGroup.Add(_dependency);
+					_buildGroup.Enqueue(_dependency);
 					buildManifest.Add(_dependency);
 				}
 
 				if (_buildGroup.Count > 0)
-					Enqueue(_buildGroup);
+					EnqueueBuildGroup(_buildGroup);
 			}
 		}
 
 		private async Task<int> ExecuteBuildQueue()
 		{
+			int _exitCode = 0;
+			
 			if (buildQueue.Count < 1)
-				return 0;
+				return _exitCode;
 
 			Utilities.Benchmark _queueTimer = new Utilities.Benchmark();
 
+			if (configService.configuration.preBuild != null)
+			{
+				_exitCode = await commandLineService.Exec(configService.configuration.preBuild);
+				if (_exitCode > 1)
+					return _exitCode;
+			}
+
 			await configService.CopyTsConfig("prod");
 
-			HashSet<string> _buildGroup;
+			Queue<string> _buildGroup;
 			while (buildQueue.Count > 0)
 			{
 				_buildGroup = buildQueue.Dequeue();
@@ -160,7 +185,6 @@ namespace adabuild.Build
 							_project.buildCommand : $"ng build {_project.name} --configuration production";
 					}).ToArray();
 
-					int _exitCode = 0;
 					string _groupName = String.Join(", ", _buildGroup);
 					Utilities.Benchmark _groupTimer = new Utilities.Benchmark();
 					
@@ -188,13 +212,17 @@ namespace adabuild.Build
 				{
 					Logger.Error(e.Message);
 					Clear();
-					return 1;
+					_exitCode = 1;
+					return _exitCode;
 				}
 			}
 
+			if (configService.configuration.postBuild != null)
+				_exitCode = await commandLineService.Exec(configService.configuration.postBuild);
+
 			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
 			Clear();
-			return 0;
+			return _exitCode;
 		}
 
 		private void Clear()
@@ -203,7 +231,7 @@ namespace adabuild.Build
 			buildManifest.Clear();
 		}
 
-		private bool CanBuildInParallel(Config.ProjectDefinition _next, HashSet<string> _buildGroup)
+		private bool CanBuildInParallel(Config.ProjectDefinition _next, Queue<string> _buildGroup)
 		{
 			if (_next == null || _buildGroup == null)
 				return false;
