@@ -32,13 +32,14 @@ namespace adabuild.CommandLine
 		{
 			if (isCompleted)
 				return;
-
+			
 			isCompleted = true;
 
 			if (!runningProcess.HasExited)
 				runningProcess.WaitForExit();
-			else if (!showOutput && runningProcess.ExitCode > 0)
-				Console.Error.WriteLine($"Process [{runningProcess.Id}]: " + runningProcess.StandardError.ReadToEnd());
+
+			if (runningProcess.ExitCode > 0)
+				Logger.Error($"Process [{runningProcess.Id}]: {runningProcess.StandardError.ReadToEnd()}");
 
 			tcs.SetResult(runningProcess.ExitCode);
 
