@@ -10,7 +10,9 @@ namespace adabuild.CommandLine
 	public class Service
 	{
 
-		private FileSystem.Service FileSystemService;
+		private FileSystem.Service fileSystemService;
+
+		private Config.Service configService;
 
 		private ConcurrentDictionary<int, AsyncProcess> Processes;
 
@@ -18,15 +20,13 @@ namespace adabuild.CommandLine
 
 		private ConcurrentDictionary<int, DataReceivedEventHandler> standardOutHandlers;
 
-		private ConcurrentDictionary<int, DataReceivedEventHandler> standardErrorHandlers;
-
-		public Service(FileSystem.Service _fileSystemService)
+		public Service(FileSystem.Service _fileSystemService, Config.Service _configService)
 		{
-			FileSystemService = _fileSystemService;
+			fileSystemService = _fileSystemService;
+			configService = _configService;
 			Processes = new ConcurrentDictionary<int, AsyncProcess>();
 			processExitHandlers = new ConcurrentDictionary<int, EventHandler>();
 			standardOutHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
-			standardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 		}
 
 		public async Task<int> Exec(string _command, int _delay = 0, bool _output = false)
@@ -36,8 +36,7 @@ namespace adabuild.CommandLine
 			if (_delay > 0)
 				await Task.Delay(_delay);
 			
-			int _exitCode = await _process.Run();
-			return _exitCode;
+			return await _process.Run();
 		}
 
 		public async Task<int> Exec(string[] _commands, int _delay = 0, bool _output = false)
@@ -65,7 +64,6 @@ namespace adabuild.CommandLine
 		private void RegisterProcess(AsyncProcess _process)
 		{
 			_process.childProcess.OutputDataReceived += StandardOutCallbackFactory(_process.id);
-			_process.childProcess.ErrorDataReceived += StandardErrorCallbackFactory(_process.id);
 			Processes.TryAdd(_process.id, _process);
 		}
 
@@ -82,7 +80,7 @@ namespace adabuild.CommandLine
 					else
 					{
 
-						if (_process.showOutput && e.Data != null && ((string)e.Data).Length > 0)
+						if (_process.showOutput && !String.IsNullOrEmpty(e.Data))
 							Logger.Info($"Process [{_processId}]: {e.Data}");
 
 						if (
@@ -97,34 +95,6 @@ namespace adabuild.CommandLine
 				}
 			);
 			standardOutHandlers.TryAdd(_processId, _handler);
-			return _handler;
-		}
-
-		private DataReceivedEventHandler StandardErrorCallbackFactory(int _processId)
-		{
-			DataReceivedEventHandler _handler = new DataReceivedEventHandler((object s, DataReceivedEventArgs e) =>
-			{
-				AsyncProcess _process = Processes[_processId];
-
-				if (_process == null)
-					return;
-
-				else
-				{
-					if (_process.showOutput && e.Data != null && ((string)e.Data).Length > 0)
-						Logger.Error($"Process [{_processId}]: {e.Data}");
-
-					if (
-						_process.childProcess.HasExited &&
-						processExitHandlers.ContainsKey(_process.id) &&
-						!_process.asyncTask.IsCompleted
-					)
-					{
-						_process.asyncTask.OnExit(_process.childProcess, null);
-					}
-				}
-			});
-			standardErrorHandlers.TryAdd(_processId, _handler);
 			return _handler;
 		}
 
@@ -150,7 +120,7 @@ namespace adabuild.CommandLine
 
 		private AsyncProcess SpawnProcess(string _command, bool _output)
 		{
-			return new AsyncProcess(_command, FileSystemService.Root,
+			return new AsyncProcess(_command, fileSystemService.Root, configService.configuration.terminal,
 				RegisterProcess, OnProcessExitFactory, _output);
 		}
 
@@ -158,17 +128,14 @@ namespace adabuild.CommandLine
 		{
 			EventHandler _processExitHandler;
 			DataReceivedEventHandler _stdOutHandler;
-			DataReceivedEventHandler _stdErrHandler;
 
 			try
 			{
 				_process.childProcess.Exited -= processExitHandlers[_process.id];
 				_process.childProcess.OutputDataReceived -= standardOutHandlers[_process.id];
-				_process.childProcess.ErrorDataReceived -= standardErrorHandlers[_process.id];
 
 				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
-				standardErrorHandlers.TryRemove(_process.id, out _stdErrHandler);
 				Processes.TryRemove(_process.id, out _process);
 
 				_process.childProcess.Kill();
@@ -192,4 +159,5 @@ namespace adabuild.CommandLine
 		}
 
 	}
+
 }
