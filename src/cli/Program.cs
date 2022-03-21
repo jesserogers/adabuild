@@ -53,6 +53,13 @@ namespace adabuild
 						Injector.MonitorService.state.Clear();
 					Injector.MonitorService.state.Save().GetAwaiter().GetResult();
 					break;
+
+				case "terminal":
+					if (_args.Length > 1 && !String.IsNullOrEmpty(_args[1]))
+						Injector.ConfigService.SetTerminal(_args[1]).GetAwaiter().GetResult();
+					else
+						Logger.Error("Please supply a terminal type.");
+					break;
 					
 				default:
 					throw new Exception($"Invalid arguments provided: {_args[0]}");

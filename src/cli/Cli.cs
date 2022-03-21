@@ -7,6 +7,8 @@ namespace adabuild
 	public class Cli
 	{
 
+		private Config.Service configService;
+
 		private Build.Service buildService;
 
 		private Monitor.Service monitorService;
@@ -14,11 +16,13 @@ namespace adabuild
 		private CommandLine.Service commandLineService;
 
 		public Cli(
+			Config.Service _configService,
 			Build.Service _buildService,
 			Monitor.Service _monitorService,
 			CommandLine.Service _commandLineService
 		)
 		{
+			configService = _configService;
 			buildService = _buildService;
 			monitorService = _monitorService;
 			commandLineService = _commandLineService;
@@ -47,9 +51,9 @@ namespace adabuild
 			switch (_command)
 			{
 				case "build":
-					if (_args[1] == null || _args[1].Length < 1)
+					if (_args.Length < 2 || String.IsNullOrEmpty(_args[1]))
 					{
-						Console.Error.WriteLine("Please provide a valid project name");
+						Logger.Error("Please provide a valid project name");
 						break;
 					}
 
@@ -66,11 +70,18 @@ namespace adabuild
 
 				case "reset":
 				case "clear":
-					if (_args.Length > 1 && _args[1] != null && _args[1].Length > 0)
+					if (_args.Length > 1 && !String.IsNullOrEmpty(_args[1]))
 						monitorService.state.Clear(_args[1]);
 					else
 						monitorService.state.Clear();
 					monitorService.state.Save().GetAwaiter().GetResult();
+					break;
+
+				case "terminal":
+					if (_args.Length > 1 && !String.IsNullOrEmpty(_args[1]))
+						configService.SetTerminal(_args[1]).GetAwaiter().GetResult();
+					else
+						Logger.Error("Please supply a terminal type.");
 					break;
 
 				case "cls":

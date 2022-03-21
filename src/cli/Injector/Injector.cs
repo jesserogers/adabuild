@@ -78,7 +78,7 @@ namespace adabuild
 			get
 			{
 				if (cli == null)
-					cli = new Cli(BuildService, MonitorService, CommandLineService);
+					cli = new Cli(ConfigService, BuildService, MonitorService, CommandLineService);
 				return cli;
 			}
 		}
