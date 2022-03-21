@@ -28,8 +28,13 @@ namespace adabuild.Utilities
 						_argumentMap.Add(_args[i], null);
 					else
 					{
-						_argumentMap.Add(_args[i], _args[i + 1]);
-						i++;
+						if (_args[i + 1].StartsWith("--"))
+							_argumentMap.Add(_args[i], null);
+						else
+						{
+							_argumentMap.Add(_args[i], _args[i + 1]);
+							i++;
+						}
 					}
 				}
 			}
