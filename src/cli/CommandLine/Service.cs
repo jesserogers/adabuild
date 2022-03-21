@@ -120,8 +120,8 @@ namespace adabuild.CommandLine
 
 		private AsyncProcess SpawnProcess(string _command, bool _output)
 		{
-			return new AsyncProcess(_command, fileSystemService.Root, configService.configuration.terminal,
-				RegisterProcess, OnProcessExitFactory, _output);
+			return new AsyncProcess(configService.configuration.terminal, _command,
+				fileSystemService.Root, RegisterProcess, OnProcessExitFactory, _output);
 		}
 
 		private void DestroyProcess(AsyncProcess _process)
