@@ -44,9 +44,9 @@ namespace adabuild.CommandLine
 					Arguments = _terminal == Terminals.BASH ? $"-c \"{_command}\"" : $"/C {_command}",
 					WorkingDirectory = _directory,
 					WindowStyle = ProcessWindowStyle.Hidden,
-					CreateNoWindow = false,
-					RedirectStandardOutput = true,
-					RedirectStandardError = true
+					CreateNoWindow = true,
+					UseShellExecute = false,
+					RedirectStandardOutput = true
 				}
 			};
 			OnStart = _onStart;
