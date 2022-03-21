@@ -53,13 +53,8 @@ namespace adabuild
 						break;
 					}
 
-					bool _incremental = true;
-					
-					if (
-						_arguments.ContainsKey("--incremental") &&
-						_arguments["--incremental"] == "false"
-					)
-						_incremental = false;
+					bool _incremental = _arguments.ContainsKey("--incremental") &&
+						_arguments["--incremental"] == "false";
 
 					if (_args[1] == "all")
 						buildService.BuildAll(_incremental).GetAwaiter().GetResult();
