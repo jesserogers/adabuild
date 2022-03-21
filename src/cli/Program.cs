@@ -22,17 +22,16 @@ namespace adabuild
 					{
 						Dictionary<string, string> _arguments = Utilities.ArgumentParser.Parse(_args);
 						string _project = _args[1];
-						bool _incremental = true;
-
-						if (_arguments.ContainsKey("--incremental") && _arguments["--incremental"] == "false")
-							_incremental = false;
-
+						bool _incremental = !_arguments.ContainsKey("--incremental") ||
+							_arguments["--incremental"] != "false";
+						bool _output = _arguments.ContainsKey("--output") &&
+							_arguments["--output"] != "false";
 						int _exit;
 						
 						if (_project == "all")
-							_exit = Injector.BuildService.BuildAll(_incremental).GetAwaiter().GetResult();
+							_exit = Injector.BuildService.BuildAll(_incremental, _output).GetAwaiter().GetResult();
 						else
-							_exit = Injector.BuildService.Build(_project, _incremental).GetAwaiter().GetResult();
+							_exit = Injector.BuildService.Build(_project, _incremental, _output).GetAwaiter().GetResult();
 
 						Console.WriteLine($"Completed build for {_project} with code: {_exit}");
 					}

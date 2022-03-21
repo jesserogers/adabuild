@@ -29,9 +29,9 @@ namespace adabuild.CommandLine
 			standardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 		}
 
-		public async Task<int> Exec(string _command, int _delay = 0)
+		public async Task<int> Exec(string _command, int _delay = 0, bool _output = false)
 		{
-			AsyncProcess _process = SpawnProcess(_command);
+			AsyncProcess _process = SpawnProcess(_command, _output);
 
 			if (_delay > 0)
 				await Task.Delay(_delay);
@@ -40,7 +40,7 @@ namespace adabuild.CommandLine
 			return _exitCode;
 		}
 
-		public async Task<int> Exec(string[] _commands, int _delay = 0)
+		public async Task<int> Exec(string[] _commands, int _delay = 0, bool _output = false)
 		{
 			int _wait = 0;
 			List<Task<int>> _taskList = _commands.Select(_command => {
@@ -148,10 +148,10 @@ namespace adabuild.CommandLine
 			return _handler;
 		}
 
-		private AsyncProcess SpawnProcess(string _command)
+		private AsyncProcess SpawnProcess(string _command, bool _output)
 		{
 			return new AsyncProcess(_command, FileSystemService.Root,
-				RegisterProcess, OnProcessExitFactory);
+				RegisterProcess, OnProcessExitFactory, _output);
 		}
 
 		private void DestroyProcess(AsyncProcess _process)

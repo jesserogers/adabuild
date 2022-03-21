@@ -32,7 +32,7 @@ namespace adabuild.Build
 			buildManifest = new HashSet<string>();
 		}
 
-		public Task<int> Build(string _project, bool _incremental = true)
+		public Task<int> Build(string _project, bool _incremental, bool _output)
 		{
 			Clear();
 
@@ -48,10 +48,10 @@ namespace adabuild.Build
 			}
 
 			EnqueueBuildGroup(_project);
-			return ExecuteBuildQueue();
+			return ExecuteBuildQueue(_output);
 		}
 
-		public Task<int> BuildAll(bool _incremental = true)
+		public Task<int> BuildAll(bool _incremental = true, bool _output = false)
 		{
 			Clear();
 			foreach (Config.ProjectDefinition _project in configService.GetProjects())
@@ -76,7 +76,7 @@ namespace adabuild.Build
 				return Task.FromResult<int>(0);
 			}
 
-			return ExecuteBuildQueue();
+			return ExecuteBuildQueue(_output);
 		}
 
 		private void EnqueueBuildGroup(string _project)
@@ -150,7 +150,7 @@ namespace adabuild.Build
 			}
 		}
 
-		private async Task<int> ExecuteBuildQueue()
+		private async Task<int> ExecuteBuildQueue(bool _output)
 		{
 			int _exitCode = 0;
 			
@@ -191,9 +191,9 @@ namespace adabuild.Build
 					Logger.Info($"Executing build for {_groupName}...");
 					
 					if (_buildGroup.Count == 1)
-						_exitCode = await commandLineService.Exec(_commands[0]);
+						_exitCode = await commandLineService.Exec(_commands[0], 0, _output);
 					else if (_buildGroup.Count > 1)
-						_exitCode = await commandLineService.Exec(_commands, PARALLEL_BUILD_DELAY);
+						_exitCode = await commandLineService.Exec(_commands, PARALLEL_BUILD_DELAY, _output);
 					else
 						continue;
 
