@@ -19,12 +19,8 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "adabuild.run",
-				"title": "adabuild: Run"
-			},
-			{
-				"command": "adabuild.build",
-				"title": "adabuild: Build"
+				"command": "adabuild.start",
+				"title": "adabuild: Start"
 			},
 			{
 				"command": "adabuild.reset",
@@ -35,8 +31,20 @@
 				"title": "adabuild: Stop"
 			},
 			{
-				"command": "adabuild.start",
-				"title": "adabuild: Start"
+				"command": "adabuild.build",
+				"title": "adabuild: Build"
+			},
+			{
+				"command": "adabuild.buildfull",
+				"title": "adabuild: Build (non-incremental)"
+			},
+			{
+				"command": "adabuild.buildall",
+				"title": "adabuild: Build All"
+			},
+			{
+				"command": "adabuild.buildallfull",
+				"title": "adabuild: Build All (non-incremental)"
 			},
 			{
 				"command": "adabuild.copytsconfigdev",
@@ -55,11 +63,10 @@
 	"scripts": {
 		"compile:cli": "dotnet publish -r win-x64",
 		"esbuild-base": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --external:vscode --format=cjs --platform=node",
-		"precompile:vscode": "shx rm -rf out/vscode",
+		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:cli",
 		"compile:vscode": "npm run esbuild-base",
 		"vscode:prepublish": "npm run compile:vscode",
 		"package:vscode": "vsce package --out ./dist/",
-		"package:all": "npm run compile:cli && npm run package:vscode",
 		"postpackage:all": "shx cp README.md dist && shx cp CHANGELOG.md dist && shx cp package.json dist",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",

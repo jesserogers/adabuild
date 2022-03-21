@@ -21,23 +21,25 @@ export class adabuild {
 
 	public generateCommands(): vscode.Disposable[] {
 		return [
-			vscode.commands.registerCommand("adabuild.run", () => this.run()),
-			vscode.commands.registerCommand("adabuild.stop", () => this.stop()),
 			vscode.commands.registerCommand("adabuild.start", () => this.start()),
-			vscode.commands.registerCommand("adabuild.build", () => this.build()),
+			vscode.commands.registerCommand("adabuild.stop", () => this.stop()),
+			vscode.commands.registerCommand("adabuild.build", () => this.build(true)),
+			vscode.commands.registerCommand("adabuild.buildfull", () => this.build(false)),
+			vscode.commands.registerCommand("adabuild.buildall", () => this.buildAll(true)),
+			vscode.commands.registerCommand("adabuild.buildallfull", () => this.buildAll(false)),
 			vscode.commands.registerCommand("adabuild.reset", () => this.reset()),
 			vscode.commands.registerCommand("adabuild.copytsconfigdev", () => this.copyTsConfig("dev")),
 			vscode.commands.registerCommand("adabuild.copytsconfigprod", () => this.copyTsConfig("prod"))
 		];
 	}
 
-	public run(): void {
+	public start(): void {
 		if (this._running) {
 			vscode.window.showWarningMessage("[adabuild] adabuild is already running.");
 			return;
 		}
 
-		this._execute("adabuild run");
+		this._execute("adabuild start");
 		this._running = true;
 	}
 
@@ -50,23 +52,7 @@ export class adabuild {
 		this._running = false;
 	}
 
-	public pause(): void {
-		if (!this._running) {
-			vscode.window.showErrorMessage("[adabuild] adabuild process not running!");
-			return;
-		}
-		this._execute("pause");
-	}
-
-	public start(): void {
-		if (this._running) {
-			vscode.window.showInformationMessage("[adabuild] adabuild process already running");
-			return;
-		}
-		this._execute("start");
-	}
-
-	public build(): void {
+	public build(_incremental: boolean = true): void {
 		if (!this._running) {
 			vscode.window.showErrorMessage("[adabuild] adabuild process not running!");
 			return;
@@ -77,12 +63,23 @@ export class adabuild {
 		}).then(
 			_project => {
 				this._projectName = _project || "";
-				this._execute("build " + this._projectName);
+				const _command: string = "build " + this._projectName + (!_incremental ? "--incremental false" : "");
+				this._execute(_command);
 			},
 			_error => {
 				vscode.window.showErrorMessage("[adabuild] Unexpected error requesting project name: " + _error);
 			}
 		);
+	}
+
+	public buildAll(_incremental: boolean = true): void {
+		if (!this._running) {
+			vscode.window.showErrorMessage("[adabuild] adabuild process not running!");
+			return;
+		}
+
+		const _command: string = "build all " + (!_incremental ? "--incremental false" : "");
+		this._execute(_command);
 	}
 
 	public reset(): void {
