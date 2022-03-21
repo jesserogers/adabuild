@@ -28,6 +28,12 @@ namespace adabuild.Config
 				projectMap[_project.name] = _project;
 		}
 
+		public async Task SaveConfiguration()
+		{
+			await fileSystemService.WriteFile(fileSystemService.Root + @"\adabuild.config.json",
+				configuration.Export());
+		}
+
 		public ProjectDefinition GetProject(string _name)
 		{
 			if (projectMap.ContainsKey(_name))
@@ -53,6 +59,17 @@ namespace adabuild.Config
 			string _from = fileSystemService.Root + $"\\tsconfig.{_environment}.json";
 			string _to = fileSystemService.Root + "\\tsconfig.json";
 			await fileSystemService.CopyFile(_from, _to);
+		}
+
+		public async Task SetTerminal(string _terminal)
+		{
+			if (!Terminals.IsValid(_terminal))
+			{
+				Logger.Error($"Invalid terminal type: {_terminal}");
+				return;
+			}
+			configuration.terminal = _terminal;
+			await SaveConfiguration();
 		}
 
 	}
