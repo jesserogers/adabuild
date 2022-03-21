@@ -67,7 +67,7 @@ export class adabuild {
 				if (!this._projectName)
 					return;
 
-				const _command: string = "build " + this._projectName + (!_incremental ? "--incremental false" : "");
+				const _command: string = "build " + this._projectName + (!_incremental ? " --incremental false" : "");
 				this._execute(_command);
 			},
 			_error => {
