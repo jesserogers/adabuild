@@ -24,6 +24,7 @@ namespace adabuild.CommandLine
 		private Func<int, EventHandler> OnExitFactory;
 
 		public AsyncProcess(
+			String _terminal,
 			String _command,
 			String _directory,
 			Action<AsyncProcess> _onStart,
@@ -31,13 +32,16 @@ namespace adabuild.CommandLine
 			bool _showOutput = false
 		)
 		{
+			if (!Terminals.IsValid(_terminal))
+				throw new Exception($"Invalid terminal type: {_terminal}");
+
 			childProcess = new Process
 			{
 				EnableRaisingEvents = true,
 				StartInfo =
 				{
-					FileName = "bash",
-					Arguments = $"-c \"{_command}\"",
+					FileName = _terminal,
+					Arguments = _terminal == Terminals.BASH ? $"-c \"{_command}\"" : $"/C {_command}",
 					WorkingDirectory = _directory,
 					WindowStyle = ProcessWindowStyle.Hidden,
 					CreateNoWindow = false,
@@ -63,12 +67,7 @@ namespace adabuild.CommandLine
 			asyncTask = new AsyncProcessTask(childProcess, OnExitFactory);
 
 			childProcess.Exited += asyncTask.OnExit;
-
-			if (showOutput)
-			{
-				childProcess.BeginErrorReadLine();
-				childProcess.BeginOutputReadLine();
-			}
+			childProcess.BeginOutputReadLine();
 
 			await asyncTask.GetTask();
 			return childProcess.ExitCode;
