@@ -45,11 +45,20 @@ namespace adabuild
 				return;
 			}
 
-			string _command = _args[0].Trim();
+			if (Command(_args))
+				Run();
+		}
+
+		/** Returns true if CLI should prompt read line again after execution */
+		public bool Command(string[] _args)
+		{
 			Dictionary<string, string> _arguments = ArgumentParser.Parse(_args);
-			
-			switch (_command)
+			switch (_args[0])
 			{
+				case "start":
+					Start();
+					return false;
+
 				case "build":
 					if (_args.Length < 2 || String.IsNullOrEmpty(_args[1]))
 					{
@@ -91,14 +100,13 @@ namespace adabuild
 				case "stop":
 				case "kill":
 					Stop();
-					return;
+					return false;
 
 				default:
 					Logger.Error($"Unknown command \"{_args[0]}\"");
 					break;
 			}
-
-			Run();
+			return true;
 		}
 
 		private void Stop()
