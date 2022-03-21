@@ -28,6 +28,7 @@ namespace adabuild.Monitor
 			fileSystemService = _fileSystem;
 			configService = _config;
 			state = _state;
+			SaveState = Utilities.Debouncer.Wrap(state.Save);
 		}
 
 		public void Start()
@@ -37,7 +38,6 @@ namespace adabuild.Monitor
 			
 			isRunning = true;
 			Logger.Info("Starting Monitor Service...");
-			SaveState = Utilities.Debouncer.Wrap(state.Save);
 			Watch();
 		}
 
