@@ -56,7 +56,7 @@ namespace adabuild.Build
 			Clear();
 			foreach (Config.ProjectDefinition _project in configService.GetProjects())
 			{
-				if (buildManifest.Contains(_project.name))
+				if (buildManifest.Contains(_project.name) || _project.type != "application")
 					continue;
 				
 				EnqueueDependencies(_project.name, _incremental);
