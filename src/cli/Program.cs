@@ -40,7 +40,6 @@ namespace adabuild
 			switch (_args[0])
 			{
 				case "build":
-				{
 					if (_args.Length > 1)
 					{
 						Dictionary<string, string> _arguments = cli.ParseArguments(_args);
@@ -64,19 +63,14 @@ namespace adabuild
 						Console.Error.WriteLine("No project name supplied to build command.");
 					}
 					break;
-				}
 
 				case "start":
-				{
 					cli.Start();
-					break;
-				}
-
-				case "help":
 					break;
 
 				case "reset":
 				case "clear":
+					monitorService.Reset();
 					break;
 					
 				default:
