@@ -28,7 +28,7 @@ namespace adabuild.Monitor
 			fileSystemService = _fileSystem;
 			configService = _config;
 			state = _state;
-			SaveState = Utilities.Debouncer.Wrap(state.Save);
+			SaveState = Debouncer.Wrap(state.Save);
 		}
 
 		public void Start()

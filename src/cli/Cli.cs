@@ -42,7 +42,7 @@ namespace adabuild
 			}
 
 			string _command = _args[0].Trim();
-			Dictionary<string, string> _arguments = Utilities.ArgumentParser.Parse(_args);
+			Dictionary<string, string> _arguments = ArgumentParser.Parse(_args);
 			
 			switch (_command)
 			{

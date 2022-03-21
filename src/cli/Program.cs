@@ -20,7 +20,7 @@ namespace adabuild
 				case "build":
 					if (_args.Length > 1)
 					{
-						Dictionary<string, string> _arguments = Utilities.ArgumentParser.Parse(_args);
+						Dictionary<string, string> _arguments = ArgumentParser.Parse(_args);
 						string _project = _args[1];
 						bool _incremental = !_arguments.ContainsKey("--incremental") ||
 							_arguments["--incremental"] != "false";

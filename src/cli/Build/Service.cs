@@ -157,7 +157,7 @@ namespace adabuild.Build
 			if (buildQueue.Count < 1)
 				return _exitCode;
 
-			Utilities.Benchmark _queueTimer = new Utilities.Benchmark();
+			Benchmark _queueTimer = new Benchmark();
 
 			if (!String.IsNullOrEmpty(configService.configuration.preBuild))
 			{
@@ -187,7 +187,7 @@ namespace adabuild.Build
 					}).ToArray();
 
 					string _groupName = String.Join(", ", _buildGroup);
-					Utilities.Benchmark _groupTimer = new Utilities.Benchmark();
+					Benchmark _groupTimer = new Benchmark();
 					
 					Logger.Info($"Executing build for {_groupName}...");
 					
