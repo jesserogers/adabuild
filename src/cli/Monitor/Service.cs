@@ -20,9 +20,9 @@ namespace adabuild.Monitor
 		private Action SaveState;
 
 		public Service(
-			ref FileSystem.Service _fileSystem,
-			ref Config.Service _config,
-			ref State _state
+			FileSystem.Service _fileSystem,
+			Config.Service _config,
+			State _state
 		)
 		{
 			fileSystemService = _fileSystem;

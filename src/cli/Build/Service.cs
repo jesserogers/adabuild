@@ -21,9 +21,9 @@ namespace adabuild.Build
 		private HashSet<string> buildManifest;
 
 		public Service(
-			ref Monitor.Service _monitorService,
-			ref Config.Service _configService,
-			ref CommandLine.Service _commandLineService
+			Monitor.Service _monitorService,
+			Config.Service _configService,
+			CommandLine.Service _commandLineService
 		) {
 			monitorService = _monitorService;
 			configService = _configService;

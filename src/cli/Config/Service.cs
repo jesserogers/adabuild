@@ -13,7 +13,7 @@ namespace adabuild.Config
 
 		private Dictionary<string, ProjectDefinition> projectMap;
 
-		public Service(ref FileSystem.Service _fileSystem)
+		public Service(FileSystem.Service _fileSystem)
 		{
 			fileSystemService = _fileSystem;
 			projectMap = new Dictionary<string, ProjectDefinition>();

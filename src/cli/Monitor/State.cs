@@ -23,7 +23,7 @@ namespace adabuild.Monitor
 			get { return fileSystemService.Root + $"\\{STATE_FILE}"; }
 		}
 
-		public State(ref FileSystem.Service _fileSystem)
+		public State(FileSystem.Service _fileSystem)
 		{
 			fileSystemService = _fileSystem;
 			history = new Dictionary<string, int>();

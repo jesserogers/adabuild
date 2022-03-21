@@ -14,9 +14,9 @@ namespace adabuild
 		private CommandLine.Service commandLineService;
 
 		public Cli(
-			ref Build.Service _buildService,
-			ref Monitor.Service _monitorService,
-			ref CommandLine.Service _commandLineService
+			Build.Service _buildService,
+			Monitor.Service _monitorService,
+			CommandLine.Service _commandLineService
 		)
 		{
 			buildService = _buildService;
@@ -42,7 +42,7 @@ namespace adabuild
 			}
 
 			string _command = _args[0].Trim();
-			Dictionary<string, string> _arguments = ParseArguments(_args);
+			Dictionary<string, string> _arguments = Utilities.ArgumentParser.Parse(_args);
 			
 			switch (_command)
 			{
@@ -100,39 +100,6 @@ namespace adabuild
 		{
 			Console.Write("adabuild > ");
 			return Console.ReadLine();
-		}
-
-		public Dictionary<string, string> ParseArguments(string[] _args)
-		{
-			if (_args.Length == 0)
-				return null;
-
-			Dictionary<string, string> _argumentMap = new Dictionary<string, string>();
-
-			for (int i = 1; i < _args.Length; i++)
-			{
-				if (_args[i].StartsWith("--"))
-				{
-					if (_args[i].Contains("="))
-					{
-						string[] _split = _args[i].Split("=");
-						string _key = _split[0].Trim();
-						string _value = _split[1].Trim();
-						_argumentMap.Add(_key, _value);
-						continue;
-					}
-
-					if (i == _args.Length - 1)
-						_argumentMap.Add(_args[i], null);
-					else
-					{
-						_argumentMap.Add(_args[i], _args[i + 1]);
-						i++;
-					}
-				}
-			}
-
-			return _argumentMap;
 		}
 
 	}

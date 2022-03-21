@@ -20,7 +20,7 @@ namespace adabuild.CommandLine
 
 		private ConcurrentDictionary<int, DataReceivedEventHandler> standardErrorHandlers;
 
-		public Service(ref FileSystem.Service _fileSystemService)
+		public Service(FileSystem.Service _fileSystemService)
 		{
 			FileSystemService = _fileSystemService;
 			Processes = new ConcurrentDictionary<int, AsyncProcess>();
