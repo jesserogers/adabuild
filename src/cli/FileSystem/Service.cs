@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Text.Json;
 
@@ -38,8 +39,17 @@ namespace adabuild.FileSystem
 
 		public async Task CopyFile(string _source, string _destination)
 		{
-			string _content = ReadFile(_source);
-			await WriteFile(_destination, _content);
+			try
+			{
+				string _content = ReadFile(_source);
+				if (_content == null || _content.Length == 0)
+					return;
+				await WriteFile(_destination, _content);
+			}
+			catch (Exception e)
+			{
+				Logger.Error($"Failed to copy file. {e.Message}");
+			}
 		}
 	}
 }
