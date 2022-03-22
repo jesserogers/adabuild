@@ -1,54 +1,91 @@
 {
-  "name": "adabuild",
-  "displayName": "adabuild",
-  "description": "Custom extension for Adaptiva front-end Angular Build System",
-  "version": "0.0.1",
-  "author": "Jesse Rogers <jesse.rogers@adaptiva.com>",
-  "engines": {
-    "vscode": "^1.64.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "*"
-  ],
-  "main": "./out/main.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "adabuild.build",
-        "title": "Build Project"
-      },
-      {
-        "command": "adabuild.incrementalbuild",
-        "title": "Build Project (Incremental)"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
-  },
-  "devDependencies": {
-    "@types/glob": "^7.2.0",
-    "@types/mocha": "^9.1.0",
-    "@types/node": "14.x",
-    "@types/vscode": "^1.64.0",
-    "@typescript-eslint/eslint-plugin": "^5.12.1",
-    "@typescript-eslint/parser": "^5.12.1",
-    "@vscode/test-electron": "^2.1.2",
-    "eslint": "^8.9.0",
-    "glob": "^7.2.0",
-    "mocha": "^9.2.1",
-    "typescript": "^4.5.5",
-    "vsce": "^2.6.7"
-  },
-  "dependencies": {
-    "@kuroi/syringe": "^2.0.0"
-  }
+	"name": "adabuild",
+	"displayName": "adabuild",
+	"description": "Custom extension for Adaptiva front-end Angular Build System",
+	"version": "0.0.3",
+	"author": "Jesse Rogers <jesse.rogers@adaptiva.com>",
+	"icon": "images/adaptiva.png",
+	"publisher": "Adaptiva",
+	"engines": {
+		"vscode": "^1.64.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "out/vscode/main.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "adabuild.start",
+				"title": "adabuild: Start"
+			},
+			{
+				"command": "adabuild.reset",
+				"title": "adabuild: Reset"
+			},
+			{
+				"command": "adabuild.stop",
+				"title": "adabuild: Stop"
+			},
+			{
+				"command": "adabuild.build",
+				"title": "adabuild: Build"
+			},
+			{
+				"command": "adabuild.buildfull",
+				"title": "adabuild: Build (non-incremental)"
+			},
+			{
+				"command": "adabuild.buildall",
+				"title": "adabuild: Build All"
+			},
+			{
+				"command": "adabuild.buildallfull",
+				"title": "adabuild: Build All (non-incremental)"
+			},
+			{
+				"command": "adabuild.copytsconfigdev",
+				"title": "adabuild: Copy tsconfig (dev)"
+			},
+			{
+				"command": "adabuild.copytsconfigprod",
+				"title": "adabuild: Copy tsconfig (prod)"
+			}
+		]
+	},
+	"repository": {
+		"type": "git",
+		"url": "http://10.1.10.15/jesserogers/adabuild.git"
+	},
+	"scripts": {
+		"compile:cli": "dotnet publish -r win-x64",
+		"postcompile:cli": "shx cp README.md dist && shx cp CHANGELOG.md dist",
+		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:cli",
+		"compile:vscode": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --sourcemap --external:vscode --format=cjs --platform=node",
+		"vscode:prepublish": "npm run compile:vscode",
+		"package:vscode": "vsce package --out ./dist/",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.2.0",
+		"@types/mocha": "^9.1.0",
+		"@types/node": "14.x",
+		"@types/vscode": "^1.64.0",
+		"@typescript-eslint/eslint-plugin": "^5.12.1",
+		"@typescript-eslint/parser": "^5.12.1",
+		"@vscode/test-electron": "^2.1.2",
+		"esbuild": "^0.14.24",
+		"eslint": "^8.9.0",
+		"glob": "^7.2.0",
+		"mocha": "^9.2.1",
+		"shx": "^0.3.4",
+		"typescript": "^4.5.5",
+		"vsce": "^2.6.7"
+	}
 }

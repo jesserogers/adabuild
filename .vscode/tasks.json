@@ -15,6 +15,41 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"label": "build:cli",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"build",
+				"${workspaceFolder}/adabuild.csproj",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "publish:cli",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"publish",
+				"-r",
+				"win-x64"
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "watch:cli",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"watch",
+				"run",
+				"--project",
+				"${workspaceFolder}/adabuild.csproj"
+			],
+			"problemMatcher": "$msCompile"
 		}
 	]
 }

@@ -1,0 +1,19 @@
+{
+	"projectsRootGlob": "**/src/**/*.*",
+	"projectDefinitions": [
+		{
+			"name": "common",
+			"type": "library",
+			"dependencies": [],
+			"buildCommand": "npm run compile:common"
+		},
+		{
+			"name": "vscode",
+			"type": "library",
+			"dependencies": [
+				"common"
+			],
+			"buildCommand": "npm run compile:vscode"
+		}
+	]
+}
