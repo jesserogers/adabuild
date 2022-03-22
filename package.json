@@ -2,7 +2,7 @@
 	"name": "adabuild",
 	"displayName": "adabuild",
 	"description": "Custom extension for Adaptiva front-end Angular Build System",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"author": "Jesse Rogers <jesse.rogers@adaptiva.com>",
 	"icon": "images/adaptiva.png",
 	"publisher": "Adaptiva",
