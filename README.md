@@ -54,4 +54,4 @@ The `adabuild` VS Code Extension exposes shortcuts in the VS Code Command Palett
 
  1. Navigate to the **Extensions** tab in VS Code.
  2. Select the "Install from VSIX" menu item from the Extensions tab context menu.
- 3. Select the `adabuild-... .vsix` file and wait for it to activate.
+ 3. Select the `adabuild-[...].vsix` file and wait for it to activate.
