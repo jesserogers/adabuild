@@ -5,12 +5,12 @@ All notable changes to the "adabuild" extension will be documented in this file.
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
- - Rewrite VS Code extension to invoke the .NET application
 
 ### v0.0.3
 
 #### Added
  - New CLI application written on .NET Core 3.1
+ - Rewrote VS Code extension to simply invoke the .NET application
 
 #### Removed
  - Node.js based CLI
