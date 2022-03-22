@@ -47,7 +47,7 @@ namespace adabuild.Build
 				return Task.FromResult<int>(0);
 			}
 
-			EnqueueBuildGroup(_project);
+			EnqueueProject(_project);
 			return ExecuteBuildQueue(_output);
 		}
 
@@ -121,11 +121,7 @@ namespace adabuild.Build
 					if (_dependencyDefinition == null)
 						throw new Exception($"No valid project definition for {_dependency}");
 
-					if (
-						_buildGroup.Count > 0 &&
-						(_concurrencyLimit > 0 && _buildGroup.Count >= _concurrencyLimit) ||
-						!CanBuildInParallel(_dependencyDefinition, _buildGroup)
-					) {
+					if (!CanBuildInParallel(_dependencyDefinition, _buildGroup)) {
 						buildQueue.Enqueue(new Queue<string>(_buildGroup));
 						_buildGroup.Clear();
 					}
@@ -234,11 +230,11 @@ namespace adabuild.Build
 
 		private bool CanBuildInParallel(Config.ProjectDefinition _next, Queue<string> _buildGroup)
 		{
-			if (_next == null || _buildGroup == null)
-				return false;
-
 			if (_next.dependencies.Length == 0 || _buildGroup.Count == 0)
 				return true;
+
+			if (_buildGroup.Count >= configService.GetConcurrencyLimit())
+				return false;
 
 			foreach (string _dependency in _next.dependencies)
 				if (_buildGroup.Contains(_dependency))
