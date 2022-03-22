@@ -6,6 +6,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.4
+
+#### Changed
+ - Removed logic that started `adabuild` immediately on extension activation. This prevents `adabuild` from starting up any time you open VS Code, even if it's not in a project directory.
+ - Made commands and arguments case insensitive
+
+#### Fixed
+ - Fixed an uncaught exception around StandardError redirection
+
 ### v0.0.3
 
 #### Added
