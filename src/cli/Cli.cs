@@ -53,7 +53,7 @@ namespace adabuild
 		public bool Command(string[] _args)
 		{
 			Dictionary<string, string> _arguments = ArgumentParser.Parse(_args);
-			switch (_args[0])
+			switch (_args[0].ToLower())
 			{
 				case "start":
 					Start();
