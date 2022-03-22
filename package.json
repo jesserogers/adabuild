@@ -62,11 +62,11 @@
 	},
 	"scripts": {
 		"compile:cli": "dotnet publish -r win-x64",
+		"postcompile:cli": "shx cp README.md dist && shx cp CHANGELOG.md dist",
 		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:cli",
 		"compile:vscode": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --sourcemap --external:vscode --format=cjs --platform=node",
 		"vscode:prepublish": "npm run compile:vscode",
 		"package:vscode": "vsce package --out ./dist/",
-		"postpackage:all": "shx cp README.md dist && shx cp CHANGELOG.md dist && shx cp package.json dist",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
