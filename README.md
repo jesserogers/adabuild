@@ -42,4 +42,7 @@ export NODE_OPTIONS=--max-old-space-size={YOUR_SIZE_HERE}
 ### VS Code Extension
 The `adabuild` VS Code Extension exposes shortcuts in the VS Code Command Palette to invoke the `adabuild` CLI. For best results, set your default shell profile to `"Command Prompt"` in your VS Code settings.
 
-Each `projectDefinition` has an optional `buildCommand` value for which you can supply a custom command line string to execute your build process. If none provided, `adabuild` assumes an `npm` script entry for `npm run build:{project-name}`.
+ 1. Navigate to the Extensions tab in VS Code.
+ 2. Select "Install from VSIX" from the menu in the top right corner of the Extensions tab.
+ 3. Select the VSIX file from the `adabuild` application directory.
+ 4. Upon activation, summon the command palette and run `adabuild: Start`.
