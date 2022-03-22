@@ -46,7 +46,8 @@ namespace adabuild.CommandLine
 					WindowStyle = ProcessWindowStyle.Hidden,
 					CreateNoWindow = true,
 					UseShellExecute = false,
-					RedirectStandardOutput = true
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
 				}
 			};
 			OnStart = _onStart;
