@@ -197,6 +197,7 @@ namespace adabuild.Build
 					if (_exitCode != 0)
 					{
 						Clear();
+						Logger.Error($"Failed build for {_groupName} in {_groupTimer.Elapsed()}");
 						return _exitCode;
 					}
 
