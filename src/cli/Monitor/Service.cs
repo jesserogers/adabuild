@@ -89,7 +89,6 @@ namespace adabuild.Monitor
 					DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
 					if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
 					{
-						Logger.Info($"Project {_projectDefinition.name} was changed... without me?");
 						state.Change(_projectDefinition.name);
 						break;
 					}
