@@ -71,7 +71,7 @@ namespace adabuild
 					bool _output = _arguments.ContainsKey("--output") &&
 						_arguments["--output"] != "false";
 					
-					int _delay = Build.Service.PARALLEL_BUILD_DELAY;
+					int _delay = 0;
 					if (_arguments.ContainsKey("--delay"))
 						_delay = Int32.Parse(_arguments["--delay"]);
 
