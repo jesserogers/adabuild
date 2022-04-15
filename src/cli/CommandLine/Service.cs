@@ -34,6 +34,8 @@ namespace adabuild.CommandLine
 			standardOutHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 			standardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 			errorOutput = new ConcurrentDictionary<int, StringBuilder>();
+
+			Console.CancelKeyPress += new ConsoleCancelEventHandler(Cancel);
 		}
 
 		public async Task<int> Exec(string _command, int _delay = 0, bool _output = false)
@@ -211,6 +213,11 @@ namespace adabuild.CommandLine
 
 			foreach (KeyValuePair<int, AsyncProcess> _process in Processes)
 				DestroyProcess(_process.Value);
+		}
+
+		private void Cancel(object _sender, ConsoleCancelEventArgs _args)
+		{
+			DestroyAllProcesses();
 		}
 
 	}
