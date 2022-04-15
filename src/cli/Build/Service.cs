@@ -8,8 +8,6 @@ namespace adabuild.Build
 	public class Service
 	{
 
-		public static int PARALLEL_BUILD_DELAY = 1000;
-
 		private Monitor.Service monitorService;
 
 		private Config.Service configService;
