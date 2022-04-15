@@ -70,11 +70,15 @@ namespace adabuild
 						_arguments["--incremental"] != "false";
 					bool _output = _arguments.ContainsKey("--output") &&
 						_arguments["--output"] != "false";
+					
+					int _delay = Build.Service.PARALLEL_BUILD_DELAY;
+					if (_arguments.ContainsKey("--delay"))
+						_delay = Int32.Parse(_arguments["--delay"]);
 
 					if (_args[1] == "all")
-						buildService.BuildAll(_incremental).GetAwaiter().GetResult();
+						buildService.BuildAll(_incremental, _output, _delay).GetAwaiter().GetResult();
 					else
-						buildService.Build(_args[1], _incremental, _output).GetAwaiter().GetResult();
+						buildService.Build(_args[1], _incremental, _output, _delay).GetAwaiter().GetResult();
 					break;
 
 				case "reset":
