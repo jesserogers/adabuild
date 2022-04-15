@@ -177,6 +177,10 @@ namespace adabuild.CommandLine
 
 		private void DestroyProcess(AsyncProcess _process)
 		{
+
+			if (_process == default(AsyncProcess))
+				return;
+
 			EventHandler _processExitHandler;
 			DataReceivedEventHandler _stdOutHandler;
 			DataReceivedEventHandler _stdErrorHandler;
