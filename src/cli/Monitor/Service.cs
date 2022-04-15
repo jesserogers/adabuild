@@ -75,7 +75,7 @@ namespace adabuild.Monitor
 			{
 				IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
 					$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDefinition.name}",
-					configService.configuration.fileExtension,
+					$"*.{configService.configuration.fileExtension}",
 					SearchOption.AllDirectories
 				);
 
@@ -100,7 +100,7 @@ namespace adabuild.Monitor
 		private void Watch()
 		{
 			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
-			watcher = new FileSystemWatcher(_path);
+			watcher = new FileSystemWatcher(_path, $"*.{configService.configuration.fileExtension}");
 
 			watcher.NotifyFilter = NotifyFilters.DirectoryName
 				| NotifyFilters.FileName
