@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace adabuild.Monitor
@@ -35,7 +36,7 @@ namespace adabuild.Monitor
 		{
 			if (isRunning)
 				return;
-			
+
 			isRunning = true;
 			Logger.Info("Starting Monitor Service...");
 			Watch();
@@ -66,6 +67,34 @@ namespace adabuild.Monitor
 				state.Clear(_project);
 
 			SaveState();
+		}
+
+		public void DetectChanges()
+		{
+			foreach (Config.ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
+			{
+				IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
+					$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDefinition.name}",
+					configService.configuration.fileExtension,
+					SearchOption.AllDirectories
+				);
+
+				if (!state.history.ContainsKey(_projectDefinition.name))
+					continue;
+
+				long _lastProjectBuildTime = state.history[_projectDefinition.name];
+
+				foreach (string _file in _projectDirectory)
+				{
+					DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
+					if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+					{
+						Logger.Info($"Project {_projectDefinition.name} was changed... without me?");
+						state.Change(_projectDefinition.name);
+						break;
+					}
+				}
+			}
 		}
 
 		private void Watch()
