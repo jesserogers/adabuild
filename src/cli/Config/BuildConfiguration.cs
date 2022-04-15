@@ -17,6 +17,8 @@ namespace adabuild.Config
 
 		public string terminal { get; set; } = "cmd.exe";
 
+		public string fileExtension { get; set; } = "*.*";
+
 		public BuildConfiguration()
 		{
 
