@@ -12,7 +12,7 @@ namespace adabuild.Monitor
 
 		public List<string> changed { get; set; }
 
-		public Dictionary<string, int> history { get; set; }
+		public Dictionary<string, long> history { get; set; }
 
 		private FileSystem.Service fileSystemService;
 
@@ -26,7 +26,7 @@ namespace adabuild.Monitor
 		public State(FileSystem.Service _fileSystem)
 		{
 			fileSystemService = _fileSystem;
-			history = new Dictionary<string, int>();
+			history = new Dictionary<string, long>();
 			changed = new List<string>();
 			LoadExistingState();
 		}
@@ -38,10 +38,7 @@ namespace adabuild.Monitor
 		public void Record(string _project)
 		{
 			changed.Remove(_project);
-			if (history.ContainsKey(_project))
-				history[_project] = history[_project] + 1;
-			else
-				history[_project] = 1;
+			history[_project] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 		}
 
 		public void Record(string[] _projects)
