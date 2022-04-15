@@ -124,28 +124,28 @@ namespace adabuild.Monitor
 		private void OnChanged(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Changed)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
 		private void OnCreated(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Created)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
 		private void OnDeleted(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Deleted)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
 		private void OnRenamed(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Renamed)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
-		private void CheckChanges(string _path)
+		private void CheckPath(string _path)
 		{
 			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
 			{
