@@ -38,31 +38,39 @@ namespace adabuild
 		{
 			string _input = Prompt();
 			string[] _args = _input.Split(" ");
+			int _exitCode = 0;
 			
 			if (_args.Length == 0)
 			{
 				Console.Error.WriteLine("Invalid argument list");
-				return;
+				_exitCode = 1;
 			}
+			else
+				_exitCode = Command(_args);
 
-			if (Command(_args))
+			if (monitorService.isRunning)
 				Run();
+			else
+				Environment.Exit(_exitCode);
 		}
 
 		/** Returns true if CLI should prompt read line again after execution */
-		public bool Command(string[] _args)
+		public int Command(string[] _args)
 		{
 			Dictionary<string, string> _arguments = ArgumentParser.Parse(_args);
+			int _exitCode = 0;
+
 			switch (_args[0].ToLower())
 			{
 				case "start":
 					Start();
-					return false;
+					break;
 
 				case "build":
 					if (_args.Length < 2 || String.IsNullOrEmpty(_args[1]))
 					{
 						Logger.Error("Please provide a valid project name");
+						_exitCode = 1;
 						break;
 					}
 
@@ -70,15 +78,16 @@ namespace adabuild
 						_arguments["--incremental"] != "false";
 					bool _output = _arguments.ContainsKey("--output") &&
 						_arguments["--output"] != "false";
-					
 					int _delay = 0;
+
 					if (_arguments.ContainsKey("--delay"))
 						_delay = Int32.Parse(_arguments["--delay"]);
 
 					if (_args[1] == "all")
-						buildService.BuildAll(_incremental, _output, _delay).GetAwaiter().GetResult();
+						_exitCode = buildService.BuildAll(_incremental, _output, _delay).GetAwaiter().GetResult();
 					else
-						buildService.Build(_args[1], _incremental, _output, _delay).GetAwaiter().GetResult();
+						_exitCode = buildService.Build(_args[1], _incremental, _output, _delay).GetAwaiter().GetResult();
+
 					break;
 
 				case "reset":
@@ -104,13 +113,15 @@ namespace adabuild
 				case "stop":
 				case "kill":
 					Stop();
-					return false;
+					break;
 
 				default:
 					Logger.Error($"Unknown command \"{_args[0]}\"");
 					break;
 			}
-			return true;
+
+			return _exitCode;
+
 		}
 
 		private void Stop()
