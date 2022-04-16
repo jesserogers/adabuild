@@ -16,7 +16,7 @@ namespace adabuild.Monitor
 
 		private Config.Service configService;
 
-		private bool isRunning = false;
+		public bool isRunning = false;
 
 		private Action SaveState;
 
