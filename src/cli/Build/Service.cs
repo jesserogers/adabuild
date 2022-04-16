@@ -32,7 +32,7 @@ namespace adabuild.Build
 			monitorService.DetectChanges();
 		}
 
-		public Task<int> Build(string _project, bool _incremental, bool _output, int _delay)
+		public Task<int> Build(string _project, bool _incremental, bool _output, int _delay = 0)
 		{
 			Clear();
 
@@ -51,7 +51,7 @@ namespace adabuild.Build
 			return ExecuteBuildQueue(_output, _delay);
 		}
 
-		public Task<int> BuildAll(bool _incremental, bool _output, int _delay)
+		public Task<int> BuildAll(bool _incremental, bool _output, int _delay = 0)
 		{
 			Clear();
 			foreach (Config.ProjectDefinition _project in configService.GetProjects())
@@ -157,8 +157,11 @@ namespace adabuild.Build
 
 			if (!String.IsNullOrEmpty(configService.configuration.preBuild))
 			{
+				Logger.Info($"Executing pre-build script: {configService.configuration.preBuild}");
+
 				_exitCode = await commandLineService.Exec(configService.configuration.preBuild);
-				if (_exitCode > 1)
+				
+				if (_exitCode != 0)
 					return _exitCode;
 			}
 
