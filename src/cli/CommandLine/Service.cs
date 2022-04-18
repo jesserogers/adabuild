@@ -38,7 +38,7 @@ namespace adabuild.CommandLine
 			Console.CancelKeyPress += new ConsoleCancelEventHandler(Cancel);
 		}
 
-		public async Task<int> Exec(string _command, int _delay = 0, bool _output = false)
+		public async Task<int> Exec(string _command, bool _output = false, int _delay = 0)
 		{
 			AsyncProcess _process = SpawnProcess(_command, _output);
 
@@ -48,12 +48,12 @@ namespace adabuild.CommandLine
 			return await _process.Run();
 		}
 
-		public async Task<int> Exec(string[] _commands, int _delay = 0, bool _output = false)
+		public async Task<int> Exec(string[] _commands, bool _output = false, int _delay = 0)
 		{
 			int _wait = 0;
 			List<Task<int>> _taskList = _commands.Select(_command => {
 				_wait += _delay;
-				return Exec(_command, _delay);
+				return Exec(_command, _output, _delay);
 			}).ToList();
 
 			while (_taskList.Any())
@@ -221,6 +221,7 @@ namespace adabuild.CommandLine
 
 		private void Cancel(object _sender, ConsoleCancelEventArgs _args)
 		{
+			Logger.Info("User cancelled process. Destroying all child processes...");
 			DestroyAllProcesses();
 		}
 
