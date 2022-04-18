@@ -160,7 +160,7 @@ namespace adabuild.Build
 			{
 				Logger.Info($"Executing pre-build script: {configService.configuration.preBuild}");
 
-				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, true);
+				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, _output);
 				
 				if (_exitCode != 0)
 					return _exitCode;
@@ -222,7 +222,7 @@ namespace adabuild.Build
 			if (!String.IsNullOrEmpty(configService.configuration.postBuild))
 			{
 				Logger.Info($"Executing post-build script: {configService.configuration.postBuild}");
-				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, true);
+				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, _output);
 			}
 
 			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
