@@ -3,10 +3,14 @@
 	class Program
 	{
 
-		static void Main(string[] args)
+		static int Main(string[] args)
 		{
 			if (args.Length > 0)
-				Injector.CLI.Command(args);
+			{
+				return Injector.CLI.Command(args);
+			}
+			Logger.Error("Invalid arguments");
+			return 1;
 		}
 
 	}
