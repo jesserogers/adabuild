@@ -97,9 +97,6 @@ namespace adabuild.Build
 
 		private void EnqueueDependencies(string _project, bool _incremental)
 		{
-			if (buildManifest.Contains(_project))
-				return;
-
 			Config.ProjectDefinition _projectDefinition = configService.GetProject(_project);
 
 			if (_projectDefinition == null)
@@ -121,6 +118,9 @@ namespace adabuild.Build
 					if (_dependencyDefinition == null)
 						throw new Exception($"No valid project definition for {_dependency}");
 
+					if (_dependencyDefinition.dependencies.Length > 0)
+						EnqueueDependencies(_dependencyDefinition.name, _incremental);
+
 					if (!CanBuildInParallel(_dependencyDefinition, _buildGroup)) {
 						buildQueue.Enqueue(new Queue<string>(_buildGroup));
 						_buildGroup.Clear();
@@ -131,6 +131,7 @@ namespace adabuild.Build
 						if (!monitorService.state.HasChanged(_dependency))
 						{
 							Logger.Info($"No delta for {_dependency}. Skipping incremental build.");
+							buildManifest.Add(_dependency);
 							continue;
 						}
 						else
