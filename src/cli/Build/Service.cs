@@ -97,9 +97,6 @@ namespace adabuild.Build
 
 		private void EnqueueDependencies(string _project, bool _incremental)
 		{
-			if (buildManifest.Contains(_project))
-				return;
-
 			Config.ProjectDefinition _projectDefinition = configService.GetProject(_project);
 
 			if (_projectDefinition == null)
@@ -120,6 +117,9 @@ namespace adabuild.Build
 
 					if (_dependencyDefinition == null)
 						throw new Exception($"No valid project definition for {_dependency}");
+
+					if (_dependencyDefinition.dependencies.Length > 0)
+						EnqueueDependencies(_dependency, _incremental);
 
 					if (!CanBuildInParallel(_dependencyDefinition, _buildGroup)) {
 						buildQueue.Enqueue(new Queue<string>(_buildGroup));
@@ -159,7 +159,7 @@ namespace adabuild.Build
 			{
 				Logger.Info($"Executing pre-build script: {configService.configuration.preBuild}");
 
-				_exitCode = await commandLineService.Exec(configService.configuration.preBuild);
+				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, true);
 				
 				if (_exitCode != 0)
 					return _exitCode;
@@ -191,9 +191,9 @@ namespace adabuild.Build
 					Logger.Info($"Executing build for {_groupName}...");
 					
 					if (_buildGroup.Count == 1)
-						_exitCode = await commandLineService.Exec(_commands[0], 0, _output);
+						_exitCode = await commandLineService.Exec(_commands[0], _output, 0);
 					else if (_buildGroup.Count > 1)
-						_exitCode = await commandLineService.Exec(_commands, _delay, _output);
+						_exitCode = await commandLineService.Exec(_commands, _output, _delay);
 					else
 						continue;
 
@@ -219,7 +219,10 @@ namespace adabuild.Build
 			}
 
 			if (!String.IsNullOrEmpty(configService.configuration.postBuild))
-				_exitCode = await commandLineService.Exec(configService.configuration.postBuild);
+			{
+				Logger.Info($"Executing post-build script: {configService.configuration.postBuild}");
+				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, true);
+			}
 
 			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
 			Clear();
