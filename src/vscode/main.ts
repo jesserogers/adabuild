@@ -7,7 +7,6 @@ export function activate(context: ExtensionContext) {
 	try {
 		app = new adabuild();
 		context.subscriptions.push(...app.generateCommands());
-		app.start();
 	} catch (_err) {
 		console.error(_err);
 	}

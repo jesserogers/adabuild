@@ -13,11 +13,12 @@ namespace adabuild
 
 			for (int i = 1; i < _args.Length; i++)
 			{
-				if (_args[i].StartsWith("--"))
+				string _arg = _args[i].ToLower();
+				if (_arg.StartsWith("--"))
 				{
-					if (_args[i].Contains("="))
+					if (_arg.Contains("="))
 					{
-						string[] _split = _args[i].Split("=");
+						string[] _split = _arg.Split("=");
 						string _key = _split[0].Trim();
 						string _value = _split[1].Trim();
 						_argumentMap.Add(_key, _value);
@@ -25,14 +26,14 @@ namespace adabuild
 					}
 
 					if (i == _args.Length - 1)
-						_argumentMap.Add(_args[i], null);
+						_argumentMap.Add(_arg, null);
 					else
 					{
 						if (_args[i + 1].StartsWith("--"))
-							_argumentMap.Add(_args[i], null);
+							_argumentMap.Add(_arg, null);
 						else
 						{
-							_argumentMap.Add(_args[i], _args[i + 1]);
+							_argumentMap.Add(_arg, _args[i + 1]?.ToLower());
 							i++;
 						}
 					}

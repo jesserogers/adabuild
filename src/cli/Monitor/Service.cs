@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace adabuild.Monitor
@@ -15,7 +16,7 @@ namespace adabuild.Monitor
 
 		private Config.Service configService;
 
-		private bool isRunning = false;
+		public bool isRunning { get; private set; } = false;
 
 		private Action SaveState;
 
@@ -35,7 +36,7 @@ namespace adabuild.Monitor
 		{
 			if (isRunning)
 				return;
-			
+
 			isRunning = true;
 			Logger.Info("Starting Monitor Service...");
 			Watch();
@@ -68,10 +69,37 @@ namespace adabuild.Monitor
 			SaveState();
 		}
 
+		public void DetectChanges()
+		{
+			foreach (Config.ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
+			{
+				IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
+					$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDefinition.name}",
+					$"*.{configService.configuration.fileExtension}",
+					SearchOption.AllDirectories
+				);
+
+				if (!state.history.ContainsKey(_projectDefinition.name))
+					continue;
+
+				long _lastProjectBuildTime = state.history[_projectDefinition.name];
+
+				foreach (string _file in _projectDirectory)
+				{
+					DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
+					if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+					{
+						state.Change(_projectDefinition.name);
+						break;
+					}
+				}
+			}
+		}
+
 		private void Watch()
 		{
 			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
-			watcher = new FileSystemWatcher(_path);
+			watcher = new FileSystemWatcher(_path, $"*.{configService.configuration.fileExtension}");
 
 			watcher.NotifyFilter = NotifyFilters.DirectoryName
 				| NotifyFilters.FileName
@@ -96,28 +124,28 @@ namespace adabuild.Monitor
 		private void OnChanged(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Changed)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
 		private void OnCreated(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Created)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
 		private void OnDeleted(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Deleted)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
 		private void OnRenamed(object s, FileSystemEventArgs e)
 		{
 			if (e.ChangeType == WatcherChangeTypes.Renamed)
-				CheckChanges(e.FullPath);
+				CheckPath(e.FullPath);
 		}
 
-		private void CheckChanges(string _path)
+		private void CheckPath(string _path)
 		{
 			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
 			{

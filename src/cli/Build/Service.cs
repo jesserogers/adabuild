@@ -7,8 +7,8 @@ namespace adabuild.Build
 {
 	public class Service
 	{
-
-		private static int PARALLEL_BUILD_DELAY = 500;
+		
+		public static readonly int DEFAULT_PARALLEL_DELAY = 500;
 
 		private Monitor.Service monitorService;
 
@@ -30,9 +30,11 @@ namespace adabuild.Build
 			commandLineService = _commandLineService;
 			buildQueue = new Queue<Queue<string>>();
 			buildManifest = new HashSet<string>();
+			
+			monitorService.DetectChanges();
 		}
 
-		public Task<int> Build(string _project, bool _incremental, bool _output)
+		public Task<int> Build(string _project, bool _incremental, bool _output, int _delay = 0)
 		{
 			Clear();
 
@@ -48,10 +50,10 @@ namespace adabuild.Build
 			}
 
 			EnqueueProject(_project);
-			return ExecuteBuildQueue(_output);
+			return ExecuteBuildQueue(_output, _delay);
 		}
 
-		public Task<int> BuildAll(bool _incremental = true, bool _output = false)
+		public Task<int> BuildAll(bool _incremental, bool _output, int _delay = 0)
 		{
 			Clear();
 			foreach (Config.ProjectDefinition _project in configService.GetProjects())
@@ -76,7 +78,7 @@ namespace adabuild.Build
 				return Task.FromResult<int>(0);
 			}
 
-			return ExecuteBuildQueue(_output);
+			return ExecuteBuildQueue(_output, _delay);
 		}
 
 		private void EnqueueBuildGroup(string _project)
@@ -97,9 +99,6 @@ namespace adabuild.Build
 
 		private void EnqueueDependencies(string _project, bool _incremental)
 		{
-			if (buildManifest.Contains(_project))
-				return;
-
 			Config.ProjectDefinition _projectDefinition = configService.GetProject(_project);
 
 			if (_projectDefinition == null)
@@ -121,6 +120,9 @@ namespace adabuild.Build
 					if (_dependencyDefinition == null)
 						throw new Exception($"No valid project definition for {_dependency}");
 
+					if (_dependencyDefinition.dependencies.Length > 0)
+						EnqueueDependencies(_dependencyDefinition.name, _incremental);
+
 					if (!CanBuildInParallel(_dependencyDefinition, _buildGroup)) {
 						buildQueue.Enqueue(new Queue<string>(_buildGroup));
 						_buildGroup.Clear();
@@ -131,6 +133,7 @@ namespace adabuild.Build
 						if (!monitorService.state.HasChanged(_dependency))
 						{
 							Logger.Info($"No delta for {_dependency}. Skipping incremental build.");
+							buildManifest.Add(_dependency);
 							continue;
 						}
 						else
@@ -146,7 +149,7 @@ namespace adabuild.Build
 			}
 		}
 
-		private async Task<int> ExecuteBuildQueue(bool _output)
+		private async Task<int> ExecuteBuildQueue(bool _output, int _delay)
 		{
 			int _exitCode = 0;
 			
@@ -157,8 +160,11 @@ namespace adabuild.Build
 
 			if (!String.IsNullOrEmpty(configService.configuration.preBuild))
 			{
-				_exitCode = await commandLineService.Exec(configService.configuration.preBuild);
-				if (_exitCode > 1)
+				Logger.Info($"Executing pre-build script: {configService.configuration.preBuild}");
+
+				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, _output);
+				
+				if (_exitCode != 0)
 					return _exitCode;
 			}
 
@@ -188,15 +194,16 @@ namespace adabuild.Build
 					Logger.Info($"Executing build for {_groupName}...");
 					
 					if (_buildGroup.Count == 1)
-						_exitCode = await commandLineService.Exec(_commands[0], 0, _output);
+						_exitCode = await commandLineService.Exec(_commands[0], _output, 0);
 					else if (_buildGroup.Count > 1)
-						_exitCode = await commandLineService.Exec(_commands, PARALLEL_BUILD_DELAY, _output);
+						_exitCode = await commandLineService.Exec(_commands, _output, _delay);
 					else
 						continue;
 
 					if (_exitCode != 0)
 					{
 						Clear();
+						Logger.Error($"Failed build for {_groupName} in {_groupTimer.Elapsed()}");
 						return _exitCode;
 					}
 
@@ -215,7 +222,10 @@ namespace adabuild.Build
 			}
 
 			if (!String.IsNullOrEmpty(configService.configuration.postBuild))
-				_exitCode = await commandLineService.Exec(configService.configuration.postBuild);
+			{
+				Logger.Info($"Executing post-build script: {configService.configuration.postBuild}");
+				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, _output);
+			}
 
 			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
 			Clear();

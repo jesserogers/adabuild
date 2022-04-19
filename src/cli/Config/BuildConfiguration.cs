@@ -9,13 +9,15 @@ namespace adabuild.Config
 
 		public ProjectDefinition[] projectDefinitions { get; set; }
 
-		public byte maxConcurrentBuilds { get; set; }
+		public byte maxConcurrentBuilds { get; set; } = 0;
 
 		public string preBuild { get; set; }
 
 		public string postBuild { get; set; }
 
 		public string terminal { get; set; } = "cmd.exe";
+
+		public string fileExtension { get; set; } = "*";
 
 		public BuildConfiguration()
 		{

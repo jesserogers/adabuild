@@ -7,6 +7,8 @@ namespace adabuild.Config
 	public class Service
 	{
 
+		private static readonly string CONFIG_FILE =  @"\adabuild.config.json";
+
 		public BuildConfiguration configuration;
 
 		private FileSystem.Service fileSystemService;
@@ -22,7 +24,7 @@ namespace adabuild.Config
 
 		public void LoadConfiguration()
 		{
-			configuration = fileSystemService.ReadFile<BuildConfiguration>(fileSystemService.Root + @"\adabuild.config.json");
+			configuration = fileSystemService.ReadFile<BuildConfiguration>(fileSystemService.Root + CONFIG_FILE);
 
 			foreach (ProjectDefinition _project in configuration.projectDefinitions)
 				projectMap[_project.name] = _project;
@@ -30,7 +32,7 @@ namespace adabuild.Config
 
 		public async Task SaveConfiguration()
 		{
-			await fileSystemService.WriteFile(fileSystemService.Root + @"\adabuild.config.json",
+			await fileSystemService.WriteFile(fileSystemService.Root + CONFIG_FILE,
 				configuration.Export());
 		}
 
@@ -49,7 +51,7 @@ namespace adabuild.Config
 
 		public int GetConcurrencyLimit()
 		{
-			int _processorCount = Environment.ProcessorCount * 2;
+			int _processorCount = Environment.ProcessorCount;
 			return configuration.maxConcurrentBuilds == 0 ?
 				_processorCount : Math.Min(configuration.maxConcurrentBuilds, _processorCount);
 		}

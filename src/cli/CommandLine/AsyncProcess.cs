@@ -46,7 +46,8 @@ namespace adabuild.CommandLine
 					WindowStyle = ProcessWindowStyle.Hidden,
 					CreateNoWindow = true,
 					UseShellExecute = false,
-					RedirectStandardOutput = true
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
 				}
 			};
 			OnStart = _onStart;
@@ -54,11 +55,8 @@ namespace adabuild.CommandLine
 			showOutput = _showOutput;
 		}
 
-		public async Task<int> Run(int _delay = 250)
+		public async Task<int> Run()
 		{
-			if (_delay > 0)
-				await Task.Delay(_delay);
-
 			childProcess.Start();
 
 			if (OnStart != null)
@@ -68,6 +66,7 @@ namespace adabuild.CommandLine
 
 			childProcess.Exited += asyncTask.OnExit;
 			childProcess.BeginOutputReadLine();
+			childProcess.BeginErrorReadLine();
 
 			await asyncTask.GetTask();
 			return childProcess.ExitCode;

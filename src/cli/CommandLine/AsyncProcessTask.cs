@@ -35,16 +35,10 @@ namespace adabuild.CommandLine
 			
 			isCompleted = true;
 
-			if (!runningProcess.HasExited)
-				runningProcess.WaitForExit();
-
-			if (runningProcess.ExitCode > 0)
-				Logger.Error($"Process [{runningProcess.Id}]: {runningProcess.StandardError.ReadToEnd()}");
-
-			tcs.SetResult(runningProcess.ExitCode);
-
 			if (exitHandler != null)
 				exitHandler(runningProcess, _event);
+
+			tcs.SetResult(runningProcess.ExitCode);
 		}
 
 		public AsyncProcessTask(

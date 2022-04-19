@@ -6,6 +6,24 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.5
+
+#### Added
+ - Optional file extension property on build config to specify what files to watch.
+
+#### Changed
+ - Store unix timestamp of last project build time instead of increment.
+ - Manually check all files in directory on build service startup to check for unwatched changes.
+
+### v0.0.4
+
+#### Changed
+ - Removed logic that started `adabuild` immediately on extension activation. This prevents `adabuild` from starting up any time you open VS Code, even if it's not in a project directory.
+ - Made commands and arguments case insensitive
+
+#### Fixed
+ - Fixed an uncaught exception around StandardError redirection
+
 ### v0.0.3
 
 #### Added
