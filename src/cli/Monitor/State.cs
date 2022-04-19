@@ -100,7 +100,7 @@ namespace adabuild.Monitor
 				State _cachedState = fileSystemService.ReadFile<State>(STATE_PATH);
 				if (_cachedState == null)
 				{
-					Console.WriteLine("No existing state file.");
+					Logger.Info("No existing state file.");
 					return;
 				}
 
@@ -109,7 +109,7 @@ namespace adabuild.Monitor
 			}
 			catch (Exception e)
 			{
-				Console.Error.WriteLine($"Failed to load existing state file: {e.Message}");
+				Logger.Error($"Failed to load existing state file: {e.Message}");
 			}
 		}
 
