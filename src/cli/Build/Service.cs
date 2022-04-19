@@ -7,6 +7,8 @@ namespace adabuild.Build
 {
 	public class Service
 	{
+		
+		public static readonly int DEFAULT_PARALLEL_DELAY = 500;
 
 		private Monitor.Service monitorService;
 
