@@ -49,7 +49,7 @@ namespace adabuild.Config
 
 		public int GetConcurrencyLimit()
 		{
-			int _processorCount = Environment.ProcessorCount * 2;
+			int _processorCount = Environment.ProcessorCount;
 			return configuration.maxConcurrentBuilds == 0 ?
 				_processorCount : Math.Min(configuration.maxConcurrentBuilds, _processorCount);
 		}
