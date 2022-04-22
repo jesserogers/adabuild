@@ -7,6 +7,8 @@ namespace adabuild
 	public class Cli
 	{
 
+		private static readonly string VERSION = "0.0.6-rc1";
+
 		private Config.Service configService;
 
 		private Build.Service buildService;
@@ -39,7 +41,7 @@ namespace adabuild
 			string _input = Prompt();
 			string[] _args = _input.Split(" ");
 			int _exitCode = 0;
-			
+
 			if (_args.Length == 0)
 			{
 				Console.Error.WriteLine("Invalid argument list");
@@ -63,6 +65,7 @@ namespace adabuild
 			switch (_args[0].ToLower())
 			{
 				case "start":
+				case "watch":
 					Start();
 					break;
 
@@ -79,14 +82,21 @@ namespace adabuild
 					bool _output = _arguments.ContainsKey("--output") &&
 						_arguments["--output"] != "false";
 					int _delay = Build.Service.DEFAULT_PARALLEL_DELAY;
+					int _concurrency = Injector.ConfigService.GetConcurrencyLimit();
 
 					if (_arguments.ContainsKey("--delay"))
 						_delay = Int32.Parse(_arguments["--delay"]);
+
+					if (_arguments.ContainsKey("--concurrency"))
+						configService.SetConcurrencyLimit(Int32.Parse(_arguments["--concurrency"]));
 
 					if (_args[1] == "all")
 						_exitCode = buildService.BuildAll(_incremental, _output, _delay).GetAwaiter().GetResult();
 					else
 						_exitCode = buildService.Build(_args[1], _incremental, _output, _delay).GetAwaiter().GetResult();
+
+					// set concurrency limit back to saved value
+					configService.SetConcurrencyLimit(_concurrency);
 
 					break;
 
@@ -99,12 +109,6 @@ namespace adabuild
 					monitorService.state.Save().GetAwaiter().GetResult();
 					break;
 
-				case "terminal":
-					if (_args.Length > 1 && !String.IsNullOrEmpty(_args[1]))
-						configService.SetTerminal(_args[1]).GetAwaiter().GetResult();
-					else
-						Logger.Error("Please supply a terminal type.");
-					break;
 
 				case "cls":
 					Console.Clear();
@@ -114,6 +118,24 @@ namespace adabuild
 				case "kill":
 					Stop();
 					break;
+
+				case "version":
+					Logger.Info(VERSION);
+					break;
+
+				case "config":
+				{
+					if (_arguments.ContainsKey("--terminal"))
+						configService.SetTerminal(_arguments["--terminal"]).GetAwaiter().GetResult();
+					
+					if (_arguments.ContainsKey("--concurrency"))
+					{
+						int _newLimit = Int32.Parse(_arguments["--concurrency"]);
+						configService.SaveConcurrencyLimit(_newLimit).GetAwaiter().GetResult();
+					}
+					
+					break;
+				}
 
 				default:
 					Logger.Error($"Unknown command \"{_args[0]}\"");
