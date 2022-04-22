@@ -56,6 +56,17 @@ namespace adabuild.Config
 				_processorCount : Math.Min(configuration.maxConcurrentBuilds, _processorCount);
 		}
 
+		public void SetConcurrencyLimit(int _limit)
+		{
+			configuration.maxConcurrentBuilds = Math.Clamp(_limit, 0, Environment.ProcessorCount);
+		}
+
+		public async Task SaveConcurrencyLimit(int _limit)
+		{
+			SetConcurrencyLimit(_limit);
+			await SaveConfiguration();
+		}
+
 		public async Task CopyTsConfig(string _environment = "prod")
 		{
 			string _from = fileSystemService.Root + $"\\tsconfig.{_environment}.json";
