@@ -178,7 +178,10 @@ namespace adabuild.CommandLine
 		private void DestroyProcess(AsyncProcess _process)
 		{
 
-			if (_process == default(AsyncProcess))
+			if (_process == null)
+				return;
+
+			if (_process.childProcess == null)
 				return;
 
 			EventHandler _processExitHandler;
@@ -200,7 +203,7 @@ namespace adabuild.CommandLine
 
 				_process.childProcess.Kill();
 			}
-			catch (Exception e)
+			catch (NullReferenceException e)
 			{
 				Logger.Error($"Failed to destroy process [{_process.id}]: {e.Message}");
 				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
