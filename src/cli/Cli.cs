@@ -7,7 +7,7 @@ namespace adabuild
 	public class Cli
 	{
 
-		private static readonly string VERSION = "0.0.6-rc1";
+		private static readonly string VERSION = "0.0.6";
 
 		private Config.Service configService;
 
