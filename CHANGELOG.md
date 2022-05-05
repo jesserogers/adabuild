@@ -6,6 +6,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.6
+
+#### Fixed
+ - Fixed occasional `NullReferenceException` in `DestroyProcess`
+
+#### Added
+ - New command: `version`
+ - New command: `config`
+
 ### v0.0.5
 
 #### Added
