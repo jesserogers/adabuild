@@ -15,7 +15,7 @@ namespace adabuild.CommandLine
 
 		private Config.Service configService;
 
-		private ConcurrentDictionary<int, AsyncProcess> Processes;
+		private ConcurrentDictionary<int, AsyncProcess> processes;
 
 		private ConcurrentDictionary<int, EventHandler> processExitHandlers;
 
@@ -29,7 +29,7 @@ namespace adabuild.CommandLine
 		{
 			fileSystemService = _fileSystemService;
 			configService = _configService;
-			Processes = new ConcurrentDictionary<int, AsyncProcess>();
+			processes = new ConcurrentDictionary<int, AsyncProcess>();
 			processExitHandlers = new ConcurrentDictionary<int, EventHandler>();
 			standardOutHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
 			standardErrorHandlers = new ConcurrentDictionary<int, DataReceivedEventHandler>();
@@ -74,7 +74,7 @@ namespace adabuild.CommandLine
 		{
 			_process.childProcess.OutputDataReceived += StandardOutCallbackFactory(_process.id);
 			_process.childProcess.ErrorDataReceived += StandardErrorCallbackFactory(_process.id);
-			Processes.TryAdd(_process.id, _process);
+			processes.TryAdd(_process.id, _process);
 		}
 
 		private DataReceivedEventHandler StandardOutCallbackFactory(int _processId)
@@ -82,7 +82,7 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler(
 				(object sender, DataReceivedEventArgs e) =>
 				{
-					AsyncProcess _process = Processes[_processId];
+					AsyncProcess _process = processes[_processId];
 
 					if (_process == null)
 						return;
@@ -113,7 +113,7 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler(
 				(object sender, DataReceivedEventArgs e) =>
 				{
-					AsyncProcess _process = Processes[_processId];
+					AsyncProcess _process = processes[_processId];
 
 					if (_process == null)
 						return;
@@ -149,10 +149,10 @@ namespace adabuild.CommandLine
 		{
 			EventHandler _handler = new EventHandler((object sender, EventArgs e) =>
 			{
-				if (!Processes.ContainsKey(_processId))
+				if (!processes.ContainsKey(_processId))
 					return;
 
-				AsyncProcess _process = Processes[_processId];
+				AsyncProcess _process = processes[_processId];
 
 				if (_process.childProcess.ExitCode > 0)
 				{
@@ -199,7 +199,7 @@ namespace adabuild.CommandLine
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
 				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);
 				errorOutput.TryRemove(_process.id, out _errorMessages);
-				Processes.TryRemove(_process.id, out _process);
+				processes.TryRemove(_process.id, out _process);
 
 				_process.childProcess.Kill();
 			}
@@ -209,17 +209,21 @@ namespace adabuild.CommandLine
 				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
 				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);
-				Processes.TryRemove(_process.id, out _process);
+				processes.TryRemove(_process.id, out _process);
 			}
 		}
 
 		public void DestroyAllProcesses()
 		{
-			if (Processes.Count == 0)
-				return;
+			if (processes.Count > 0)
+				foreach (KeyValuePair<int, AsyncProcess> _process in processes)
+					DestroyProcess(_process.Value);
 
-			foreach (KeyValuePair<int, AsyncProcess> _process in Processes)
-				DestroyProcess(_process.Value);
+			processExitHandlers.Clear();
+			standardOutHandlers.Clear();
+			standardErrorHandlers.Clear();
+			errorOutput.Clear();
+			processes.Clear();
 		}
 
 		private void Cancel(object _sender, ConsoleCancelEventArgs _args)
