@@ -15,6 +15,8 @@ namespace adabuild.Config
 
 		private Dictionary<string, ProjectDefinition> projectMap;
 
+		public bool IsValid => configuration != default(BuildConfiguration);
+
 		public Service(FileSystem.Service _fileSystem)
 		{
 			fileSystemService = _fileSystem;
@@ -24,10 +26,16 @@ namespace adabuild.Config
 
 		public void LoadConfiguration()
 		{
-			configuration = fileSystemService.ReadFile<BuildConfiguration>(fileSystemService.Root + CONFIG_FILE);
-
-			foreach (ProjectDefinition _project in configuration.projectDefinitions)
-				projectMap[_project.name] = _project;
+			try
+			{
+				configuration = fileSystemService.ReadFile<BuildConfiguration>(fileSystemService.Root + CONFIG_FILE);
+				foreach (ProjectDefinition _project in configuration.projectDefinitions)
+					projectMap[_project.name] = _project;	
+			}
+			catch
+			{
+				Logger.Error("Failed to load configuration file");
+			}
 		}
 
 		public async Task SaveConfiguration()
