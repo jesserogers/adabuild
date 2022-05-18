@@ -37,6 +37,17 @@
       - Removes change and build history from `.adabuildstate` for a specified project. If no specified project, `adabuild` removes all history.
     - `cls`
       - Clears terminal output.
+    - `config`
+      - Set configuration values from the CLI.
+      - Flags:
+        - `--terminal`: `string`
+          - Sets the desired command prompt to generate child processes. Accepts `bash` or `cmd.exe`
+          - Default: `cmd.exe`
+        - `--concurrency`: `int`
+          - Sets the maximum number of projects `adabuild` will run in parallel. Bound between `0` and the number of CPU cores on the machine.
+		  - Default: `5`
+    - `version`
+      - Returns the currently installed `adabuild` version
 
 #### Recommended Bash Settings
 ```

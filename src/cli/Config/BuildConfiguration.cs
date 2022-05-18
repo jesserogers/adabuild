@@ -9,7 +9,7 @@ namespace adabuild.Config
 
 		public ProjectDefinition[] projectDefinitions { get; set; }
 
-		public byte maxConcurrentBuilds { get; set; } = 0;
+		public int maxConcurrentBuilds { get; set; } = 0;
 
 		public string preBuild { get; set; }
 
