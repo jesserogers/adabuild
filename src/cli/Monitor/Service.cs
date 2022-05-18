@@ -30,6 +30,8 @@ namespace adabuild.Monitor
 			configService = _config;
 			state = _state;
 			SaveState = Debouncer.Wrap(state.Save);
+			if (configService.IsValid)
+				DetectChanges();
 		}
 
 		public void Start()
@@ -69,7 +71,7 @@ namespace adabuild.Monitor
 			SaveState();
 		}
 
-		public void DetectChanges()
+		private void DetectChanges()
 		{
 			foreach (Config.ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
 			{
@@ -98,6 +100,9 @@ namespace adabuild.Monitor
 
 		private void Watch()
 		{
+			if (!configService.IsValid)
+				return;
+
 			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
 			watcher = new FileSystemWatcher(_path, $"*.{configService.configuration.fileExtension}");
 
@@ -114,6 +119,9 @@ namespace adabuild.Monitor
 
 		private void DestroyWatcher()
 		{
+			if (watcher == null)
+				return;
+
 			watcher.Changed -= OnChanged;
 			watcher.Created -= OnCreated;
 			watcher.Deleted -= OnDeleted;

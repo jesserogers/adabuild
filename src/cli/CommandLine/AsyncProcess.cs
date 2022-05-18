@@ -8,16 +8,15 @@ namespace adabuild.CommandLine
 	public class AsyncProcess
 	{
 
+		public static readonly int DEFAULT_ID = -1;
+
 		public Process childProcess;
 
 		public AsyncProcessTask asyncTask;
 
 		public bool showOutput;
 
-		public int id
-		{
-			get { return childProcess.Id; }
-		}
+		public int id { get; private set; } = DEFAULT_ID;
 
 		private Action<AsyncProcess> OnStart;
 
@@ -58,6 +57,8 @@ namespace adabuild.CommandLine
 		public async Task<int> Run()
 		{
 			childProcess.Start();
+
+			id =  childProcess.Id;
 
 			if (OnStart != null)
 				OnStart(this);

@@ -107,9 +107,9 @@ namespace adabuild.Monitor
 				changed = _cachedState.changed;
 				history = _cachedState.history;
 			}
-			catch (Exception e)
+			catch
 			{
-				Logger.Error($"Failed to load existing state file: {e.Message}");
+				Logger.Error("Failed to load existing state file");
 			}
 		}
 

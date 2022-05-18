@@ -6,11 +6,17 @@ namespace adabuild
 	{
 
 		private static FileSystem.Service fileSystemService;
+
 		private static Config.Service configService;
+
 		private static Monitor.State monitorState;
+
 		private static Monitor.Service monitorService;
+
 		private static CommandLine.Service commandLineService;
+
 		private static Build.Service buildService;
+
 		private static Cli cli;
 
 		public static FileSystem.Service FileSystemService
@@ -78,7 +84,7 @@ namespace adabuild
 			get
 			{
 				if (cli == null)
-					cli = new Cli(ConfigService, BuildService, MonitorService, CommandLineService);
+					cli = new Cli();
 				return cli;
 			}
 		}

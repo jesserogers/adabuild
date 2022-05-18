@@ -15,6 +15,8 @@ namespace adabuild.Config
 
 		private Dictionary<string, ProjectDefinition> projectMap;
 
+		public bool IsValid => configuration != default(BuildConfiguration);
+
 		public Service(FileSystem.Service _fileSystem)
 		{
 			fileSystemService = _fileSystem;
@@ -24,10 +26,16 @@ namespace adabuild.Config
 
 		public void LoadConfiguration()
 		{
-			configuration = fileSystemService.ReadFile<BuildConfiguration>(fileSystemService.Root + CONFIG_FILE);
-
-			foreach (ProjectDefinition _project in configuration.projectDefinitions)
-				projectMap[_project.name] = _project;
+			try
+			{
+				configuration = fileSystemService.ReadFile<BuildConfiguration>(fileSystemService.Root + CONFIG_FILE);
+				foreach (ProjectDefinition _project in configuration.projectDefinitions)
+					projectMap[_project.name] = _project;	
+			}
+			catch
+			{
+				Logger.Error("Failed to load configuration file");
+			}
 		}
 
 		public async Task SaveConfiguration()
@@ -54,6 +62,17 @@ namespace adabuild.Config
 			int _processorCount = Environment.ProcessorCount;
 			return configuration.maxConcurrentBuilds == 0 ?
 				_processorCount : Math.Min(configuration.maxConcurrentBuilds, _processorCount);
+		}
+
+		public void SetConcurrencyLimit(int _limit)
+		{
+			configuration.maxConcurrentBuilds = Math.Clamp(_limit, 0, Environment.ProcessorCount);
+		}
+
+		public async Task SaveConcurrencyLimit(int _limit)
+		{
+			SetConcurrencyLimit(_limit);
+			await SaveConfiguration();
 		}
 
 		public async Task CopyTsConfig(string _environment = "prod")
