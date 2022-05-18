@@ -31,7 +31,8 @@ namespace adabuild.Build
 			buildQueue = new Queue<Queue<string>>();
 			buildManifest = new HashSet<string>();
 			
-			monitorService.DetectChanges();
+			if (configService.IsValid)
+				monitorService.DetectChanges();
 		}
 
 		public Task<int> Build(string _project, bool _incremental, bool _output, int _delay = 0)
