@@ -1,3 +1,8 @@
+using adabuild.Build;
+using adabuild.CommandLine;
+using adabuild.Config;
+using adabuild.FileSystem;
+using adabuild.Monitor;
 
 namespace adabuild
 {
@@ -5,77 +10,77 @@ namespace adabuild
 	public static class Injector
 	{
 
-		private static FileSystem.Service fileSystemService;
+		private static FileSystemService _fileSystemService;
 
-		private static Config.Service configService;
+		private static ConfigService _configService;
 
-		private static Monitor.State monitorState;
+		private static MonitorState _monitorState;
 
-		private static Monitor.Service monitorService;
+		private static MonitorService _monitorService;
 
-		private static CommandLine.Service commandLineService;
+		private static CommandLineService _commandLineService;
 
-		private static Build.Service buildService;
+		private static BuildService _buildService;
 
-		private static Cli cli;
+		private static Cli _cli;
 
-		public static FileSystem.Service FileSystemService
+		public static FileSystemService fileSystemService
 		{
 			get
 			{
-				if (fileSystemService == null)
-					fileSystemService = new FileSystem.Service();
-				return fileSystemService;
+				if (_fileSystemService == null)
+					_fileSystemService = new FileSystemService();
+				return _fileSystemService;
 			}
 		}
 
-		public static Config.Service ConfigService
+		public static ConfigService configService
 		{
 			get
 			{
-				if (configService == null)
-					configService = new Config.Service(FileSystemService);
-				return configService;
+				if (_configService == null)
+					_configService = new ConfigService(fileSystemService);
+				return _configService;
 			}
 		}
 
-		public static Monitor.State MonitorState
+		public static MonitorState monitorState
 		{
 			get
 			{
-				if (monitorState == null)
-					monitorState = new Monitor.State(FileSystemService);
-				return monitorState;
+				if (_monitorState == null)
+					_monitorState = new MonitorState(fileSystemService);
+				return _monitorState;
 			}
 		}
 
-		public static Monitor.Service MonitorService
+		public static MonitorService monitorService
 		{
 			get
 			{
-				if (monitorService == null)
-					monitorService = new Monitor.Service(FileSystemService, ConfigService, MonitorState);
-				return monitorService;
+				if (_monitorService == null)
+					_monitorService = new MonitorService(fileSystemService, configService, monitorState);
+				return _monitorService;
 			}
 		}
 
-		public static CommandLine.Service CommandLineService
+		public static CommandLineService commandLineService
 		{
 			get
 			{
-				if (commandLineService == null)
-					commandLineService = new CommandLine.Service(FileSystemService, ConfigService);
-				return commandLineService;
+				if (_commandLineService == null)
+					_commandLineService = new CommandLineService(fileSystemService, configService);
+				return _commandLineService;
 			}
 		}
 
-		public static Build.Service BuildService
+		public static BuildService buildService
 		{
 			get
 			{
-				if (buildService == null)
-					buildService = new Build.Service(MonitorService, ConfigService, CommandLineService);
-				return buildService;
+				if (_buildService == null)
+					_buildService = new BuildService(monitorService, configService, commandLineService);
+				return _buildService;
 			}
 		}
 
@@ -83,9 +88,9 @@ namespace adabuild
 		{
 			get
 			{
-				if (cli == null)
-					cli = new Cli();
-				return cli;
+				if (_cli == null)
+					_cli = new Cli();
+				return _cli;
 			}
 		}
 

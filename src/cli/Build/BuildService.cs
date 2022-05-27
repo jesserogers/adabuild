@@ -2,28 +2,31 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using adabuild.CommandLine;
+using adabuild.Config;
+using adabuild.Monitor;
 
 namespace adabuild.Build
 {
-	public class Service
+	public class BuildService
 	{
 		
 		public static readonly int DEFAULT_PARALLEL_DELAY = 500;
 
-		private Monitor.Service monitorService;
+		private MonitorService monitorService;
 
-		private Config.Service configService;
+		private ConfigService configService;
 
-		private CommandLine.Service commandLineService;
+		private CommandLineService commandLineService;
 
 		private Queue<Queue<string>> buildQueue;
 
 		private HashSet<string> buildManifest;
 
-		public Service(
-			Monitor.Service _monitorService,
-			Config.Service _configService,
-			CommandLine.Service _commandLineService
+		public BuildService(
+			MonitorService _monitorService,
+			ConfigService _configService,
+			CommandLineService _commandLineService
 		) {
 			monitorService = _monitorService;
 			configService = _configService;
@@ -32,7 +35,7 @@ namespace adabuild.Build
 			buildManifest = new HashSet<string>();
 		}
 
-		public Task<int> Build(string _project, bool _incremental, bool _output, int _delay = 0)
+		public Task<int> Build(string _project, bool _incremental, bool _output, string _arguments, int _delay = 0)
 		{
 			Clear();
 
@@ -48,13 +51,13 @@ namespace adabuild.Build
 			}
 
 			EnqueueProject(_project);
-			return ExecuteBuildQueue(_output, _delay);
+			return ExecuteBuildQueue(_output, _arguments, _delay);
 		}
 
-		public Task<int> BuildAll(bool _incremental, bool _output, int _delay = 0)
+		public Task<int> BuildAll(bool _incremental, bool _output, string _arguments, int _delay = 0)
 		{
 			Clear();
-			foreach (Config.ProjectDefinition _project in configService.GetProjects())
+			foreach (ProjectDefinition _project in configService.GetProjects())
 			{
 				if (buildManifest.Contains(_project.name) || _project.type != "application")
 					continue;
@@ -76,7 +79,7 @@ namespace adabuild.Build
 				return Task.FromResult<int>(0);
 			}
 
-			return ExecuteBuildQueue(_output, _delay);
+			return ExecuteBuildQueue(_output, _arguments, _delay);
 		}
 
 		private void EnqueueBuildGroup(string _project)
@@ -97,7 +100,7 @@ namespace adabuild.Build
 
 		private void EnqueueDependencies(string _project, bool _incremental)
 		{
-			Config.ProjectDefinition _projectDefinition = configService.GetProject(_project);
+			ProjectDefinition _projectDefinition = configService.GetProject(_project);
 
 			if (_projectDefinition == null)
 				throw new Exception($"No valid project definition for {_project}");
@@ -113,7 +116,7 @@ namespace adabuild.Build
 					if (buildManifest.Contains(_dependency))
 						continue;
 
-					Config.ProjectDefinition _dependencyDefinition = configService.GetProject(_dependency);
+					ProjectDefinition _dependencyDefinition = configService.GetProject(_dependency);
 
 					if (_dependencyDefinition == null)
 						throw new Exception($"No valid project definition for {_dependency}");
@@ -147,7 +150,7 @@ namespace adabuild.Build
 			}
 		}
 
-		private async Task<int> ExecuteBuildQueue(bool _output, int _delay)
+		private async Task<int> ExecuteBuildQueue(bool _output, string _arguments, int _delay)
 		{
 			int _exitCode = 0;
 			
@@ -180,9 +183,9 @@ namespace adabuild.Build
 				{
 					string[] _commands = _buildGroup.Select((string _name) =>
 					{
-						Config.ProjectDefinition _project = configService.GetProject(_name);
+						ProjectDefinition _project = configService.GetProject(_name);
 						if (String.IsNullOrEmpty(_project.buildCommand))
-							return $"ng build {_project.name} --configuration production";
+							return $"ng build {_project.name}";
 						return _project.buildCommand;
 					}).ToArray();
 
@@ -248,7 +251,7 @@ namespace adabuild.Build
 			buildManifest.Clear();
 		}
 
-		private bool CanBuildInParallel(Config.ProjectDefinition _next, Queue<string> _buildGroup)
+		private bool CanBuildInParallel(ProjectDefinition _next, Queue<string> _buildGroup)
 		{
 			if (_next.dependencies.Length == 0 || _buildGroup.Count == 0)
 				return true;

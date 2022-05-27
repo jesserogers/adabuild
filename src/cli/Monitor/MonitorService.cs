@@ -1,29 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using adabuild.FileSystem;
+using adabuild.Config;
 
 namespace adabuild.Monitor
 {
 
-	public class Service
+	public class MonitorService
 	{
 
-		public State state;
+		public MonitorState state;
 
 		private FileSystemWatcher watcher;
 
-		private FileSystem.Service fileSystemService;
+		private FileSystemService fileSystemService;
 
-		private Config.Service configService;
+		private ConfigService configService;
 
 		public bool isRunning { get; private set; } = false;
 
 		private Action SaveState;
 
-		public Service(
-			FileSystem.Service _fileSystem,
-			Config.Service _config,
-			State _state
+		public MonitorService(
+			FileSystemService _fileSystem,
+			ConfigService _config,
+			MonitorState _state
 		)
 		{
 			fileSystemService = _fileSystem;
@@ -73,7 +75,7 @@ namespace adabuild.Monitor
 
 		private void DetectChanges()
 		{
-			foreach (Config.ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
+			foreach (ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
 			{
 				IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
 					$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDefinition.name}",
@@ -155,7 +157,7 @@ namespace adabuild.Monitor
 
 		private void CheckPath(string _path)
 		{
-			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
+			foreach (ProjectDefinition _project in configService.configuration.projectDefinitions)
 			{
 				if (_path.Contains($"\\{_project.name}\\"))
 				{
