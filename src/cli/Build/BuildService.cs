@@ -185,8 +185,8 @@ namespace adabuild.Build
 					{
 						ProjectDefinition _project = configService.GetProject(_name);
 						if (String.IsNullOrEmpty(_project.buildCommand))
-							return $"ng build {_project.name}";
-						return _project.buildCommand;
+							return $"ng build {_project.name}" + _arguments;
+						return _project.buildCommand + _arguments;
 					}).ToArray();
 
 					string _groupName = String.Join(", ", _buildGroup);
