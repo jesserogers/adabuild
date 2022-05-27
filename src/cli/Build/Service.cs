@@ -202,6 +202,9 @@ namespace adabuild.Build
 					{
 						Clear();
 						Logger.Error($"Failed build for {_groupName} in {_groupTimer.Elapsed()}");
+						
+						await ExecuteBuildFailureScript(_output);
+
 						return _exitCode;
 					}
 
@@ -214,6 +217,9 @@ namespace adabuild.Build
 				{
 					Logger.Error(e.Message);
 					Clear();
+					
+					await ExecuteBuildFailureScript(_output);
+					
 					_exitCode = 1;
 					return _exitCode;
 				}
@@ -228,6 +234,12 @@ namespace adabuild.Build
 			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
 			Clear();
 			return _exitCode;
+		}
+
+		private async Task ExecuteBuildFailureScript(bool _output)
+		{
+			if (!String.IsNullOrEmpty(configService.configuration.onError))
+				await commandLineService.Exec(configService.configuration.onError, _output);
 		}
 
 		private void Clear()
