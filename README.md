@@ -33,6 +33,7 @@
 		- `--delay`: `int`
 		  - The amount of milliseconds `adabuild` delays between initiating each concurrent build, in order to not overload `ngcc`.
 		  - Default: `500`
+		- `--configuration`: `string`
     - `reset [project?]`
       - Removes change and build history from `.adabuildstate` for a specified project. If no specified project, `adabuild` removes all history.
     - `cls`

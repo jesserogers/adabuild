@@ -6,6 +6,17 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.7
+
+#### Fixed
+ - Fixed potential `NullReferenceException` in `CommandLineService`
+
+#### Added
+ - Added new property to `BuildConfiguration`: `onError`, allowing post-failure script execution
+
+#### Changed
+ - Renamed/refactored service classes
+
 ### v0.0.6
 
 #### Fixed
