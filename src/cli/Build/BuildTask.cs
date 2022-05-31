@@ -1,9 +1,11 @@
+using System.Collections.Generic;
+
 namespace adabuild.Build
 {
 
 	public struct BuildRequest
 	{
-		public string project;
+		public HashSet<string> projects;
 		
 		public bool incremental;
 		
