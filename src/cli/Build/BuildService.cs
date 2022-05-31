@@ -23,8 +23,6 @@ namespace adabuild.Build
 
 		private HashSet<string> buildManifest;
 
-		private string requestedProject;
-
 		public BuildService(
 			MonitorService _monitorService,
 			ConfigService _configService,
@@ -39,29 +37,33 @@ namespace adabuild.Build
 
 		public Task<int> Build(BuildRequest _buildRequest)
 		{
-			requestedProject = _buildRequest.project;
-
-			Clear();
-
-			if (!_buildRequest.incremental)
-				Logger.Info("Running non-incremental build.");
-
-			EnqueueDependencies(_buildRequest.project, _buildRequest.incremental);
-
-			if (_buildRequest.incremental && !monitorService.state.HasChanged(_buildRequest.project))
+			foreach (string _project in _buildRequest.projects)
 			{
-				Logger.Info($"No action: {_buildRequest.project} and all dependencies up to date.");
+				ProjectDefinition _projectDefinition = configService.GetProject(_project);
+				string _projectDirectory = ProjectDefinition.GetProjectDirectory(_projectDefinition);
+				
+				EnqueueDependencies(_projectDefinition.name, _buildRequest.incremental);
+
+				if (_buildRequest.incremental && !monitorService.state.HasChanged(_projectDefinition.name))
+				{
+					Logger.Info($"No action: {_projectDefinition} and all dependencies up to date.");
+					continue;
+				}
+
+				EnqueueProject(_projectDefinition.name);
+			}
+
+			if (buildManifest.Count == 0)
+			{
+				Logger.Info($"No action: All projects up to date.");
 				return Task.FromResult<int>(0);
 			}
 
-			EnqueueProject(_buildRequest.project);
 			return ExecuteBuildQueue(_buildRequest);
 		}
 
 		public Task<int> BuildAll(BuildRequest _buildRequest)
 		{
-			requestedProject = _buildRequest.project;
-
 			Clear();
 
 			foreach (ProjectDefinition _project in configService.GetProjects())
@@ -201,7 +203,7 @@ namespace adabuild.Build
 						if (_buildCommand.StartsWith("npm run"))
 								_buildCommand += " --";
 						
-						return (_project.name == requestedProject) ?
+						return (_buildRequest.projects.Contains(_project.name)) ?
 							_buildCommand + " " + _buildRequest.arguments :
 							_buildCommand;
 
