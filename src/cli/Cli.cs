@@ -144,7 +144,7 @@ namespace adabuild
 				return;
 			}
 
-			string _project = _args[1];
+			string _projects = _args[1];
 			bool _incremental = !_arguments.ContainsKey("--incremental") ||
 				_arguments["--incremental"] != "false";
 			bool _output = _arguments.ContainsKey("--output") &&
@@ -170,7 +170,7 @@ namespace adabuild
 
 			BuildRequest _request = new BuildRequest
 			{
-				project = _project,
+				projects = new HashSet<string>(_projects.Split(",")),
 				incremental = _incremental,
 				output = _output,
 				prebuild = _prebuild,
@@ -179,7 +179,7 @@ namespace adabuild
 				delay = _delay,
 			};
 
-			if (_project == "all")
+			if (_projects == "all")
 				_exitCode = buildService.BuildAll(_request).GetAwaiter().GetResult();
 			else
 				_exitCode = buildService.Build(_request).GetAwaiter().GetResult();
