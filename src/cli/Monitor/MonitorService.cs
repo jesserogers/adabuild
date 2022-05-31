@@ -22,7 +22,7 @@ namespace adabuild.Monitor
 
 		private Action SaveState;
 
-		private Dictionary<string, HashSet<string>> projectDirectoryMapping;
+		private Dictionary<string, HashSet<string>> directoryToProjectNameMapping;
 
 		public MonitorService(
 			FileSystemService _fileSystem,
@@ -34,7 +34,7 @@ namespace adabuild.Monitor
 			configService = _config;
 			state = _state;
 			SaveState = Debouncer.Wrap(state.Save);
-			projectDirectoryMapping = new Dictionary<string, HashSet<string>>();
+			directoryToProjectNameMapping = new Dictionary<string, HashSet<string>>();
 
 			if (configService.IsValid)
 			{
@@ -86,10 +86,10 @@ namespace adabuild.Monitor
 			{
 				string _path = ProjectDefinition.GetProjectDirectory(_project);
 
-				if (projectDirectoryMapping.ContainsKey(_path))
-					projectDirectoryMapping[_path].Add(_project.name);
+				if (directoryToProjectNameMapping.ContainsKey(_path))
+					directoryToProjectNameMapping[_path].Add(_project.name);
 				else
-					projectDirectoryMapping.Add(_path, new HashSet<string>(new string[1] {_project.name}));
+					directoryToProjectNameMapping.Add(_path, new HashSet<string>(new string[1] {_project.name}));
 			}
 		}
 
@@ -188,19 +188,24 @@ namespace adabuild.Monitor
 
 		private void CheckPath(string _path)
 		{
-			if (!projectDirectoryMapping.ContainsKey(_path))
+			foreach (ProjectDefinition _projectDef in configService.GetProjects())
 			{
-				return;
+				string _directory = ProjectDefinition.GetProjectDirectory(_projectDef);
+
+				if (_path.Contains($"\\{_directory}\\"))
+				{
+					HashSet<string> _projects = directoryToProjectNameMapping[_directory];
+
+					foreach (string _project in _projects)
+					{
+						state.Change(_project);
+						SaveState();
+						return;	
+					}
+				}
 			}
 
-			HashSet<string> _projects = projectDirectoryMapping[_path];
-
-			foreach (string _project in _projects)
-			{
-				state.Change(_project);
-				SaveState();
-				return;
-			}
+			
 		}
 
 	}
