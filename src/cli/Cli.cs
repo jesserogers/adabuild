@@ -11,7 +11,7 @@ namespace adabuild
 	public class Cli
 	{
 
-		private static readonly string VERSION = "0.0.7";
+		private static readonly string VERSION = "0.0.7-rc2";
 
 		private static readonly string INVALID_CONFIG_MSG = "No available configuration file";
 
@@ -144,10 +144,15 @@ namespace adabuild
 				return;
 			}
 
+			string _project = _args[1];
 			bool _incremental = !_arguments.ContainsKey("--incremental") ||
 				_arguments["--incremental"] != "false";
 			bool _output = _arguments.ContainsKey("--output") &&
 				_arguments["--output"] != "false";
+			bool _prebuild = _arguments.ContainsKey("--prebuild") &&
+				_arguments["--prebuild"] != "false";
+			bool _postbuild = _arguments.ContainsKey("--postbuild") &&
+				_arguments["--postbuild"] != "false";
 			string _configuration = _arguments.ContainsKey("--configuration") ?
 				_arguments["--configuration"] : "";
 			int _delay = Build.BuildService.DEFAULT_PARALLEL_DELAY;
@@ -163,10 +168,21 @@ namespace adabuild
 			if (!String.IsNullOrEmpty(_configuration))
 				_buildArguments += $" --configuration {_configuration}";
 
-			if (_args[1] == "all")
-				_exitCode = buildService.BuildAll(_incremental, _output, _buildArguments, _delay).GetAwaiter().GetResult();
+			BuildRequest _request = new BuildRequest
+			{
+				project = _project,
+				incremental = _incremental,
+				output = _output,
+				prebuild = _prebuild,
+				postbuild = _postbuild,
+				arguments = _buildArguments,
+				delay = _delay,
+			};
+
+			if (_project == "all")
+				_exitCode = buildService.BuildAll(_request).GetAwaiter().GetResult();
 			else
-				_exitCode = buildService.Build(_args[1], _incremental, _output, _buildArguments, _delay).GetAwaiter().GetResult();
+				_exitCode = buildService.Build(_request).GetAwaiter().GetResult();
 
 			// set concurrency limit back to saved value
 			configService.SetConcurrencyLimit(_concurrency);
