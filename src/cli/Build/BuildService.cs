@@ -23,6 +23,8 @@ namespace adabuild.Build
 
 		private HashSet<string> buildManifest;
 
+		private string requestedProject;
+
 		public BuildService(
 			MonitorService _monitorService,
 			ConfigService _configService,
@@ -35,36 +37,41 @@ namespace adabuild.Build
 			buildManifest = new HashSet<string>();
 		}
 
-		public Task<int> Build(string _project, bool _incremental, bool _output, string _arguments, int _delay = 0)
+		public Task<int> Build(BuildRequest _buildRequest)
 		{
+			requestedProject = _buildRequest.project;
+
 			Clear();
 
-			if (!_incremental)
+			if (!_buildRequest.incremental)
 				Logger.Info("Running non-incremental build.");
 
-			EnqueueDependencies(_project, _incremental);
+			EnqueueDependencies(_buildRequest.project, _buildRequest.incremental);
 
-			if (_incremental && !monitorService.state.HasChanged(_project))
+			if (_buildRequest.incremental && !monitorService.state.HasChanged(_buildRequest.project))
 			{
-				Logger.Info($"No action: {_project} and all dependencies up to date.");
+				Logger.Info($"No action: {_buildRequest.project} and all dependencies up to date.");
 				return Task.FromResult<int>(0);
 			}
 
-			EnqueueProject(_project);
-			return ExecuteBuildQueue(_output, _arguments, _delay);
+			EnqueueProject(_buildRequest.project);
+			return ExecuteBuildQueue(_buildRequest);
 		}
 
-		public Task<int> BuildAll(bool _incremental, bool _output, string _arguments, int _delay = 0)
+		public Task<int> BuildAll(BuildRequest _buildRequest)
 		{
+			requestedProject = _buildRequest.project;
+
 			Clear();
+
 			foreach (ProjectDefinition _project in configService.GetProjects())
 			{
 				if (buildManifest.Contains(_project.name) || _project.type != "application")
 					continue;
 				
-				EnqueueDependencies(_project.name, _incremental);
+				EnqueueDependencies(_project.name, _buildRequest.incremental);
 
-				if (_incremental && !monitorService.state.HasChanged(_project.name))
+				if (_buildRequest.incremental && !monitorService.state.HasChanged(_project.name))
 				{
 					Logger.Info($"No action: {_project} and all dependencies up to date.");
 					continue;
@@ -79,7 +86,7 @@ namespace adabuild.Build
 				return Task.FromResult<int>(0);
 			}
 
-			return ExecuteBuildQueue(_output, _arguments, _delay);
+			return ExecuteBuildQueue(_buildRequest);
 		}
 
 		private void EnqueueBuildGroup(string _project)
@@ -150,7 +157,7 @@ namespace adabuild.Build
 			}
 		}
 
-		private async Task<int> ExecuteBuildQueue(bool _output, string _arguments, int _delay)
+		private async Task<int> ExecuteBuildQueue(BuildRequest _buildRequest)
 		{
 			int _exitCode = 0;
 			
@@ -159,11 +166,11 @@ namespace adabuild.Build
 
 			Benchmark _queueTimer = new Benchmark();
 
-			if (!String.IsNullOrEmpty(configService.configuration.preBuild))
+			if (!String.IsNullOrEmpty(configService.configuration.preBuild) && _buildRequest.prebuild)
 			{
 				Logger.Info($"Executing pre-build script: {configService.configuration.preBuild}");
 
-				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, _output);
+				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, _buildRequest.output);
 				
 				if (_exitCode != 0)
 					return _exitCode;
@@ -184,9 +191,20 @@ namespace adabuild.Build
 					string[] _commands = _buildGroup.Select((string _name) =>
 					{
 						ProjectDefinition _project = configService.GetProject(_name);
+						string _buildCommand;
+						
 						if (String.IsNullOrEmpty(_project.buildCommand))
-							return $"ng build {_project.name}" + _arguments;
-						return _project.buildCommand + _arguments;
+							_buildCommand = $"ng build {_project.name}";
+						else
+							_buildCommand = _project.buildCommand;
+
+						if (_buildCommand.StartsWith("npm run"))
+								_buildCommand += " --";
+						
+						return (_project.name == requestedProject) ?
+							_buildCommand + " " + _buildRequest.arguments :
+							_buildCommand;
+
 					}).ToArray();
 
 					string _groupName = String.Join(", ", _buildGroup);
@@ -195,9 +213,9 @@ namespace adabuild.Build
 					Logger.Info($"Executing build for {_groupName}...");
 					
 					if (_buildGroup.Count == 1)
-						_exitCode = await commandLineService.Exec(_commands[0], _output, 0);
+						_exitCode = await commandLineService.Exec(_commands[0], _buildRequest.output, 0);
 					else if (_buildGroup.Count > 1)
-						_exitCode = await commandLineService.Exec(_commands, _output, _delay);
+						_exitCode = await commandLineService.Exec(_commands, _buildRequest.output, _buildRequest.delay);
 					else
 						continue;
 
@@ -206,7 +224,7 @@ namespace adabuild.Build
 						Clear();
 						Logger.Error($"Failed build for {_groupName} in {_groupTimer.Elapsed()}");
 						
-						await ExecuteBuildFailureScript(_output);
+						await ExecuteBuildFailureScript(_buildRequest.output);
 
 						return _exitCode;
 					}
@@ -221,17 +239,17 @@ namespace adabuild.Build
 					Logger.Error(e.Message);
 					Clear();
 					
-					await ExecuteBuildFailureScript(_output);
+					await ExecuteBuildFailureScript(_buildRequest.output);
 					
 					_exitCode = 1;
 					return _exitCode;
 				}
 			}
 
-			if (!String.IsNullOrEmpty(configService.configuration.postBuild))
+			if (!String.IsNullOrEmpty(configService.configuration.postBuild) && _buildRequest.postbuild)
 			{
 				Logger.Info($"Executing post-build script: {configService.configuration.postBuild}");
-				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, _output);
+				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, _buildRequest.output);
 			}
 
 			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
