@@ -22,6 +22,8 @@ namespace adabuild.Monitor
 
 		private Action SaveState;
 
+		private Dictionary<string, HashSet<string>> projectDirectoryMapping;
+
 		public MonitorService(
 			FileSystemService _fileSystem,
 			ConfigService _config,
@@ -32,8 +34,13 @@ namespace adabuild.Monitor
 			configService = _config;
 			state = _state;
 			SaveState = Debouncer.Wrap(state.Save);
+			projectDirectoryMapping = new Dictionary<string, HashSet<string>>();
+
 			if (configService.IsValid)
+			{
+				InitRedirectMapping();
 				DetectChanges();
+			}
 		}
 
 		public void Start()
@@ -73,29 +80,53 @@ namespace adabuild.Monitor
 			SaveState();
 		}
 
+		private void InitRedirectMapping()
+		{
+			foreach (ProjectDefinition _project in configService.GetProjects())
+			{
+				string _path = ProjectDefinition.GetProjectDirectory(_project);
+
+				if (projectDirectoryMapping.ContainsKey(_path))
+					projectDirectoryMapping[_path].Add(_project.name);
+				else
+					projectDirectoryMapping.Add(_path, new HashSet<string>(new string[1] {_project.name}));
+			}
+		}
+
 		private void DetectChanges()
 		{
 			foreach (ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
 			{
-				IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
-					$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDefinition.name}",
-					$"*.{configService.configuration.fileExtension}",
-					SearchOption.AllDirectories
-				);
-
-				if (!state.history.ContainsKey(_projectDefinition.name))
-					continue;
-
-				long _lastProjectBuildTime = state.history[_projectDefinition.name];
-
-				foreach (string _file in _projectDirectory)
+				try
 				{
-					DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
-					if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+
+					string _projectDirectoryName = ProjectDefinition.GetProjectDirectory(_projectDefinition);
+
+					IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
+						$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDirectoryName}",
+						$"*.{configService.configuration.fileExtension}",
+						SearchOption.AllDirectories
+					);
+
+					if (!state.history.ContainsKey(_projectDefinition.name))
+						continue;
+
+					long _lastProjectBuildTime = state.history[_projectDefinition.name];
+
+					foreach (string _file in _projectDirectory)
 					{
-						state.Change(_projectDefinition.name);
-						break;
+						DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
+						if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+						{
+							state.Change(_projectDefinition.name);
+							break;
+						}
 					}
+				}
+				catch (DirectoryNotFoundException)
+				{
+					Logger.Error($"[MonitorService.DetectChanges] \"{_projectDefinition.name}\" directory not found");
+					continue;
 				}
 			}
 		}
@@ -157,14 +188,18 @@ namespace adabuild.Monitor
 
 		private void CheckPath(string _path)
 		{
-			foreach (ProjectDefinition _project in configService.configuration.projectDefinitions)
+			if (!projectDirectoryMapping.ContainsKey(_path))
 			{
-				if (_path.Contains($"\\{_project.name}\\"))
-				{
-					state.Change(_project.name);
-					SaveState();
-					return;
-				}
+				return;
+			}
+
+			HashSet<string> _projects = projectDirectoryMapping[_path];
+
+			foreach (string _project in _projects)
+			{
+				state.Change(_project);
+				SaveState();
+				return;
 			}
 		}
 
