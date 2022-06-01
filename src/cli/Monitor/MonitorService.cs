@@ -200,7 +200,6 @@ namespace adabuild.Monitor
 					{
 						state.Change(_project);
 						SaveState();
-						return;	
 					}
 				}
 			}
