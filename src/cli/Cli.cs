@@ -149,9 +149,9 @@ namespace adabuild
 				_arguments["--incremental"] != "false";
 			bool _output = _arguments.ContainsKey("--output") &&
 				_arguments["--output"] != "false";
-			bool _prebuild = _arguments.ContainsKey("--prebuild") &&
+			bool _prebuild = !_arguments.ContainsKey("--prebuild") ||
 				_arguments["--prebuild"] != "false";
-			bool _postbuild = _arguments.ContainsKey("--postbuild") &&
+			bool _postbuild = !_arguments.ContainsKey("--postbuild") ||
 				_arguments["--postbuild"] != "false";
 			string _configuration = _arguments.ContainsKey("--configuration") ?
 				_arguments["--configuration"] : "";
