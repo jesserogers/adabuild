@@ -11,7 +11,7 @@ namespace adabuild
 	public class Cli
 	{
 
-		private static readonly string VERSION = "0.0.7-rc2";
+		private static readonly string VERSION = "0.0.7";
 
 		private static readonly string INVALID_CONFIG_MSG = "No available configuration file";
 
