@@ -6,6 +6,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.8
+
+#### Fixed
+ - Fixed error handling in `CommandLineService#DestroyProcess`
+
+#### Added
+ - Added timestamps to all build status messages in `BuildService`
+
 ### v0.0.7
 
 #### Fixed
