@@ -4,20 +4,20 @@ using System.Collections.Generic;
 
 namespace adabuild.Config
 {
-	public class Service
+	public class ConfigService
 	{
 
 		private static readonly string CONFIG_FILE =  @"\adabuild.config.json";
 
 		public BuildConfiguration configuration;
 
-		private FileSystem.Service fileSystemService;
+		private FileSystem.FileSystemService fileSystemService;
 
 		private Dictionary<string, ProjectDefinition> projectMap;
 
 		public bool IsValid => configuration != default(BuildConfiguration);
 
-		public Service(FileSystem.Service _fileSystem)
+		public ConfigService(FileSystem.FileSystemService _fileSystem)
 		{
 			fileSystemService = _fileSystem;
 			projectMap = new Dictionary<string, ProjectDefinition>();

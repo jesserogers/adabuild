@@ -8,12 +8,12 @@ using System.Text;
 
 namespace adabuild.CommandLine
 {
-	public class Service
+	public class CommandLineService
 	{
 
-		private FileSystem.Service fileSystemService;
+		private FileSystem.FileSystemService fileSystemService;
 
-		private Config.Service configService;
+		private Config.ConfigService configService;
 
 		private ConcurrentDictionary<int, AsyncProcess> processes;
 
@@ -25,7 +25,7 @@ namespace adabuild.CommandLine
 
 		private ConcurrentDictionary<int, StringBuilder> errorOutput;
 
-		public Service(FileSystem.Service _fileSystemService, Config.Service _configService)
+		public CommandLineService(FileSystem.FileSystemService _fileSystemService, Config.ConfigService _configService)
 		{
 			fileSystemService = _fileSystemService;
 			configService = _configService;
@@ -205,7 +205,7 @@ namespace adabuild.CommandLine
 			}
 			catch (NullReferenceException e)
 			{
-				Logger.Error($"Failed to destroy process [{_process.id}]: {e.Message}");
+				Logger.Error($"Failed to destroy process: {e.Message}");
 				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
 				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);

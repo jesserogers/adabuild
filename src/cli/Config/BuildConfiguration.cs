@@ -19,6 +19,8 @@ namespace adabuild.Config
 
 		public string fileExtension { get; set; } = "*";
 
+		public string onError { get; set; }
+
 		public BuildConfiguration()
 		{
 
