@@ -125,10 +125,7 @@ namespace adabuild.Monitor
 				}
 				catch (DirectoryNotFoundException)
 				{
-					if (String.IsNullOrEmpty(_projectDefinition.redirect))
-					{
-						Logger.Error($"[MonitorService.DetectChanges] \"{_projectDefinition.name}\" directory not found");
-					}
+					Logger.Error($"[MonitorService.DetectChanges] \"{_projectDefinition.name}\" directory not found");
 					continue;
 				}
 			}
