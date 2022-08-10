@@ -201,15 +201,15 @@ namespace adabuild.CommandLine
 				errorOutput.TryRemove(_process.id, out _errorMessages);
 				processes.TryRemove(_process.id, out _process);
 
-				_process.childProcess.Kill();
+				_process.childProcess?.Kill();
 			}
 			catch (NullReferenceException e)
 			{
 				Logger.Error($"Failed to destroy process: {e.Message}");
-				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
-				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
-				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);
-				processes.TryRemove(_process.id, out _process);
+			}
+			catch (KeyNotFoundException e)
+			{
+				Logger.Error($"Failed to destroy process: {e.Message}");
 			}
 		}
 
