@@ -170,7 +170,7 @@ namespace adabuild.Build
 
 			if (!String.IsNullOrEmpty(configService.configuration.preBuild) && _buildRequest.prebuild)
 			{
-				Logger.Info($"Executing pre-build script: {configService.configuration.preBuild}");
+				BuildStatus($"Executing pre-build script: {configService.configuration.preBuild}");
 
 				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, _buildRequest.output);
 				
@@ -190,29 +190,11 @@ namespace adabuild.Build
 
 				try
 				{
-					string[] _commands = _buildGroup.Select((string _name) =>
-					{
-						ProjectDefinition _project = configService.GetProject(_name);
-						string _buildCommand;
-						
-						if (String.IsNullOrEmpty(_project.buildCommand))
-							_buildCommand = $"ng build {_project.name}";
-						else
-							_buildCommand = _project.buildCommand;
-
-						if (_buildCommand.StartsWith("npm run"))
-								_buildCommand += " --";
-						
-						return (_buildRequest.projects.Contains(_project.name)) ?
-							_buildCommand + " " + _buildRequest.arguments :
-							_buildCommand;
-
-					}).ToArray();
-
+					string[] _commands = _buildGroup.Select((string _name) => ConstructBuildCommand(_name, _buildRequest)).ToArray();
 					string _groupName = String.Join(", ", _buildGroup);
 					Benchmark _groupTimer = new Benchmark();
 					
-					Logger.Info($"Executing build for {_groupName}...");
+					BuildStatus($"Executing build for {_groupName}...");
 					
 					if (_buildGroup.Count == 1)
 						_exitCode = await commandLineService.Exec(_commands[0], _buildRequest.output, 0);
@@ -224,14 +206,12 @@ namespace adabuild.Build
 					if (_exitCode != 0)
 					{
 						Clear();
-						Logger.Error($"Failed build for {_groupName} in {_groupTimer.Elapsed()}");
-						
+						BuildStatus($"Failed build for {_groupName}", _groupTimer);
 						await ExecuteBuildFailureScript(_buildRequest.output);
-
 						return _exitCode;
 					}
 
-					Logger.Info($"Completed build for {_groupName} in {_groupTimer.Elapsed()}");
+					BuildStatus($"Completed build for {_groupName}", _groupTimer);
 					monitorService.state.Record(_buildGroup.ToArray());
 					await monitorService.state.Save();
 					
@@ -250,11 +230,11 @@ namespace adabuild.Build
 
 			if (!String.IsNullOrEmpty(configService.configuration.postBuild) && _buildRequest.postbuild)
 			{
-				Logger.Info($"Executing post-build script: {configService.configuration.postBuild}");
+				BuildStatus($"Executing post-build script: {configService.configuration.postBuild}");
 				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, _buildRequest.output);
 			}
 
-			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
+			BuildStatus($"SUCCESS: Completed build queue", _queueTimer);
 			Clear();
 			return _exitCode;
 		}
@@ -284,6 +264,40 @@ namespace adabuild.Build
 					return false;
 
 			return true;
+		}
+
+		private string ConstructBuildCommand(string _name, BuildRequest _buildRequest)
+		{
+			ProjectDefinition _project = configService.GetProject(_name);
+			string _buildCommand;
+			
+			if (String.IsNullOrEmpty(_project.buildCommand))
+				_buildCommand = $"ng build {_project.name}";
+			else
+				_buildCommand = _project.buildCommand;
+
+			if (_buildCommand.StartsWith("npm run"))
+				_buildCommand += " --";
+						
+			return (_buildRequest.projects.Contains(_project.name)) ?
+				_buildCommand + " " + _buildRequest.arguments :
+				_buildCommand;
+		}
+
+		private void BuildStatus(string _message)
+		{
+			BuildStatus(_message, null);
+		}
+
+		private void BuildStatus(string _message, Benchmark _timer)
+		{
+			string _time = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}";
+			string _status = $"{_time} - {_message}";
+			if (_timer != default(Benchmark))
+			{
+				_status += $" in {_timer.Elapsed()}";
+			}
+			Logger.Info(_status);
 		}
 
 	}
