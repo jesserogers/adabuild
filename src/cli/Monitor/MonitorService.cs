@@ -1,37 +1,46 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using adabuild.FileSystem;
+using adabuild.Config;
 
 namespace adabuild.Monitor
 {
 
-	public class Service
+	public class MonitorService
 	{
 
-		public State state;
+		public MonitorState state;
 
 		private FileSystemWatcher watcher;
 
-		private FileSystem.Service fileSystemService;
+		private FileSystemService fileSystemService;
 
-		private Config.Service configService;
+		private ConfigService configService;
 
 		public bool isRunning { get; private set; } = false;
 
 		private Action SaveState;
 
-		public Service(
-			FileSystem.Service _fileSystem,
-			Config.Service _config,
-			State _state
+		private Dictionary<string, HashSet<string>> directoryToProjectNameMapping;
+
+		public MonitorService(
+			FileSystemService _fileSystem,
+			ConfigService _config,
+			MonitorState _state
 		)
 		{
 			fileSystemService = _fileSystem;
 			configService = _config;
 			state = _state;
 			SaveState = Debouncer.Wrap(state.Save);
+			directoryToProjectNameMapping = new Dictionary<string, HashSet<string>>();
+
 			if (configService.IsValid)
+			{
+				InitRedirectMapping();
 				DetectChanges();
+			}
 		}
 
 		public void Start()
@@ -71,29 +80,53 @@ namespace adabuild.Monitor
 			SaveState();
 		}
 
+		private void InitRedirectMapping()
+		{
+			foreach (ProjectDefinition _project in configService.GetProjects())
+			{
+				string _path = ProjectDefinition.GetProjectDirectory(_project);
+
+				if (directoryToProjectNameMapping.ContainsKey(_path))
+					directoryToProjectNameMapping[_path].Add(_project.name);
+				else
+					directoryToProjectNameMapping.Add(_path, new HashSet<string>(new string[1] {_project.name}));
+			}
+		}
+
 		private void DetectChanges()
 		{
-			foreach (Config.ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
+			foreach (ProjectDefinition _projectDefinition in configService.configuration.projectDefinitions)
 			{
-				IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
-					$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDefinition.name}",
-					$"*.{configService.configuration.fileExtension}",
-					SearchOption.AllDirectories
-				);
-
-				if (!state.history.ContainsKey(_projectDefinition.name))
-					continue;
-
-				long _lastProjectBuildTime = state.history[_projectDefinition.name];
-
-				foreach (string _file in _projectDirectory)
+				try
 				{
-					DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
-					if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+
+					string _projectDirectoryName = ProjectDefinition.GetProjectDirectory(_projectDefinition);
+
+					IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
+						$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDirectoryName}",
+						$"*.{configService.configuration.fileExtension}",
+						SearchOption.AllDirectories
+					);
+
+					if (!state.history.ContainsKey(_projectDefinition.name))
+						continue;
+
+					long _lastProjectBuildTime = state.history[_projectDefinition.name];
+
+					foreach (string _file in _projectDirectory)
 					{
-						state.Change(_projectDefinition.name);
-						break;
+						DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
+						if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+						{
+							state.Change(_projectDefinition.name);
+							break;
+						}
 					}
+				}
+				catch (DirectoryNotFoundException)
+				{
+					Logger.Error($"[MonitorService.DetectChanges] \"{_projectDefinition.name}\" directory not found");
+					continue;
 				}
 			}
 		}
@@ -155,15 +188,23 @@ namespace adabuild.Monitor
 
 		private void CheckPath(string _path)
 		{
-			foreach (Config.ProjectDefinition _project in configService.configuration.projectDefinitions)
+			foreach (ProjectDefinition _projectDef in configService.GetProjects())
 			{
-				if (_path.Contains($"\\{_project.name}\\"))
+				string _directory = ProjectDefinition.GetProjectDirectory(_projectDef);
+
+				if (_path.Contains($"\\{_directory}\\"))
 				{
-					state.Change(_project.name);
-					SaveState();
-					return;
+					HashSet<string> _projects = directoryToProjectNameMapping[_directory];
+
+					foreach (string _project in _projects)
+					{
+						state.Change(_project);
+						SaveState();
+					}
 				}
 			}
+
+			
 		}
 
 	}

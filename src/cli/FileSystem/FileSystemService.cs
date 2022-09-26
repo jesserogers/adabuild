@@ -5,18 +5,12 @@ using System.Text.Json;
 
 namespace adabuild.FileSystem
 {
-	public class Service
+	public class FileSystemService
 	{
 
-		private string root;
+		public string Root { get; private set; }
 
-		public string Root
-		{
-			get { return root; }
-			private set { root = value; }
-		}
-
-		public Service()
+		public FileSystemService()
 		{
 			Root = Directory.GetCurrentDirectory();
 		}

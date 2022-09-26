@@ -40,7 +40,7 @@ namespace adabuild.CommandLine
 				StartInfo =
 				{
 					FileName = _terminal,
-					Arguments = _terminal == Terminals.BASH ? $"-c \"{_command}\"" : $"/C {_command}",
+					Arguments = Terminals.GetTerminalCommand(_terminal, _command),
 					WorkingDirectory = _directory,
 					WindowStyle = ProcessWindowStyle.Hidden,
 					CreateNoWindow = true,
@@ -53,7 +53,6 @@ namespace adabuild.CommandLine
 			OnExitFactory = _onExitFactory;
 			showOutput = _showOutput;
 		}
-
 		public async Task<int> Run()
 		{
 			childProcess.Start();
