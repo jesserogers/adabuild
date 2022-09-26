@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using adabuild.Build;
+using adabuild.CommandLine;
+using adabuild.Config;
+using adabuild.Monitor;
 
 namespace adabuild
 {
@@ -7,25 +11,25 @@ namespace adabuild
 	public class Cli
 	{
 
-		private static readonly string VERSION = "0.0.6";
+		private static readonly string VERSION = "0.0.8-rc1";
 
 		private static readonly string INVALID_CONFIG_MSG = "No available configuration file";
 
-		private Config.Service configService {
-			get { return Injector.ConfigService; }
+		private ConfigService configService {
+			get { return Injector.configService; }
 		}
 
-		private Build.Service buildService {
-			get { return Injector.BuildService; }
+		private BuildService buildService {
+			get { return Injector.buildService; }
 		}
 
-		private Monitor.Service monitorService {
-			get { return Injector.MonitorService; }
+		private MonitorService monitorService {
+			get { return Injector.monitorService; }
 		}
 
-		private CommandLine.Service commandLineService
+		private CommandLineService commandLineService
 		{
-			get { return Injector.CommandLineService; }
+			get { return Injector.commandLineService; }
 		}
 
 		public Cli()
@@ -140,12 +144,19 @@ namespace adabuild
 				return;
 			}
 
+			string _projects = _args[1];
 			bool _incremental = !_arguments.ContainsKey("--incremental") ||
 				_arguments["--incremental"] != "false";
 			bool _output = _arguments.ContainsKey("--output") &&
 				_arguments["--output"] != "false";
-			int _delay = Build.Service.DEFAULT_PARALLEL_DELAY;
-			int _concurrency = Injector.ConfigService.GetConcurrencyLimit();
+			bool _prebuild = !_arguments.ContainsKey("--prebuild") ||
+				_arguments["--prebuild"] != "false";
+			bool _postbuild = !_arguments.ContainsKey("--postbuild") ||
+				_arguments["--postbuild"] != "false";
+			string _configuration = _arguments.ContainsKey("--configuration") ?
+				_arguments["--configuration"] : "";
+			int _delay = Build.BuildService.DEFAULT_PARALLEL_DELAY;
+			int _concurrency = Injector.configService.GetConcurrencyLimit();
 
 			if (_arguments.ContainsKey("--delay"))
 				_delay = Int32.Parse(_arguments["--delay"]);
@@ -153,10 +164,25 @@ namespace adabuild
 			if (_arguments.ContainsKey("--concurrency"))
 				configService.SetConcurrencyLimit(Int32.Parse(_arguments["--concurrency"]));
 
-			if (_args[1] == "all")
-				_exitCode = buildService.BuildAll(_incremental, _output, _delay).GetAwaiter().GetResult();
+			string _buildArguments = "";
+			if (!String.IsNullOrEmpty(_configuration))
+				_buildArguments += $" --configuration {_configuration}";
+
+			BuildRequest _request = new BuildRequest
+			{
+				projects = new HashSet<string>(_projects.Split(",")),
+				incremental = _incremental,
+				output = _output,
+				prebuild = _prebuild,
+				postbuild = _postbuild,
+				arguments = _buildArguments,
+				delay = _delay,
+			};
+
+			if (_projects == "all")
+				_exitCode = buildService.BuildAll(_request).GetAwaiter().GetResult();
 			else
-				_exitCode = buildService.Build(_args[1], _incremental, _output, _delay).GetAwaiter().GetResult();
+				_exitCode = buildService.Build(_request).GetAwaiter().GetResult();
 
 			// set concurrency limit back to saved value
 			configService.SetConcurrencyLimit(_concurrency);

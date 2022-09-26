@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using adabuild.FileSystem;
 
 namespace adabuild.Monitor
 {
 
-	public class State
+	public class MonitorState
 	{
 		public static readonly string STATE_FILE = @".adabuildstate";
 
@@ -14,7 +15,7 @@ namespace adabuild.Monitor
 
 		public Dictionary<string, long> history { get; set; }
 
-		private FileSystem.Service fileSystemService;
+		private FileSystemService fileSystemService;
 
 		private string lastExport;
 
@@ -23,7 +24,7 @@ namespace adabuild.Monitor
 			get { return fileSystemService.Root + $"\\{STATE_FILE}"; }
 		}
 
-		public State(FileSystem.Service _fileSystem)
+		public MonitorState(FileSystemService _fileSystem)
 		{
 			fileSystemService = _fileSystem;
 			history = new Dictionary<string, long>();
@@ -33,7 +34,7 @@ namespace adabuild.Monitor
 
 		
 		// Blank constructor for JSON deserialization
-		public State() { }
+		public MonitorState() { }
 
 		public void Record(string _project)
 		{
@@ -97,7 +98,7 @@ namespace adabuild.Monitor
 		{
 			try
 			{
-				State _cachedState = fileSystemService.ReadFile<State>(STATE_PATH);
+				MonitorState _cachedState = fileSystemService.ReadFile<MonitorState>(STATE_PATH);
 				if (_cachedState == null)
 				{
 					Logger.Info("No existing state file.");
