@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using adaptiva.adabuild.FileSystem;
 
 namespace adaptiva.adabuild.Config
 {
@@ -11,13 +12,13 @@ namespace adaptiva.adabuild.Config
 
 		public BuildConfiguration configuration;
 
-		private FileSystem.FileSystemService fileSystemService;
+		private FileSystemService fileSystemService;
 
 		private Dictionary<string, ProjectDefinition> projectMap;
 
 		public bool IsValid => configuration != default(BuildConfiguration);
 
-		public ConfigService(FileSystem.FileSystemService _fileSystem)
+		public ConfigService(FileSystemService _fileSystem)
 		{
 			fileSystemService = _fileSystem;
 			projectMap = new Dictionary<string, ProjectDefinition>();
