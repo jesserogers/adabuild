@@ -105,11 +105,10 @@ namespace adaptiva.adabuild.Monitor
 				{
 
 					string _projectDirectoryName = ProjectDefinition.GetProjectDirectory(_projectDefinition);
+					string _projectPath = $"{RootPath}\\{_projectDirectoryName}";
 
 					IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
-						$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDirectoryName}",
-						$"*.{configService.configuration.fileExtension}",
-						SearchOption.AllDirectories
+						_projectPath, ProjectFilePattern, SearchOption.AllDirectories
 					);
 
 					if (!state.history.ContainsKey(_projectDefinition.name))
@@ -140,8 +139,7 @@ namespace adaptiva.adabuild.Monitor
 			if (!configService.IsValid)
 				return;
 
-			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
-			watcher = new FileSystemWatcher(_path, $"*.{configService.configuration.fileExtension}");
+			watcher = new FileSystemWatcher(RootPath, ProjectFilePattern);
 
 			watcher.NotifyFilter = NotifyFilters.DirectoryName
 				| NotifyFilters.FileName
