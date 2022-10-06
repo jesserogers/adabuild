@@ -179,6 +179,8 @@ namespace adaptiva.adabuild.Build
 					return _exitCode;
 			}
 
+			// @note: maybe this should just be done as part of the prebuild script
+			// instead of being hard coded into the program
 			await configService.CopyTsConfig("prod");
 
 			Queue<string> _buildGroup;
