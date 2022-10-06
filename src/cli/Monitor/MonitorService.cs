@@ -119,7 +119,9 @@ namespace adaptiva.adabuild.Monitor
 					foreach (string _file in _projectDirectory)
 					{
 						DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
-						if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+						long _lastUpdatedMs = ((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds();
+						
+						if (_lastUpdatedMs > state.history[_projectDefinition.name])
 						{
 							state.Change(_projectDefinition.name);
 							break;
