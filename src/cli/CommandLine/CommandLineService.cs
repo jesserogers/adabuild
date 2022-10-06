@@ -5,15 +5,17 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
+using adaptiva.adabuild.FileSystem;
+using adaptiva.adabuild.Config;
 
 namespace adaptiva.adabuild.CommandLine
 {
 	public class CommandLineService
 	{
 
-		private FileSystem.FileSystemService fileSystemService;
+		private FileSystemService fileSystemService;
 
-		private Config.ConfigService configService;
+		private ConfigService configService;
 
 		private ConcurrentDictionary<int, AsyncProcess> processes;
 
@@ -25,7 +27,7 @@ namespace adaptiva.adabuild.CommandLine
 
 		private ConcurrentDictionary<int, StringBuilder> errorOutput;
 
-		public CommandLineService(FileSystem.FileSystemService _fileSystemService, Config.ConfigService _configService)
+		public CommandLineService(FileSystemService _fileSystemService, ConfigService _configService)
 		{
 			fileSystemService = _fileSystemService;
 			configService = _configService;
