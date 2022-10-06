@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using adabuild.CommandLine;
-using adabuild.Config;
-using adabuild.Monitor;
+using adaptiva.adabuild.CommandLine;
+using adaptiva.adabuild.Config;
+using adaptiva.adabuild.Monitor;
 
-namespace adabuild.Build
+namespace adaptiva.adabuild.Build
 {
 	public class BuildService
 	{

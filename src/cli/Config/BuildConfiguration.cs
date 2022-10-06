@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace adabuild.Config
+namespace adaptiva.adabuild.Config
 {
 	public class BuildConfiguration
 	{

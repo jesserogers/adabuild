@@ -1,6 +1,6 @@
 using System;
 
-namespace adabuild
+namespace adaptiva.adabuild
 {
 	public static class Logger
 	{

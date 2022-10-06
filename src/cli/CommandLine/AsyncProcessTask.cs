@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace adabuild.CommandLine
+namespace adaptiva.adabuild.CommandLine
 {
 
 	public class AsyncProcessTask
@@ -38,7 +38,7 @@ namespace adabuild.CommandLine
 			if (exitHandler != null)
 				exitHandler(runningProcess, _event);
 
-			tcs.SetResult(runningProcess.ExitCode);
+			tcs.TrySetResult(runningProcess.ExitCode);
 		}
 
 		public AsyncProcessTask(

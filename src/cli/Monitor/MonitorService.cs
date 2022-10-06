@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using adabuild.FileSystem;
-using adabuild.Config;
+using adaptiva.adabuild.FileSystem;
+using adaptiva.adabuild.Config;
 
-namespace adabuild.Monitor
+namespace adaptiva.adabuild.Monitor
 {
 
 	public class MonitorService

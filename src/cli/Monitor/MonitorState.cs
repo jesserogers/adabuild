@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
-using adabuild.FileSystem;
+using adaptiva.adabuild.FileSystem;
 
-namespace adabuild.Monitor
+namespace adaptiva.adabuild.Monitor
 {
 
 	public class MonitorState

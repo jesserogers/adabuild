@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace adabuild.CommandLine
+namespace adaptiva.adabuild.CommandLine
 {
 	public class CommandLineService
 	{

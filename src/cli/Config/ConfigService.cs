@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace adabuild.Config
+namespace adaptiva.adabuild.Config
 {
 	public class ConfigService
 	{

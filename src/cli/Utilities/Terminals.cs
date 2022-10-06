@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace adabuild
+namespace adaptiva.adabuild
 {
 	public static class Terminals
 	{

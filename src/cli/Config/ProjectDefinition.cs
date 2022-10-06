@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace adabuild.Config
+namespace adaptiva.adabuild.Config
 {
 	public class ProjectDefinition
 	{

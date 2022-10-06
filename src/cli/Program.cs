@@ -1,4 +1,4 @@
-﻿namespace adabuild
+﻿namespace adaptiva.adabuild
 {
 	class Program
 	{
