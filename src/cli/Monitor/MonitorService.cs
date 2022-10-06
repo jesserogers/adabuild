@@ -24,6 +24,10 @@ namespace adaptiva.adabuild.Monitor
 
 		private Dictionary<string, HashSet<string>> directoryToProjectNameMapping;
 
+		private string RootPath => $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
+
+		private string ProjectFilePattern => $"*.{configService.configuration.fileExtension}";
+
 		public MonitorService(
 			FileSystemService _fileSystem,
 			ConfigService _config,
