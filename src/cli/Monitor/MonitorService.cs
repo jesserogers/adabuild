@@ -88,7 +88,7 @@ namespace adaptiva.adabuild.Monitor
 		{
 			foreach (ProjectDefinition _project in configService.GetProjects())
 			{
-				string _path = ProjectDefinition.GetProjectDirectory(_project);
+				string _path = _project.Directory();
 
 				if (directoryToProjectNameMapping.ContainsKey(_path))
 					directoryToProjectNameMapping[_path].Add(_project.name);
@@ -104,7 +104,7 @@ namespace adaptiva.adabuild.Monitor
 				try
 				{
 
-					string _projectDirectoryName = ProjectDefinition.GetProjectDirectory(_projectDefinition);
+					string _projectDirectoryName = _projectDefinition.Directory();
 					string _projectPath = $"{RootPath}\\{_projectDirectoryName}";
 
 					IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
@@ -192,9 +192,9 @@ namespace adaptiva.adabuild.Monitor
 
 		private void CheckPath(string _path)
 		{
-			foreach (ProjectDefinition _projectDef in configService.GetProjects())
+			foreach (ProjectDefinition _projectDefinition in configService.GetProjects())
 			{
-				string _directory = ProjectDefinition.GetProjectDirectory(_projectDef);
+				string _directory = _projectDefinition.Directory();
 
 				if (_path.Contains($"\\{_directory}\\"))
 				{
