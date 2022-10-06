@@ -7,7 +7,7 @@
 		{
 			if (args.Length > 0)
 			{
-				return Injector.CLI.Command(args);
+				return Injector.cli.Command(args);
 			}
 			Logger.Error("Invalid arguments");
 			return 1;

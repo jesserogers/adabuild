@@ -84,7 +84,7 @@ namespace adaptiva.adabuild
 			}
 		}
 
-		public static Cli CLI
+		public static Cli cli
 		{
 			get
 			{
