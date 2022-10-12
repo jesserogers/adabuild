@@ -8,7 +8,7 @@ namespace adaptiva.adabuild.CommandLine
 	public class AsyncProcessTask
 	{
 
-		private TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+		private TaskCompletionSource<int> taskCompletionSource = new TaskCompletionSource<int>();
 
 		private Process runningProcess;
 
@@ -18,27 +18,24 @@ namespace adaptiva.adabuild.CommandLine
 
 		private bool showOutput;
 
-		public bool IsCompleted
-		{
-			get { return isCompleted; }
-		}
+		public bool IsCompleted { get; private set; }
 
 		public Task GetTask()
 		{
-			return tcs.Task;
+			return taskCompletionSource.Task;
 		}
 
 		public void OnExit(object _sender, EventArgs _event)
 		{
-			if (isCompleted)
+			if (IsCompleted)
 				return;
 			
-			isCompleted = true;
+			IsCompleted = true;
 
 			if (exitHandler != null)
 				exitHandler(runningProcess, _event);
 
-			tcs.TrySetResult(runningProcess.ExitCode);
+			taskCompletionSource.TrySetResult(runningProcess.ExitCode);
 		}
 
 		public AsyncProcessTask(
