@@ -45,7 +45,7 @@ namespace adaptiva.adabuild.Build
 
 				if (_buildRequest.incremental && !monitorService.state.HasChanged(_projectDefinition.name))
 				{
-					Logger.Info($"No action: {_projectDefinition} and all dependencies up to date.");
+					Logger.Info($"No action: {_projectDefinition.name} and all dependencies up to date.");
 					continue;
 				}
 
@@ -74,7 +74,7 @@ namespace adaptiva.adabuild.Build
 
 				if (_buildRequest.incremental && !monitorService.state.HasChanged(_project.name))
 				{
-					Logger.Info($"No action: {_project} and all dependencies up to date.");
+					Logger.Info($"No action: {_project.name} and all dependencies up to date.");
 					continue;
 				}
 
