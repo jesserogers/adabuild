@@ -13,8 +13,6 @@ namespace adaptiva.adabuild.CommandLine
 		private Process runningProcess;
 
 		private EventHandler exitHandler;
-		
-		private bool isCompleted;
 
 		private bool showOutput;
 
