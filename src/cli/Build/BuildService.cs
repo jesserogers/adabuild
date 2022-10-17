@@ -171,8 +171,6 @@ namespace adaptiva.adabuild.Build
 			if (!String.IsNullOrEmpty(configService.configuration.preBuild) && _buildRequest.prebuild)
 			{
 				_status = new BuildStatus($"Executing pre-build script: {configService.configuration.preBuild}");
-				_status.Report();
-
 				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, _buildRequest.output);
 				
 				if (_exitCode != 0)
