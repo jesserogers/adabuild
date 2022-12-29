@@ -1,6 +1,6 @@
 using System;
 
-namespace adabuild
+namespace adaptiva.adabuild
 {
 	public static class Logger
 	{
@@ -12,7 +12,7 @@ namespace adabuild
 
 		public static void Error(string message)
 		{
-			Console.Error.WriteLine($"[adabuild] ERROR: {message}");
+			Console.Error.WriteLine($"[adabuild]: ERROR: {message}");
 		}
 
 	}

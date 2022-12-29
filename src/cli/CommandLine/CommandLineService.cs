@@ -5,15 +5,17 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
+using adaptiva.adabuild.FileSystem;
+using adaptiva.adabuild.Config;
 
-namespace adabuild.CommandLine
+namespace adaptiva.adabuild.CommandLine
 {
 	public class CommandLineService
 	{
 
-		private FileSystem.FileSystemService fileSystemService;
+		private FileSystemService fileSystemService;
 
-		private Config.ConfigService configService;
+		private ConfigService configService;
 
 		private ConcurrentDictionary<int, AsyncProcess> processes;
 
@@ -25,7 +27,7 @@ namespace adabuild.CommandLine
 
 		private ConcurrentDictionary<int, StringBuilder> errorOutput;
 
-		public CommandLineService(FileSystem.FileSystemService _fileSystemService, Config.ConfigService _configService)
+		public CommandLineService(FileSystemService _fileSystemService, ConfigService _configService)
 		{
 			fileSystemService = _fileSystemService;
 			configService = _configService;
@@ -171,8 +173,14 @@ namespace adabuild.CommandLine
 
 		private AsyncProcess SpawnProcess(string _command, bool _output)
 		{
-			return new AsyncProcess(configService.configuration.terminal, _command,
-				fileSystemService.Root, RegisterProcess, OnProcessExitFactory, _output);
+			return new AsyncProcess(
+				configService.configuration.terminal,
+				_command,
+				fileSystemService.Root,
+				RegisterProcess,
+				OnProcessExitFactory,
+				_output
+			);
 		}
 
 		private void DestroyProcess(AsyncProcess _process)
@@ -188,6 +196,7 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _stdOutHandler;
 			DataReceivedEventHandler _stdErrorHandler;
 			StringBuilder _errorMessages;
+			AsyncProcess _removedProcess;
 
 			try
 			{
@@ -199,17 +208,17 @@ namespace adabuild.CommandLine
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
 				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);
 				errorOutput.TryRemove(_process.id, out _errorMessages);
-				processes.TryRemove(_process.id, out _process);
+				processes.TryRemove(_process.id, out _removedProcess);
 
-				_process.childProcess?.Kill();
+				_process?.childProcess?.Kill();
 			}
 			catch (NullReferenceException e)
 			{
-				Logger.Error($"Failed to destroy process: {e.Message}");
+				Logger.Error($"Failed to destroy process: {e.Message}\n{e.StackTrace}");
 			}
 			catch (KeyNotFoundException e)
 			{
-				Logger.Error($"Failed to destroy process: {e.Message}");
+				Logger.Error($"Failed to destroy process: {e.Message}\n{e.StackTrace}");
 			}
 		}
 

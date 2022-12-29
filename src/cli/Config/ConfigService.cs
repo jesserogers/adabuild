@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using adaptiva.adabuild.FileSystem;
 
-namespace adabuild.Config
+namespace adaptiva.adabuild.Config
 {
 	public class ConfigService
 	{
@@ -11,13 +12,13 @@ namespace adabuild.Config
 
 		public BuildConfiguration configuration;
 
-		private FileSystem.FileSystemService fileSystemService;
+		private FileSystemService fileSystemService;
 
 		private Dictionary<string, ProjectDefinition> projectMap;
 
 		public bool IsValid => configuration != default(BuildConfiguration);
 
-		public ConfigService(FileSystem.FileSystemService _fileSystem)
+		public ConfigService(FileSystemService _fileSystem)
 		{
 			fileSystemService = _fileSystem;
 			projectMap = new Dictionary<string, ProjectDefinition>();
@@ -73,13 +74,6 @@ namespace adabuild.Config
 		{
 			SetConcurrencyLimit(_limit);
 			await SaveConfiguration();
-		}
-
-		public async Task CopyTsConfig(string _environment = "prod")
-		{
-			string _from = fileSystemService.Root + $"\\tsconfig.{_environment}.json";
-			string _to = fileSystemService.Root + "\\tsconfig.json";
-			await fileSystemService.CopyFile(_from, _to);
 		}
 
 		public async Task SetTerminal(string _terminal)

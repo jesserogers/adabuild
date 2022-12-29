@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace adabuild.CommandLine
+namespace adaptiva.adabuild.CommandLine
 {
 
 	public class AsyncProcess

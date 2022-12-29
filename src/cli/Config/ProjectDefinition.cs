@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace adabuild.Config
+namespace adaptiva.adabuild.Config
 {
 	public class ProjectDefinition
 	{
@@ -22,10 +22,9 @@ namespace adabuild.Config
 
 		}
 
-		public static string GetProjectDirectory(ProjectDefinition _project)
+		public string Directory()
 		{
-			return String.IsNullOrEmpty(_project.redirect) ?
-				_project.name : _project.redirect;
+			return String.IsNullOrEmpty(redirect) ? name : redirect;
 		}
 
 	}

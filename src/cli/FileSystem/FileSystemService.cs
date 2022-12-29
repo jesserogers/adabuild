@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Text.Json;
 
-namespace adabuild.FileSystem
+namespace adaptiva.adabuild.FileSystem
 {
 	public class FileSystemService
 	{

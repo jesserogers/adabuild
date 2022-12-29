@@ -2,7 +2,7 @@
 	"name": "adabuild",
 	"displayName": "adabuild",
 	"description": "Custom extension for Adaptiva front-end Angular Build System",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"author": "Jesse Rogers <jesse.rogers@adaptiva.com>",
 	"icon": "images/adaptiva.png",
 	"publisher": "Adaptiva",
@@ -61,7 +61,7 @@
 		"url": "http://10.1.10.15/jesserogers/adabuild.git"
 	},
 	"scripts": {
-		"compile:cli": "dotnet publish -r win-x64 /property:Version=0.0.8",
+		"compile:cli": "dotnet publish -r win-x64 /property:Version=0.0.9",
 		"postcompile:cli": "shx cp README.md dist && shx cp CHANGELOG.md dist",
 		"precompile:vscode": "shx rm -rf out/vscode && npm run compile:cli",
 		"compile:vscode": "esbuild ./src/vscode/main.ts --bundle --outfile=out/vscode/main.js --sourcemap --external:vscode --format=cjs --platform=node",

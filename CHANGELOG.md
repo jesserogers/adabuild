@@ -6,6 +6,17 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.9
+
+#### Fixed
+ - Fixed duplicate log messages around pre-build script execution
+ - Added stack traces to `CommandLineService#DestroyProcess` error handlers
+ - Fixed `NullReferenceException` in `CommandLineService#DestroyProcess`
+ - Fixed an issue where adabuild logged a C# class name instead of an Angular project name
+
+#### Removed
+ - Removed `ConfigService#CopyTsConfig` method
+
 ### v0.0.8
 
 #### Fixed

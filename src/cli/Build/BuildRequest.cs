@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace adabuild.Build
+namespace adaptiva.adabuild.Build
 {
 
 	public struct BuildRequest
