@@ -213,11 +213,11 @@ namespace adaptiva.adabuild.CommandLine
 			}
 			catch (NullReferenceException e)
 			{
-				Logger.Error($"Failed to destroy process: {e.Message}");
+				Logger.Error($"Failed to destroy process: {e.Message}\n{e.StackTrace}");
 			}
 			catch (KeyNotFoundException e)
 			{
-				Logger.Error($"Failed to destroy process: {e.Message}");
+				Logger.Error($"Failed to destroy process: {e.Message}\n{e.StackTrace}");
 			}
 		}
 
