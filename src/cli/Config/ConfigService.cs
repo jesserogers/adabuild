@@ -76,13 +76,6 @@ namespace adaptiva.adabuild.Config
 			await SaveConfiguration();
 		}
 
-		public async Task CopyTsConfig(string _environment = "prod")
-		{
-			string _from = fileSystemService.Root + $"\\tsconfig.{_environment}.json";
-			string _to = fileSystemService.Root + "\\tsconfig.json";
-			await fileSystemService.CopyFile(_from, _to);
-		}
-
 		public async Task SetTerminal(string _terminal)
 		{
 			if (!Terminals.IsValid(_terminal))
