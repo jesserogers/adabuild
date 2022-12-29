@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using adaptiva.adabuild.FileSystem;
 using adaptiva.adabuild.Config;
@@ -26,7 +27,10 @@ namespace adaptiva.adabuild.Monitor
 
 		private string RootPath => $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
 
-		private string ProjectFilePattern => $"*.{configService.configuration.fileExtension}";
+		private string[] FilePatterns => configService.configuration.fileExtension
+			.Split(",")
+			.Select(_extension => $"*.{_extension.Trim()}")
+			.ToArray();
 
 		public MonitorService(
 			FileSystemService _fileSystem,
@@ -93,7 +97,7 @@ namespace adaptiva.adabuild.Monitor
 				if (directoryToProjectNameMapping.ContainsKey(_path))
 					directoryToProjectNameMapping[_path].Add(_project.name);
 				else
-					directoryToProjectNameMapping.Add(_path, new HashSet<string>(new string[1] {_project.name}));
+					directoryToProjectNameMapping.Add(_path, new HashSet<string>(new string[1] { _project.name }));
 			}
 		}
 
@@ -107,24 +111,27 @@ namespace adaptiva.adabuild.Monitor
 					string _projectDirectoryName = _projectDefinition.Directory();
 					string _projectPath = $"{RootPath}\\{_projectDirectoryName}";
 
-					IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
-						_projectPath, ProjectFilePattern, SearchOption.AllDirectories
-					);
-
-					if (!state.history.ContainsKey(_projectDefinition.name))
-						continue;
-
-					long _lastProjectBuildTime = state.history[_projectDefinition.name];
-
-					foreach (string _file in _projectDirectory)
+					foreach (string _extension in FilePatterns)
 					{
-						DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
-						long _lastUpdatedMs = ((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds();
-						
-						if (_lastUpdatedMs > state.history[_projectDefinition.name])
+						IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
+							_projectPath, _extension, SearchOption.AllDirectories
+						);
+
+						if (!state.history.ContainsKey(_projectDefinition.name))
+							continue;
+
+						long _lastProjectBuildTime = state.history[_projectDefinition.name];
+
+						foreach (string _file in _projectDirectory)
 						{
-							state.Change(_projectDefinition.name);
-							break;
+							DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
+							long _lastUpdatedMs = ((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds();
+
+							if (_lastUpdatedMs > state.history[_projectDefinition.name])
+							{
+								state.Change(_projectDefinition.name);
+								break;
+							}
 						}
 					}
 				}
@@ -141,7 +148,12 @@ namespace adaptiva.adabuild.Monitor
 			if (!configService.IsValid)
 				return;
 
-			watcher = new FileSystemWatcher(RootPath, ProjectFilePattern);
+			watcher = new FileSystemWatcher(RootPath);
+
+			foreach (string _extension in FilePatterns)
+			{
+				watcher.Filters.Add(_extension);
+			}
 
 			watcher.NotifyFilter = NotifyFilters.DirectoryName
 				| NotifyFilters.FileName
@@ -208,7 +220,7 @@ namespace adaptiva.adabuild.Monitor
 				}
 			}
 
-			
+
 		}
 
 	}
