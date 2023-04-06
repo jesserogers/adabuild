@@ -84,25 +84,35 @@ namespace adaptiva.adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler(
 				(object sender, DataReceivedEventArgs e) =>
 				{
-					AsyncProcess _process = processes[_processId];
-
-					if (_process == null)
-						return;
-
-					else
+					try
 					{
+						if (!processes.ContainsKey(_processId))
+							return;
+						
+						AsyncProcess _process = processes[_processId];
 
-						if (_process.showOutput && !String.IsNullOrEmpty(e.Data))
-							Logger.Info($"Process [{_processId}]: {e.Data}");
+						if (_process == null)
+							return;
 
-						if (
-							_process.childProcess.HasExited &&
-							processExitHandlers.ContainsKey(_process.id) &&
-							!_process.asyncTask.IsCompleted
-						)
+						else
 						{
-							_process.asyncTask.OnExit(_process.childProcess, null);
+
+							if (_process.showOutput && !String.IsNullOrEmpty(e.Data))
+								Logger.Info($"Process [{_processId}]: {e.Data}");
+
+							if (
+								_process.childProcess.HasExited &&
+								processExitHandlers.ContainsKey(_process.id) &&
+								!_process.asyncTask.IsCompleted
+							)
+							{
+								_process.asyncTask.OnExit(_process.childProcess, null);
+							}
 						}
+					}
+					catch (KeyNotFoundException)
+					{
+						Logger.Warn($"Process [{_processId}] no longer exists");
 					}
 				}
 			);
@@ -115,31 +125,41 @@ namespace adaptiva.adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler(
 				(object sender, DataReceivedEventArgs e) =>
 				{
-					AsyncProcess _process = processes[_processId];
-
-					if (_process == null)
-						return;
-
-					else
+					try
 					{
-						if (!String.IsNullOrEmpty(e.Data))
-						{
-							if (_process.showOutput)
-								Logger.Error($"Process [{_processId}]: {e.Data}");
-							if (!errorOutput.ContainsKey(_processId))
-								errorOutput.TryAdd(_processId, new StringBuilder());
+						if (!processes.ContainsKey(_processId))
+							return;
+						
+						AsyncProcess _process = processes[_processId];
 
-							errorOutput[_processId].AppendLine(e.Data);
-						}
+						if (_process == null)
+							return;
 
-						if (
-							_process.childProcess.HasExited &&
-							processExitHandlers.ContainsKey(_process.id) &&
-							!_process.asyncTask.IsCompleted
-						)
+						else
 						{
-							_process.asyncTask.OnExit(_process.childProcess, null);
+							if (!String.IsNullOrEmpty(e.Data))
+							{
+								if (_process.showOutput)
+									Logger.Error($"Process [{_processId}]: {e.Data}");
+								if (!errorOutput.ContainsKey(_processId))
+									errorOutput.TryAdd(_processId, new StringBuilder());
+
+								errorOutput[_processId].AppendLine(e.Data);
+							}
+
+							if (
+								_process.childProcess.HasExited &&
+								processExitHandlers.ContainsKey(_process.id) &&
+								!_process.asyncTask.IsCompleted
+							)
+							{
+								_process.asyncTask.OnExit(_process.childProcess, null);
+							}
 						}
+					}
+					catch (KeyNotFoundException)
+					{
+						Logger.Warn($"Process [{_processId}] no longer exists");
 					}
 				}
 			);
@@ -151,20 +171,27 @@ namespace adaptiva.adabuild.CommandLine
 		{
 			EventHandler _handler = new EventHandler((object sender, EventArgs e) =>
 			{
-				if (!processes.ContainsKey(_processId))
-					return;
-
-				AsyncProcess _process = processes[_processId];
-
-				if (_process.childProcess.ExitCode > 0)
+				try
 				{
-					if (errorOutput.ContainsKey(_processId))
-						Logger.Error($"Process [{_processId}]: \n\n{errorOutput[_processId]}");
+					if (!processes.ContainsKey(_processId))
+						return;
 
-					DestroyAllProcesses();
+					AsyncProcess _process = processes[_processId];
+
+					if (_process.childProcess.ExitCode > 0)
+					{
+						if (errorOutput.ContainsKey(_processId))
+							Logger.Error($"Process [{_processId}]: \n\n{errorOutput[_processId]}");
+
+						DestroyAllProcesses();
+					}
+					else
+						DestroyProcess(_process);
 				}
-				else
-					DestroyProcess(_process);
+				catch (KeyNotFoundException)
+				{
+					Logger.Warn($"Process [{_processId}] no longer exists");
+				}
 			});
 
 			processExitHandlers.TryAdd(_processId, _handler);
