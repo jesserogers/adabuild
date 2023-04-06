@@ -219,8 +219,6 @@ namespace adaptiva.adabuild.Monitor
 					}
 				}
 			}
-
-
 		}
 
 	}
