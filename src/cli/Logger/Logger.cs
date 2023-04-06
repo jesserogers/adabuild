@@ -15,5 +15,10 @@ namespace adaptiva.adabuild
 			Console.Error.WriteLine($"[adabuild]: ERROR: {message}");
 		}
 
+		public static void Warn(string message)
+		{
+			Console.WriteLine($"[adabuild]: WARN: {message}");
+		}
+
 	}
 }
