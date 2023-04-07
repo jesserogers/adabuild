@@ -6,6 +6,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.10
+
+#### Added
+ - Added a `Warn` method to `Logger` static class
+
+#### Fixed
+ - Fixed an issue where killing a process after removing it from a concurrent dictionary bricked angular builds inexplicably
+ - Fixed various uncaught `KeyNotFoundException` instances
+
 ### v0.0.9
 
 #### Fixed
