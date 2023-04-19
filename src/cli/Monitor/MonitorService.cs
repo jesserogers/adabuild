@@ -107,6 +107,8 @@ namespace adaptiva.adabuild.Monitor
 			{
 				try
 				{
+					if (!state.history.ContainsKey(_projectDefinition.name))
+						continue;
 
 					string _projectDirectoryName = _projectDefinition.Directory();
 					string _projectPath = $"{RootPath}\\{_projectDirectoryName}";
@@ -116,9 +118,6 @@ namespace adaptiva.adabuild.Monitor
 						IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
 							_projectPath, _extension, SearchOption.AllDirectories
 						);
-
-						if (!state.history.ContainsKey(_projectDefinition.name))
-							continue;
 
 						long _lastProjectBuildTime = state.history[_projectDefinition.name];
 
