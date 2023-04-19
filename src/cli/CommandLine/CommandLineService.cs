@@ -223,6 +223,7 @@ namespace adaptiva.adabuild.CommandLine
 			DataReceivedEventHandler _stdOutHandler;
 			DataReceivedEventHandler _stdErrorHandler;
 			StringBuilder _errorMessages;
+			AsyncProcess _removedProcess;
 
 			try
 			{
@@ -234,7 +235,7 @@ namespace adaptiva.adabuild.CommandLine
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
 				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);
 				errorOutput.TryRemove(_process.id, out _errorMessages);
-				processes.TryRemove(_process.id, out _process);
+				processes.TryRemove(_process.id, out _removedProcess);
 
 				_process?.childProcess?.Kill();
 			}
