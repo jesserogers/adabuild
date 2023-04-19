@@ -10,10 +10,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 #### Added
  - Added a `Warn` method to `Logger` static class
+ - Added `semver` package
+ - Added `version` property to `BuildConfiguration`, plus a check on load to make sure installed version isn't outdated
 
 #### Fixed
- - Fixed an issue where killing a process after removing it from a concurrent dictionary bricked angular builds inexplicably
  - Fixed various uncaught `KeyNotFoundException` instances
+ - Fixed a performance issue where `MonitorService#DetectChanges` waited until after enumerating the directory to check if the project exists in the state map
 
 ### v0.0.9
 
