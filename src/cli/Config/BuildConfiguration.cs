@@ -22,6 +22,8 @@ namespace adaptiva.adabuild.Config
 
 		public string onError { get; set; }
 
+		public string version { get; set; }
+
 		public BuildConfiguration()
 		{
 
