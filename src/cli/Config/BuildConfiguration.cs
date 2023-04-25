@@ -18,7 +18,7 @@ namespace adaptiva.adabuild.Config
 		public string terminal { get; set; } = "cmd.exe";
 
 		// supports comma separated list
-		public string fileExtension { get; set; } = "*";
+		public string[] fileExtensions { get; set; } = new string[1] { "*" };
 
 		public string onError { get; set; }
 
