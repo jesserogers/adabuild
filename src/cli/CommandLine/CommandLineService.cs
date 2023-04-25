@@ -237,7 +237,7 @@ namespace adaptiva.adabuild.CommandLine
 				errorOutput.TryRemove(_process.id, out _errorMessages);
 				processes.TryRemove(_process.id, out _removedProcess);
 
-				_process?.childProcess?.Kill();
+				_process?.Kill();
 			}
 			catch (NullReferenceException e)
 			{

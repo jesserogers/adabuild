@@ -72,6 +72,11 @@ namespace adaptiva.adabuild.CommandLine
 			return childProcess.ExitCode;
 		}
 
+		public void Kill()
+		{
+			childProcess?.Kill();
+		}
+
 	}
 
 }
