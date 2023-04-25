@@ -27,8 +27,7 @@ namespace adaptiva.adabuild.Monitor
 
 		private string RootPath => $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
 
-		private string[] FilePatterns => configService.configuration.fileExtension
-			.Split(",")
+		private string[] FilePatterns => configService.configuration.fileExtensions
 			.Select(_extension => $"*.{_extension.Trim()}")
 			.ToArray();
 
