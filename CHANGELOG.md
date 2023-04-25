@@ -17,6 +17,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  - Fixed various uncaught `KeyNotFoundException` instances
  - Fixed a performance issue where `MonitorService#DetectChanges` waited until after enumerating the directory to check if the project exists in the state map
 
+#### Changed
+ - Changed `string fileExtension` to `string[] fileExtensions` in `BuildConfiguration`
+
 ### v0.0.9
 
 #### Fixed
