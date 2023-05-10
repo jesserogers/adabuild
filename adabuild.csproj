@@ -8,4 +8,7 @@
 		<PublishSingleFile>true</PublishSingleFile>
 		<PublishDir>.\dist</PublishDir>
 	</PropertyGroup>
+  	<ItemGroup>
+  	  <PackageReference Include="semver" Version="2.3.0" />
+  	</ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace adabuild.Config
+namespace adaptiva.adabuild.Config
 {
 	public class BuildConfiguration
 	{
@@ -17,9 +17,12 @@ namespace adabuild.Config
 
 		public string terminal { get; set; } = "cmd.exe";
 
-		public string fileExtension { get; set; } = "*";
+		// supports comma separated list
+		public string[] fileExtensions { get; set; } = new string[1] { "*" };
 
 		public string onError { get; set; }
+
+		public string version { get; set; }
 
 		public BuildConfiguration()
 		{

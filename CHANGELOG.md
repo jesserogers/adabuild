@@ -6,6 +6,39 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### v0.0.10
+
+#### Added
+ - Added a `Warn` method to `Logger` static class
+ - Added `semver` package
+ - Added `version` property to `BuildConfiguration`, plus a check on load to make sure installed version isn't outdated
+
+#### Fixed
+ - Fixed various uncaught `KeyNotFoundException` instances
+ - Fixed a performance issue where `MonitorService#DetectChanges` waited until after enumerating the directory to check if the project exists in the state map
+
+#### Changed
+ - Changed `string fileExtension` to `string[] fileExtensions` in `BuildConfiguration`
+
+### v0.0.9
+
+#### Fixed
+ - Fixed duplicate log messages around pre-build script execution
+ - Added stack traces to `CommandLineService#DestroyProcess` error handlers
+ - Fixed `NullReferenceException` in `CommandLineService#DestroyProcess`
+ - Fixed an issue where adabuild logged a C# class name instead of an Angular project name
+
+#### Removed
+ - Removed `ConfigService#CopyTsConfig` method
+
+### v0.0.8
+
+#### Fixed
+ - Fixed error handling in `CommandLineService#DestroyProcess`
+
+#### Added
+ - Added timestamps to all build status messages in `BuildService`
+
 ### v0.0.7
 
 #### Fixed

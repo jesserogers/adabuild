@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
-using adabuild.FileSystem;
-using adabuild.Config;
+using adaptiva.adabuild.FileSystem;
+using adaptiva.adabuild.Config;
 
-namespace adabuild.Monitor
+namespace adaptiva.adabuild.Monitor
 {
 
 	public class MonitorService
@@ -23,6 +24,12 @@ namespace adabuild.Monitor
 		private Action SaveState;
 
 		private Dictionary<string, HashSet<string>> directoryToProjectNameMapping;
+
+		private string RootPath => $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
+
+		private string[] FilePatterns => configService.configuration.fileExtensions
+			.Select(_extension => $"*.{_extension.Trim()}")
+			.ToArray();
 
 		public MonitorService(
 			FileSystemService _fileSystem,
@@ -84,12 +91,12 @@ namespace adabuild.Monitor
 		{
 			foreach (ProjectDefinition _project in configService.GetProjects())
 			{
-				string _path = ProjectDefinition.GetProjectDirectory(_project);
+				string _path = _project.Directory();
 
 				if (directoryToProjectNameMapping.ContainsKey(_path))
 					directoryToProjectNameMapping[_path].Add(_project.name);
 				else
-					directoryToProjectNameMapping.Add(_path, new HashSet<string>(new string[1] {_project.name}));
+					directoryToProjectNameMapping.Add(_path, new HashSet<string>(new string[1] { _project.name }));
 			}
 		}
 
@@ -99,27 +106,30 @@ namespace adabuild.Monitor
 			{
 				try
 				{
-
-					string _projectDirectoryName = ProjectDefinition.GetProjectDirectory(_projectDefinition);
-
-					IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
-						$"{fileSystemService.Root}\\{configService.configuration.projectsFolder}\\{_projectDirectoryName}",
-						$"*.{configService.configuration.fileExtension}",
-						SearchOption.AllDirectories
-					);
-
 					if (!state.history.ContainsKey(_projectDefinition.name))
 						continue;
 
-					long _lastProjectBuildTime = state.history[_projectDefinition.name];
+					string _projectDirectoryName = _projectDefinition.Directory();
+					string _projectPath = $"{RootPath}\\{_projectDirectoryName}";
 
-					foreach (string _file in _projectDirectory)
+					foreach (string _extension in FilePatterns)
 					{
-						DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
-						if (((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds() > state.history[_projectDefinition.name])
+						IEnumerable<string> _projectDirectory = Directory.EnumerateFiles(
+							_projectPath, _extension, SearchOption.AllDirectories
+						);
+
+						long _lastProjectBuildTime = state.history[_projectDefinition.name];
+
+						foreach (string _file in _projectDirectory)
 						{
-							state.Change(_projectDefinition.name);
-							break;
+							DateTime _lastUpdated = File.GetLastWriteTimeUtc(_file);
+							long _lastUpdatedMs = ((DateTimeOffset)_lastUpdated).ToUnixTimeMilliseconds();
+
+							if (_lastUpdatedMs > state.history[_projectDefinition.name])
+							{
+								state.Change(_projectDefinition.name);
+								break;
+							}
 						}
 					}
 				}
@@ -136,8 +146,12 @@ namespace adabuild.Monitor
 			if (!configService.IsValid)
 				return;
 
-			string _path = $"{fileSystemService.Root}\\{configService.configuration.projectsFolder}";
-			watcher = new FileSystemWatcher(_path, $"*.{configService.configuration.fileExtension}");
+			watcher = new FileSystemWatcher(RootPath);
+
+			foreach (string _extension in FilePatterns)
+			{
+				watcher.Filters.Add(_extension);
+			}
 
 			watcher.NotifyFilter = NotifyFilters.DirectoryName
 				| NotifyFilters.FileName
@@ -188,9 +202,9 @@ namespace adabuild.Monitor
 
 		private void CheckPath(string _path)
 		{
-			foreach (ProjectDefinition _projectDef in configService.GetProjects())
+			foreach (ProjectDefinition _projectDefinition in configService.GetProjects())
 			{
-				string _directory = ProjectDefinition.GetProjectDirectory(_projectDef);
+				string _directory = _projectDefinition.Directory();
 
 				if (_path.Contains($"\\{_directory}\\"))
 				{
@@ -203,8 +217,6 @@ namespace adabuild.Monitor
 					}
 				}
 			}
-
-			
 		}
 
 	}

@@ -1,10 +1,10 @@
-using adabuild.Build;
-using adabuild.CommandLine;
-using adabuild.Config;
-using adabuild.FileSystem;
-using adabuild.Monitor;
+using adaptiva.adabuild.Build;
+using adaptiva.adabuild.CommandLine;
+using adaptiva.adabuild.Config;
+using adaptiva.adabuild.FileSystem;
+using adaptiva.adabuild.Monitor;
 
-namespace adabuild
+namespace adaptiva.adabuild
 {
 
 	public static class Injector
@@ -84,7 +84,7 @@ namespace adabuild
 			}
 		}
 
-		public static Cli CLI
+		public static Cli cli
 		{
 			get
 			{

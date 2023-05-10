@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using adabuild.Build;
-using adabuild.CommandLine;
-using adabuild.Config;
-using adabuild.Monitor;
+using adaptiva.adabuild.Build;
+using adaptiva.adabuild.CommandLine;
+using adaptiva.adabuild.Config;
+using adaptiva.adabuild.Monitor;
 
-namespace adabuild
+namespace adaptiva.adabuild
 {
 
 	public class Cli
 	{
 
-		private static readonly string VERSION = "0.0.7";
+		public static readonly string VERSION = "0.0.10";
 
 		private static readonly string INVALID_CONFIG_MSG = "No available configuration file";
 

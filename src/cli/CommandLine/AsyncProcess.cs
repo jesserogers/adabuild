@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace adabuild.CommandLine
+namespace adaptiva.adabuild.CommandLine
 {
 
 	public class AsyncProcess
@@ -70,6 +70,11 @@ namespace adabuild.CommandLine
 
 			await asyncTask.GetTask();
 			return childProcess.ExitCode;
+		}
+
+		public void Kill()
+		{
+			childProcess?.Kill();
 		}
 
 	}

@@ -5,15 +5,17 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
+using adaptiva.adabuild.FileSystem;
+using adaptiva.adabuild.Config;
 
-namespace adabuild.CommandLine
+namespace adaptiva.adabuild.CommandLine
 {
 	public class CommandLineService
 	{
 
-		private FileSystem.FileSystemService fileSystemService;
+		private FileSystemService fileSystemService;
 
-		private Config.ConfigService configService;
+		private ConfigService configService;
 
 		private ConcurrentDictionary<int, AsyncProcess> processes;
 
@@ -25,7 +27,7 @@ namespace adabuild.CommandLine
 
 		private ConcurrentDictionary<int, StringBuilder> errorOutput;
 
-		public CommandLineService(FileSystem.FileSystemService _fileSystemService, Config.ConfigService _configService)
+		public CommandLineService(FileSystemService _fileSystemService, ConfigService _configService)
 		{
 			fileSystemService = _fileSystemService;
 			configService = _configService;
@@ -82,25 +84,35 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler(
 				(object sender, DataReceivedEventArgs e) =>
 				{
-					AsyncProcess _process = processes[_processId];
-
-					if (_process == null)
-						return;
-
-					else
+					try
 					{
+						if (!processes.ContainsKey(_processId))
+							return;
+						
+						AsyncProcess _process = processes[_processId];
 
-						if (_process.showOutput && !String.IsNullOrEmpty(e.Data))
-							Logger.Info($"Process [{_processId}]: {e.Data}");
+						if (_process == null)
+							return;
 
-						if (
-							_process.childProcess.HasExited &&
-							processExitHandlers.ContainsKey(_process.id) &&
-							!_process.asyncTask.IsCompleted
-						)
+						else
 						{
-							_process.asyncTask.OnExit(_process.childProcess, null);
+
+							if (_process.showOutput && !String.IsNullOrEmpty(e.Data))
+								Logger.Info($"Process [{_processId}]: {e.Data}");
+
+							if (
+								_process.childProcess.HasExited &&
+								processExitHandlers.ContainsKey(_process.id) &&
+								!_process.asyncTask.IsCompleted
+							)
+							{
+								_process.asyncTask.OnExit(_process.childProcess, null);
+							}
 						}
+					}
+					catch (KeyNotFoundException)
+					{
+						Logger.Warn($"Process [{_processId}] no longer exists");
 					}
 				}
 			);
@@ -113,31 +125,41 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _handler = new DataReceivedEventHandler(
 				(object sender, DataReceivedEventArgs e) =>
 				{
-					AsyncProcess _process = processes[_processId];
-
-					if (_process == null)
-						return;
-
-					else
+					try
 					{
-						if (!String.IsNullOrEmpty(e.Data))
-						{
-							if (_process.showOutput)
-								Logger.Error($"Process [{_processId}]: {e.Data}");
-							if (!errorOutput.ContainsKey(_processId))
-								errorOutput.TryAdd(_processId, new StringBuilder());
+						if (!processes.ContainsKey(_processId))
+							return;
+						
+						AsyncProcess _process = processes[_processId];
 
-							errorOutput[_processId].AppendLine(e.Data);
-						}
+						if (_process == null)
+							return;
 
-						if (
-							_process.childProcess.HasExited &&
-							processExitHandlers.ContainsKey(_process.id) &&
-							!_process.asyncTask.IsCompleted
-						)
+						else
 						{
-							_process.asyncTask.OnExit(_process.childProcess, null);
+							if (!String.IsNullOrEmpty(e.Data))
+							{
+								if (_process.showOutput)
+									Logger.Error($"Process [{_processId}]: {e.Data}");
+								if (!errorOutput.ContainsKey(_processId))
+									errorOutput.TryAdd(_processId, new StringBuilder());
+
+								errorOutput[_processId].AppendLine(e.Data);
+							}
+
+							if (
+								_process.childProcess.HasExited &&
+								processExitHandlers.ContainsKey(_process.id) &&
+								!_process.asyncTask.IsCompleted
+							)
+							{
+								_process.asyncTask.OnExit(_process.childProcess, null);
+							}
 						}
+					}
+					catch (KeyNotFoundException)
+					{
+						Logger.Warn($"Process [{_processId}] no longer exists");
 					}
 				}
 			);
@@ -149,20 +171,27 @@ namespace adabuild.CommandLine
 		{
 			EventHandler _handler = new EventHandler((object sender, EventArgs e) =>
 			{
-				if (!processes.ContainsKey(_processId))
-					return;
-
-				AsyncProcess _process = processes[_processId];
-
-				if (_process.childProcess.ExitCode > 0)
+				try
 				{
-					if (errorOutput.ContainsKey(_processId))
-						Logger.Error($"Process [{_processId}]: \n\n{errorOutput[_processId]}");
+					if (!processes.ContainsKey(_processId))
+						return;
 
-					DestroyAllProcesses();
+					AsyncProcess _process = processes[_processId];
+
+					if (_process.childProcess.ExitCode > 0)
+					{
+						if (errorOutput.ContainsKey(_processId))
+							Logger.Error($"Process [{_processId}]: \n\n{errorOutput[_processId]}");
+
+						DestroyAllProcesses();
+					}
+					else
+						DestroyProcess(_process);
 				}
-				else
-					DestroyProcess(_process);
+				catch (KeyNotFoundException)
+				{
+					Logger.Warn($"Process [{_processId}] no longer exists");
+				}
 			});
 
 			processExitHandlers.TryAdd(_processId, _handler);
@@ -171,8 +200,14 @@ namespace adabuild.CommandLine
 
 		private AsyncProcess SpawnProcess(string _command, bool _output)
 		{
-			return new AsyncProcess(configService.configuration.terminal, _command,
-				fileSystemService.Root, RegisterProcess, OnProcessExitFactory, _output);
+			return new AsyncProcess(
+				configService.configuration.terminal,
+				_command,
+				fileSystemService.Root,
+				RegisterProcess,
+				OnProcessExitFactory,
+				_output
+			);
 		}
 
 		private void DestroyProcess(AsyncProcess _process)
@@ -188,6 +223,7 @@ namespace adabuild.CommandLine
 			DataReceivedEventHandler _stdOutHandler;
 			DataReceivedEventHandler _stdErrorHandler;
 			StringBuilder _errorMessages;
+			AsyncProcess _removedProcess;
 
 			try
 			{
@@ -199,17 +235,17 @@ namespace adabuild.CommandLine
 				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
 				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);
 				errorOutput.TryRemove(_process.id, out _errorMessages);
-				processes.TryRemove(_process.id, out _process);
+				processes.TryRemove(_process.id, out _removedProcess);
 
-				_process.childProcess.Kill();
+				_process?.Kill();
 			}
 			catch (NullReferenceException e)
 			{
-				Logger.Error($"Failed to destroy process: {e.Message}");
-				processExitHandlers.TryRemove(_process.id, out _processExitHandler);
-				standardOutHandlers.TryRemove(_process.id, out _stdOutHandler);
-				standardErrorHandlers.TryRemove(_process.id, out _stdErrorHandler);
-				processes.TryRemove(_process.id, out _process);
+				Logger.Error($"Failed to destroy process: {e.Message}\n{e.StackTrace}");
+			}
+			catch (KeyNotFoundException e)
+			{
+				Logger.Error($"Failed to destroy process: {e.Message}\n{e.StackTrace}");
 			}
 		}
 

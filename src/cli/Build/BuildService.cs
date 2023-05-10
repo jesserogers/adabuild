@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using adabuild.CommandLine;
-using adabuild.Config;
-using adabuild.Monitor;
+using adaptiva.adabuild.CommandLine;
+using adaptiva.adabuild.Config;
+using adaptiva.adabuild.Monitor;
 
-namespace adabuild.Build
+namespace adaptiva.adabuild.Build
 {
 	public class BuildService
 	{
@@ -40,13 +40,12 @@ namespace adabuild.Build
 			foreach (string _project in _buildRequest.projects)
 			{
 				ProjectDefinition _projectDefinition = configService.GetProject(_project);
-				string _projectDirectory = ProjectDefinition.GetProjectDirectory(_projectDefinition);
 				
 				EnqueueDependencies(_projectDefinition.name, _buildRequest.incremental);
 
 				if (_buildRequest.incremental && !monitorService.state.HasChanged(_projectDefinition.name))
 				{
-					Logger.Info($"No action: {_projectDefinition} and all dependencies up to date.");
+					Logger.Info($"No action: {_projectDefinition.name} and all dependencies up to date.");
 					continue;
 				}
 
@@ -75,7 +74,7 @@ namespace adabuild.Build
 
 				if (_buildRequest.incremental && !monitorService.state.HasChanged(_project.name))
 				{
-					Logger.Info($"No action: {_project} and all dependencies up to date.");
+					Logger.Info($"No action: {_project.name} and all dependencies up to date.");
 					continue;
 				}
 
@@ -166,21 +165,20 @@ namespace adabuild.Build
 			if (buildQueue.Count < 1)
 				return _exitCode;
 
+			BuildStatus _status;
 			Benchmark _queueTimer = new Benchmark();
 
 			if (!String.IsNullOrEmpty(configService.configuration.preBuild) && _buildRequest.prebuild)
 			{
-				Logger.Info($"Executing pre-build script: {configService.configuration.preBuild}");
-
+				_status = new BuildStatus($"Executing pre-build script: {configService.configuration.preBuild}");
 				_exitCode = await commandLineService.Exec(configService.configuration.preBuild, _buildRequest.output);
 				
 				if (_exitCode != 0)
 					return _exitCode;
 			}
 
-			await configService.CopyTsConfig("prod");
-
 			Queue<string> _buildGroup;
+
 			while (buildQueue.Count > 0)
 			{
 				_buildGroup = buildQueue.Dequeue();
@@ -190,29 +188,14 @@ namespace adabuild.Build
 
 				try
 				{
-					string[] _commands = _buildGroup.Select((string _name) =>
-					{
-						ProjectDefinition _project = configService.GetProject(_name);
-						string _buildCommand;
-						
-						if (String.IsNullOrEmpty(_project.buildCommand))
-							_buildCommand = $"ng build {_project.name}";
-						else
-							_buildCommand = _project.buildCommand;
-
-						if (_buildCommand.StartsWith("npm run"))
-								_buildCommand += " --";
-						
-						return (_buildRequest.projects.Contains(_project.name)) ?
-							_buildCommand + " " + _buildRequest.arguments :
-							_buildCommand;
-
-					}).ToArray();
-
 					string _groupName = String.Join(", ", _buildGroup);
 					Benchmark _groupTimer = new Benchmark();
+
+					string[] _commands = _buildGroup.Select((string _name) =>
+						new BuildCommand(configService.GetProject(_name), _buildRequest).ToString()
+					).ToArray();
 					
-					Logger.Info($"Executing build for {_groupName}...");
+					_status = new BuildStatus($"Executing build for {_groupName}...");
 					
 					if (_buildGroup.Count == 1)
 						_exitCode = await commandLineService.Exec(_commands[0], _buildRequest.output, 0);
@@ -224,14 +207,12 @@ namespace adabuild.Build
 					if (_exitCode != 0)
 					{
 						Clear();
-						Logger.Error($"Failed build for {_groupName} in {_groupTimer.Elapsed()}");
-						
+						_status = new BuildStatus($"Failed build for {_groupName}", _groupTimer);
 						await ExecuteBuildFailureScript(_buildRequest.output);
-
 						return _exitCode;
 					}
 
-					Logger.Info($"Completed build for {_groupName} in {_groupTimer.Elapsed()}");
+					_status = new BuildStatus($"Completed build for {_groupName}", _groupTimer);
 					monitorService.state.Record(_buildGroup.ToArray());
 					await monitorService.state.Save();
 					
@@ -250,11 +231,11 @@ namespace adabuild.Build
 
 			if (!String.IsNullOrEmpty(configService.configuration.postBuild) && _buildRequest.postbuild)
 			{
-				Logger.Info($"Executing post-build script: {configService.configuration.postBuild}");
+				_status = new BuildStatus($"Executing post-build script: {configService.configuration.postBuild}");
 				_exitCode = await commandLineService.Exec(configService.configuration.postBuild, _buildRequest.output);
 			}
 
-			Logger.Info($"SUCCESS: Completed build queue in {_queueTimer.Elapsed()}.");
+			_status = new BuildStatus($"SUCCESS: Completed build queue", _queueTimer);
 			Clear();
 			return _exitCode;
 		}
